@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">නිකෝ සැකසුම්</string>
+    <string name="NekoSettings">Zenigram සැකසුම්</string>
     <string name="PreferIPv6">IPv6 හරහා සම්බන්ධ වීමට කැමති නම්</string>
     <string name="MessageMenu">පණිවිඩ මෙනුව</string>
     <string name="HidePhone">මගේ දුරකථන අංකය හංගන්න</string>

@@ -7,7 +7,7 @@ $env:GRADLE_USER_HOME = "H:\GradleCache"
 $env:TEMP = "F:\Temp"
 $env:TMP = "F:\Temp"
 
-Write-Host "Compiling Zenigram arm64-v8a Release APK (Stable, non-minified)..."
+Write-Host "Compiling Zenigram arm64-v8a Release APK (v1.0.3)..."
 & .\gradlew.bat :TMessagesProj_App:assembleRelease -x lint -x test --daemon
 
 if ($LASTEXITCODE -ne 0) {
@@ -33,15 +33,24 @@ if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 }
 
-$targetName = "Zenigram-1.0.1-arm64-v8a.apk"
+$targetName = "Zenigram-1.0.3-arm64-v8a.apk"
 $destPath = Join-Path $destDir $targetName
 Copy-Item -Path $releaseApk.FullName -Destination $destPath -Force
+
+$keystore = "F:\Nekogram-main\zenigram-release.jks"
+$apksigner = "H:\Android\Sdk\build-tools\35.0.0\apksigner.bat"
+if (Test-Path $keystore) {
+    Write-Host "Signing APK with zenigram-release.jks (v1 + v2 schemes)..."
+    & $apksigner sign --ks $keystore --ks-key-alias zenigram --ks-pass pass:$env:KEYSTORE_PASS --key-pass pass:$env:KEYSTORE_PASS $destPath
+    & $apksigner verify --verbose $destPath
+}
+
 $hash = (Get-FileHash -Path $destPath -Algorithm SHA256).Hash
 $sizeMb = [math]::Round((Get-Item $destPath).Length / 1MB, 2)
 $bytes = (Get-Item $destPath).Length
 
 Write-Host "=========================================="
-Write-Host "SUCCESSFULLY BUILT STABLE RELEASE APK:"
+Write-Host "SUCCESSFULLY BUILT & SIGNED RELEASE APK:"
 Write-Host "File:   $destPath"
 Write-Host "Size:   $sizeMb MB ($bytes bytes)"
 Write-Host "SHA256: $hash"

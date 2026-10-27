@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="NekoSettings">Настройки Neko</string>
+    <string name="Nekogram" translatable="false">Zenigram</string>
+    <string name="NekoSettings">Настройки Zenigram</string>
     <string name="PreferIPv6">Предпочитать подключение через IPv6</string>
     <string name="MessageMenu">Меню сообщений</string>
     <string name="HidePhone">Скрыть мой номер телефона</string>
@@ -22,7 +23,7 @@
     <string name="AddToSavedMessages">В избранное</string>
     <string name="CreateMention">Создать упоминание</string>
     <string name="Prpr">Peropero</string>
-    <string name="NekogramRunning">Nekogram запущен</string>
+    <string name="NekogramRunning">Zenigram запущен</string>
     <string name="EventType">Иконки бокового меню</string>
     <string name="DependsOnDate">Зависит от даты</string>
     <string name="Christmas">Рождество</string>
@@ -61,14 +62,14 @@
     <string name="Categories">Настройки</string>
     <string name="OfficialChannel">Официальный канал</string>
     <string name="About">О проекте</string>
-    <string name="IgnoreBlockedAbout">ОНИ НА САМОМ ДЕЛЕ НЕ СКРЫВАЮТСЯ! Сообщения будут доступны для просмотра, но текст будет скрыт под спойлер, а автозагрузка медиа будет отключена.</string>
-    <string name="Donate">Поддержать Nekogram</string>
+    <string name="IgnoreBlockedAbout">Сообщения будут скрыты под спойлер, а автозагрузка медиа отключена. При необходимости их можно открыть по тапу.</string>
+    <string name="Donate">Поддержать Zenigram</string>
     <string name="DonateAbout">Поддержите разработку проекта.</string>
-    <string name="TranslationAbout">Помогите перевести Nekogram на ваш язык.</string>
-    <string name="Translation">Помочь перевести Neko</string>
+    <string name="TranslationAbout">Помогите перевести Zenigram на ваш язык.</string>
+    <string name="Translation">Помочь перевести Zenigram</string>
     <string name="GooglePlay">Google Play</string>
     <string name="ResetStickerSize">Сбросить размер стикера</string>
-    <string name="OfficialChannelUsername">nekoupdates</string>
+    <string name="OfficialChannelUsername">zenigram</string>
     <string name="RestartAppToTakeEffect">Перезапустите приложение для применения настроек.</string>
     <string name="DisableAppBarShadow">Отключить тень заголовка</string>
     <string name="MediaPreview">Предпросмотр медиа в списке чатов</string>
@@ -115,7 +116,7 @@
     <string name="RegistrationDateNewer">Новее %s</string>
     <string name="RegistrationDateOlder">Старше %s</string>
     <string name="RegistrationDateApproximately">Приблизительно %s</string>
-    <string name="UpdateNekogram">Обновить Nekogram</string>
+    <string name="UpdateNekogram">Обновить Zenigram</string>
     <string name="TranslationTarget">Целевой язык</string>
     <string name="TranslationTargetApp">Язык приложения</string>
     <string name="Translator">Переводчик</string>
@@ -141,9 +142,9 @@
     <string name="OfficialSite">Официальный сайт</string>
     <string name="MutualContact">Общий контакт</string>
     <string name="MutualContactDescription">Этот контакт является общим.</string>
-    <string name="InviteTextNeko">Привет, я использую Nekogram для переписки. Присоединяйся! Скачать его можно здесь: %1$s</string>
-    <string name="ShareNekogram">Поделиться Nekogram...</string>
-    <string name="NekogramVersion">Nekogram %1$s\nНа основе Telegram %2$s\nДизайн %3$s</string>
+    <string name="InviteTextNeko">Привет, я использую Zenigram для переписки. Присоединяйся! Скачать его можно здесь: %1$s</string>
+    <string name="ShareNekogram">Поделиться Zenigram...</string>
+    <string name="NekogramVersion">Zenigram %1$s</string>
     <string name="UpdateInstalling">Установка обновления...</string>
     <string name="UpdateInstallingNotification">После завершения обновления появится уведомление.</string>
     <string name="UpdateInstallingRelaunch">Когда обновление завершится, приложение будет перезапущено.</string>
@@ -166,7 +167,7 @@
     <string name="SaveToDownloadCount_few">Сохранение %1$d файлов в загрузки</string>
     <string name="SaveToDownloadCount_many">Сохранение %1$d файлов в загрузки</string>
     <string name="SaveToDownloadCount_other">Сохранение %1$d файлов в загрузки</string>
-    <string name="AppLinkNotVerifiedMessage">Для Android 12 и более поздних версий вам необходимо вручную добавить ссылку к подтверждённым ссылкам, чтобы открывать ссылки t.me в Nekogram.</string>
+    <string name="AppLinkNotVerifiedMessage">Для Android 12 и более поздних версий вам необходимо вручную добавить ссылку к подтверждённым ссылкам, чтобы открывать ссылки t.me в Zenigram.</string>
     <string name="AppLinkNotVerifiedTitle">Ссылки приложения не подтверждены</string>
     <string name="AutoTranslate">Автоперевод</string>
     <string name="AutoTranslateAbout">Автоматически переводить сообщения с иностранного языка.</string>
@@ -184,14 +185,14 @@
     <string name="TabletMode">Режим планшета</string>
     <string name="TabletModeAuto">Автоматически</string>
     <string name="DeleteAllFromSelfDone">Все ваши сообщения удалены</string>
-    <string name="UnknownNekoSettingsOption">Такого параметра Neko нет.</string>
+    <string name="UnknownNekoSettingsOption">Такого параметра Zenigram нет.</string>
     <string name="ProviderYouDaoTranslate">YouDao Translator</string>
     <string name="ProviderBaiduTranslate">Baidu Translate</string>
     <string name="ProviderSogouTranslate">Sogou Translate</string>
     <string name="Translated">переведено</string>
     <string name="PasscodeNeeded">Сначала необходимо включить код-пароль</string>
     <string name="PasscodeNeko">Код-пароль</string>
-    <string name="PasscodeShowInSettings">Показать в настройках Neko</string>
+    <string name="PasscodeShowInSettings">Показать в настройках Zenigram</string>
     <string name="PasscodeShowInSettingsAbout">После скрытия, вы можете открыть эту страницу **ТОЛЬКО** по ссылке:</string>
     <string name="PasscodeSet">Установить код-пароль</string>
     <string name="PasscodeEdit">Изменить код-пароль</string>
@@ -273,7 +274,7 @@
     <string name="NavigationAnimationBezier">Стандартная</string>
     <string name="NavigationAnimationSpring">Обычная</string>
     <string name="CloudConfig">Облачные настройки</string>
-    <string name="CloudConfigDesc">Сохранить ваши настройки Neko в облачном хранилище Telegram.</string>
+    <string name="CloudConfigDesc">Сохранить ваши настройки Zenigram в облачном хранилище Telegram.</string>
     <string name="CloudConfigSyncDate">Последняя синхронизация: %s, в облаке: %s</string>
     <string name="CloudConfigSyncDateNever">никогда</string>
     <string name="CloudConfigSync">Синхронизировать с облаком</string>
@@ -282,7 +283,7 @@
     <string name="CloudConfigRestoreShort">Восстановить</string>
     <string name="CloudConfigSyncing">Синхронизация...</string>
     <string name="CloudConfigAutoSync">Автосинхронизация</string>
-    <string name="CloudConfigAutoSyncDesc">Автоматическая синхронизация с облаком после изменения настроек Neko.</string>
+    <string name="CloudConfigAutoSyncDesc">Автоматическая синхронизация с облаком после изменения настроек Zenigram.</string>
     <string name="CloudConfigSyncFailed">Не удалось синхронизировать настройки с облаком.</string>
     <string name="CloudConfigRestoreFailed">Не удалось восстановить настройки из облака.</string>
     <string name="ReducedColors">Уменьшить количество цветов</string>
@@ -301,7 +302,7 @@
     <string name="TranscribeProviderShort">Сервис распознавания</string>
     <string name="TranscribeProviderAuto">Автоматический выбор</string>
     <string name="TranscribeProviderWorkersAI">Whisper (Workers AI)</string>
-    <string name="TranscribeProviderDesc">С параметром автоматического выбор «%s» будет использоваться, когда Telegram Premium недоступен.</string>
+    <string name="TranscribeProviderDesc">При автоматическом выборе «%s» будет использоваться, когда Telegram Premium недоступен.</string>
     <string name="CloudflareCredentials">Учётные данные Cloudflare</string>
     <string name="CloudflareCredentialsNotSet">Учётные данные Cloudflare не настроены.</string>
     <string name="CloudflareAccountID">ID аккаунта</string>
@@ -314,7 +315,7 @@
     <string name="ShortStandardQuality">SD</string>
     <string name="ForceFontWeightFallback">Принудительное уменьшение размера текста</string>
     <string name="HideChannelBottomButtons">Скрыть кнопки в каналах</string>
-    <string name="TranslationKeepFormatting">Сохранять форматирования текста при переводе</string>
+    <string name="TranslationKeepFormatting">Сохранять форматирование текста при переводе</string>
     <string name="PredictiveBackAnimation">Предсказательная обратная анимация</string>
     <string name="HideBottomNavigationBar">Скрыть нижнюю панель навигации</string>
     <string name="TabsPosition">Положение вкладок</string>
@@ -329,11 +330,160 @@
     <string name="JsonCopyKey">Копировать ключ</string>
     <string name="JsonCopyValue">Копировать значение</string>
     <string name="LocalCustomEmoji">Локальные пользовательские эмодзи</string>
-    <string name="MiniSenderAvatar">Телефотография отправителя</string>
+    <string name="MiniSenderAvatar">Аватарка отправителя</string>
     <string name="ExternalStreamingProtocol">Внешний протокол потоковой передачи</string>
     <string name="ExternalStreamingProtocolDescription">Выберите способ потоковой передачи незавершенных видеороликов на внешние плееры. Наивысший режим работает с большинством современных плееров; если видео зависит или не воспроизводится, переключитесь на HTTP.</string>
     <string name="ExternalStreamingProtocolContentProvider">Внешний поставщик контента по протоколу потоковой передачи</string>
     <string name="ExternalStreamingProtocolHttp">Внешний протокол потоковой передачи HTTP</string>
     <!-- Accessibility -->
     <string name="AccessibilitySettings">Настройки доступности</string>
+
+    <!-- Privacy Preview -->
+    <string name="SecureScreen">Конфиденциальность в недавних</string>
+    <string name="SecureScreenAbout">Скрывать содержимое приложения в диспетчере задач и блокировать снимки экрана.</string>
+
+    <!-- Zenigram Settings / Power Features -->
+    <string name="ZenigramPowerFeatures">Настройки интерфейса</string>
+    <string name="ZenigramThemeStudio">Внешний вид</string>
+    <string name="ZenigramThemeStudioDescription">Цвета Material You, пузырьки сообщений и стиль</string>
+    <string name="ZenigramGestureLab">Жесты</string>
+    <string name="ZenigramGestureLabDescription">Свайп в списке чатов, быстрый ответ и навигация</string>
+    <string name="AdaptivePerformance">Плавность и скорость</string>
+    <string name="AdaptivePerformanceDesc">Оптимизация анимаций и быстродействие интерфейса</string>
+    <string name="AdaptivePerformanceSettings">Плавность и скорость</string>
+    <string name="AdaptivePerformanceSettingsDesc">Оптимизация анимаций и быстродействие интерфейса</string>
+    <string name="ZenigramDiagnostics">Информация о системе</string>
+    <string name="ZenigramDiagnosticsDesc">Память, кэш и характеристики устройства</string>
+
+    <!-- Theme Studio -->
+    <string name="ThemeStudioThemeMode">Режим темы</string>
+    <string name="ThemeStudioThemeSystem">Как в системе</string>
+    <string name="ThemeStudioThemeLight">Светлая</string>
+    <string name="ThemeStudioThemeDark">Тёмная</string>
+    <string name="ThemeStudioDynamicMonet">Динамические цвета Monet</string>
+    <string name="ThemeStudioDynamicMonetDesc">Цвета Material You на основе ваших обоев</string>
+    <string name="ThemeStudioMonetActiveHint">Используются цвета системы</string>
+    <string name="ThemeStudioMonetActiveNotice">При включённых динамических цветах Monet палитра формируется системой</string>
+    <string name="ThemeStudioAccentColor">Палитра акцентных цветов</string>
+    <string name="ThemeStudioBubblesHeader">Сообщения и пузырьки</string>
+    <string name="ThemeStudioOutBubbleColor">Цвет пузырьков сообщений</string>
+    <string name="ThemeStudioBubbleRadius">Радиус скругления пузырьков</string>
+    <string name="ThemeStudioBubbleCompact">Компактный (8 dp)</string>
+    <string name="ThemeStudioBubbleStandard">Стандартный (16 dp)</string>
+    <string name="ThemeStudioBubbleRounded">Выразительный Pixel (24 dp)</string>
+    <string name="ThemeStudioBubbleRadiusIn">Радиус входящих сообщений</string>
+    <string name="ThemeStudioBubbleRadiusOut">Радиус исходящих сообщений</string>
+    <string name="ThemeStudioDensity">Плотность интерфейса</string>
+    <string name="ThemeStudioDensityCompact">Компактная</string>
+    <string name="ThemeStudioDensityDefault">По умолчанию</string>
+    <string name="ThemeStudioDensitySpacious">Просторная</string>
+    <string name="ThemeStudioAnimationSpeed">Скорость анимаций</string>
+    <string name="ThemeStudioAnimationSpeedOff">Без анимаций (0x)</string>
+    <string name="ThemeStudioAnimationSpeedFast">Быстрая (0.5x)</string>
+    <string name="ThemeStudioAnimationSpeedNormal">Обычная (1.0x)</string>
+    <string name="ThemeStudioAnimationSpeedRelaxed">Плавная (1.5x)</string>
+    <string name="ThemeStudioReset">Сбросить настройки</string>
+    <string name="ThemeStudioResetConfirm">Сбросить все настройки оформления к значениям по умолчанию?</string>
+
+    <!-- Gesture Lab -->
+    <string name="GestureChatListSwipe">Действие по свайпу</string>
+    <string name="GestureChatListSwipeDesc">Действие при свайпе диалога в списке чатов</string>
+    <string name="GestureDoubleTap">Действия двойного нажатия</string>
+    <string name="GestureDoubleTapIn">Двойной тап по входящему</string>
+    <string name="GestureDoubleTapOut">Двойной тап по исходящему</string>
+    <string name="GestureInChat">Жесты внутри диалога</string>
+    <string name="GestureSwipeToReply">Свайп для ответа</string>
+    <string name="GestureSwipeToReplyDesc">Свайп сообщения вбок для быстрого ответа</string>
+    <string name="GestureQuickForward">Быстрая пересылка</string>
+    <string name="GestureQuickForwardDesc">Пересылка без цитирования автора</string>
+    <string name="GestureOpenArchiveOnPull">Потянуть для открытия архива</string>
+
+    <!-- Adaptive Performance -->
+    <string name="PerformanceHighMode">Режим высокой производительности</string>
+    <string name="PerformanceHighModeDesc">Байпас ресурсоёмких шейдеров размытия для максимального FPS</string>
+    <string name="PerformanceOptimizeThumbnails">Оптимизация миниатюр</string>
+    <string name="PerformanceOptimizeThumbnailsDesc">Снижение потребления памяти и пиков декодирования при быстром скролле</string>
+    <string name="PerformanceScaleAnimations">Адаптивный пейсинг анимаций</string>
+    <string name="PerformanceScaleAnimationsDesc">Оптимизация длительности анимаций под экраны 60/120 Гц</string>
+
+    <!-- Zenigram Diagnostics -->
+    <string name="DiagnosticsStartupHeader">Производительность запуска</string>
+    <string name="DiagnosticsColdStart">Время холодного запуска</string>
+    <string name="DiagnosticsColdStartDesc">Измерено от старта процесса до отрисовки первого кадра</string>
+    <string name="DiagnosticsAppUptime">Время работы приложения</string>
+    <string name="DiagnosticsMemoryHeader">Потребление оперативной памяти</string>
+    <string name="DiagnosticsPssMemory">Текущая память PSS</string>
+    <string name="DiagnosticsDalvikHeap">Куча Dalvik</string>
+    <string name="DiagnosticsDalvikHeapAllocated">Выделено</string>
+    <string name="DiagnosticsFrameDropHeader">Метрики кадров и рендеринг</string>
+    <string name="DiagnosticsFrameRate">Частота обновления экрана</string>
+    <string name="DiagnosticsFrameDrops">Пропущенные кадры</string>
+    <string name="DiagnosticsCacheHeader">Память и кэш</string>
+    <string name="DiagnosticsCacheTotal">Общий размер кэша</string>
+    <string name="DiagnosticsClearCache">Очистить весь кэш</string>
+    <string name="DiagnosticsClearCacheDone">Кэш приложения успешно очищен</string>
+    <string name="DiagnosticsBuildHeader">Сборка и окружение</string>
+    <string name="DiagnosticsVersion">Версия Zenigram</string>
+    <string name="DiagnosticsDeviceModel">Модель устройства</string>
+    <string name="DiagnosticsAndroidOS">Операционная система</string>
+    <string name="DiagnosticsArchitecture">Архитектура</string>
+    <string name="DiagnosticsCalculating">Вычисление…</string>
+    <string name="DiagnosticsTelemetryNotice">Исключительно локальная диагностика. Нулевая телеметрия, без отправки данных в сеть.</string>
+
+    <!-- Bundled Russian Translations for Settings Fallbacks -->
+    <string name="ChangeChannelNameColor2">Оформление</string>
+    <string name="NotificationsOther">Прочее</string>
+    <string name="BubbleRadius">Углы сообщений</string>
+    <string name="General">Основные</string>
+    <string name="Filters">Папки с чатами</string>
+    <string name="SavedDialogsTab">Чаты</string>
+    <string name="SharedMediaTab2">Медиа</string>
+    <string name="LiteOptionsBlur2">Размытие</string>
+    <string name="SwipeSettingsArchive">В архив</string>
+    <string name="SwipeSettingsDelete">Удалить</string>
+    <string name="SwipeSettingsFolders">Сменить папку</string>
+    <string name="SwipeSettingsMute">Без звука</string>
+    <string name="SwipeSettingsPin">Закрепить</string>
+    <string name="SwipeSettingsRead">Прочитано</string>
+    <string name="Reactions">Реакции</string>
+    <string name="Reply">Ответить</string>
+    <string name="Edit">Изменить</string>
+    <string name="TranslateMessage">Перевести</string>
+    <string name="Reset">Сбросить</string>
+    <string name="Cancel">Отмена</string>
+    <string name="Refresh">Обновить</string>
+    <string name="Delete">Удалить</string>
+    <string name="Enable">Включить</string>
+    <string name="Hide">Скрыть</string>
+    <string name="Default">По умолчанию</string>
+    <string name="Search">Поиск</string>
+    <string name="LogOut">Выйти</string>
+    <string name="Account">Аккаунт</string>
+    <string name="OK">ОК</string>
+    <string name="Deactivate">Удалить навсегда</string>
+    <string name="EmojiUseDefault">Использовать системные эмодзи</string>
+    <string name="DoNotTranslate">Не переводить</string>
+    <string name="OpenInExternalApp">Открыть в…</string>
+    <string name="Passcode">Код-пароль</string>
+    <string name="QrCode">QR-код</string>
+    <string name="ShareFile">Поделиться</string>
+    <string name="Streaming">Стриминг</string>
+    <string name="TosDeclineDeleteAccount">Внимание, это действие необратимо удалит ваш аккаунт со всеми переписками и файлами из облака Telegram.\n\nВажно: вы можете отменить действие и предварительно экспортировать данные в Telegram Desktop (Настройки &gt; Экспорт данных).</string>
+    <string name="TranslateMessagesInfo1">Кнопка «Перевести» будет отображаться при одиночном нажатии на сообщение.</string>
+    <string name="UserColorTabProfile">Профиль</string>
+    <string name="WalletAddressCopiedBulletin">Адрес скопирован.</string>
+    <string name="WalletCopyAddress">Скопировать адрес</string>
+    <string name="WalletSendGrams">Отправить монеты</string>
+    <string name="TelegramPremium">Telegram Premium</string>
+    <string name="PremiumPreviewVoiceToText">Расшифровка голосовых сообщений</string>
+    <string name="ReportChat">Пожаловаться</string>
+    <string name="SetReminder">Напомнить</string>
+    <string name="CopyLink">Скопировать ссылку</string>
+    <string name="DisablePasscodeTurnOff">Отключить</string>
+    <string name="DeleteStickerSetsAlertTitle">Удалить %1$s</string>
+    <string name="ErrorOccurred">Произошла ошибка.</string>
+    <string name="BotAuthLogin">Войти</string>
+    <string name="Notifications">Уведомления</string>
+    <string name="Gift2InSenderHidden2">Имя отправителя видите только вы.</string>
+    <string name="Gift2InSenderMessageHidden2">Имя отправителя и сообщение видите только вы.</string>
 </resources>

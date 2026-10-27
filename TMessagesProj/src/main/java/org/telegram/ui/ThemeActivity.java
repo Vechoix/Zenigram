@@ -684,13 +684,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             chatListRow = rowCount++;
             chatListInfoRow = rowCount++;
 
-            appIconHeaderRow = rowCount++;
-            appIconSelectorRow = rowCount++;
-            appIconShadowRow = rowCount++;
-
-            swipeGestureHeaderRow = rowCount++;
-            swipeGestureRow = rowCount++;
-            swipeGestureInfoRow = rowCount++;
+            // Unified Zenigram icon - hide legacy Neko icon selector
+            appIconHeaderRow = -1;
+            appIconSelectorRow = -1;
+            appIconShadowRow = -1;
 
             nightThemeRow = rowCount++;
             browserRow = rowCount++;
@@ -2587,7 +2584,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
                     } else if (position == selectThemeHeaderRow) {
                         headerCell.setText(getString("SelectTheme", R.string.SelectTheme));
                     } else if (position == appIconHeaderRow) {
-                        headerCell.setText(String.format("%s %s", getString(R.string.AppIcon), "@RKBDI"));
+                        headerCell.setText(getString("AppIcon", R.string.AppIcon));
                     } else if (position == otherHeaderRow) {
                         headerCell.setText(getString("OtherSettings", R.string.OtherSettings));
                     } else if (position == mediaSoundHeaderRow) {

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Nekogram" translatable="false">Nekogram</string>
-    <string name="NekogramBeta" translatable="false">Nekogram Beta</string>
-    <string name="NekoSettings">Neko Settings</string>
+    <string name="Nekogram" translatable="false">Zenigram</string>
+    <string name="NekogramBeta" translatable="false">Zenigram</string>
+    <string name="NekoSettings">Zenigram Settings</string>
     <string name="PreferIPv6">Prefer connecting through IPv6</string>
     <string name="MessageMenu">Message menu</string>
     <string name="HidePhone">Hide my phone number</string>
@@ -24,7 +24,7 @@
     <string name="AddToSavedMessages">Save Message</string>
     <string name="CreateMention">Create Mention</string>
     <string name="Prpr">Peropero</string>
-    <string name="NekogramRunning">Nekogram is running</string>
+    <string name="NekogramRunning">Zenigram is running</string>
     <string name="EventType">Sidebar icon set</string>
     <string name="DependsOnDate">Depends on date</string>
     <string name="Christmas">Christmas</string>
@@ -66,11 +66,11 @@
     <string name="IgnoreBlockedAbout">IT IS NOT REALLY HIDE! Messages are still available to view, but text will be converted to Spoiler and media won\'t auto download.</string>
     <string name="Donate">Donate</string>
     <string name="DonateAbout">Support our development.</string>
-    <string name="TranslationAbout">Help us to translate Nekogram to your language.</string>
-    <string name="Translation">Translate Nekogram</string>
+    <string name="TranslationAbout">Help us to translate Zenigram to your language.</string>
+    <string name="Translation">Translate Zenigram</string>
     <string name="GooglePlay">Google Play</string>
     <string name="ResetStickerSize">Reset sticker size</string>
-    <string name="OfficialChannelUsername">nekoupdates</string>
+    <string name="OfficialChannelUsername">zenigram</string>
     <string name="RestartAppToTakeEffect">Restart the app to take effect.</string>
     <string name="DisableAppBarShadow">Disable title bar shadow</string>
     <string name="MediaPreview">Media preview in dialog list</string>
@@ -83,7 +83,7 @@
     <string name="AutoPauseVideo">Auto pause video</string>
     <string name="AutoPauseVideoAbout">When lock screen/switch to background.</string>
     <string name="DisableProximityEvents">Disable proximity events</string>
-    <string name="Page1Message2">Nekogram is an **unofficial** messaging app\nthat uses Telegram\'s API.</string>
+    <string name="Page1Message2">Zenigram is a fast, beautiful messaging app in Material 3 style using Telegram\'s API.</string>
     <string name="MapDriftingFix">Map drifting fix for Mainland China</string>
     <string name="VoiceEnhancements">Voice enhancements</string>
     <string name="VoiceEnhancementsAbout">Noise Suppression and Voice Normalization</string>
@@ -118,7 +118,7 @@
     <string name="RegistrationDateNewer">Newer than %s</string>
     <string name="RegistrationDateOlder">Older than %s</string>
     <string name="RegistrationDateApproximately">Approximately %s</string>
-    <string name="UpdateNekogram">Update Nekogram</string>
+    <string name="UpdateNekogram">Update Zenigram</string>
     <string name="TranslationTarget">Target language</string>
     <string name="TranslationTargetApp">Follow app</string>
     <string name="Translator">Translator</string>
@@ -144,9 +144,9 @@
     <string name="OfficialSite">Official site</string>
     <string name="MutualContact">Mutual contact</string>
     <string name="MutualContactDescription">This contact is a mutual contact.</string>
-    <string name="InviteTextNeko">Hey, I\'m using Nekogram to chat. Join me! Download it here: %1$s</string>
-    <string name="ShareNekogram">Share Nekogram...</string>
-    <string name="NekogramVersion">Nekogram %1$s\nBased on Telegram %2$s\nDesigned by %3$s</string>
+    <string name="InviteTextNeko">Hey, I\'m using Zenigram to chat. Join me! Download it here: %1$s</string>
+    <string name="ShareNekogram">Share Zenigram...</string>
+    <string name="NekogramVersion">Zenigram %1$s</string>
     <string name="UpdateInstalling">Installing update...</string>
     <string name="UpdateInstallingNotification">A notification will be shown when the update completes.</string>
     <string name="UpdateInstallingRelaunch">The app will relaunch when the update completes.</string>
@@ -169,7 +169,7 @@
     <string name="SaveToDownloadCount_few">Saving %1$d files to downloads</string>
     <string name="SaveToDownloadCount_many">Saving %1$d files to downloads</string>
     <string name="SaveToDownloadCount_other">Saving %1$d files to downloads</string>
-    <string name="AppLinkNotVerifiedMessage">For Android 12 and newer, you need to manually add link to verified links in order to open t.me links in Nekogram.</string>
+    <string name="AppLinkNotVerifiedMessage">For Android 12 and newer, you need to manually add link to verified links in order to open t.me links in Zenigram.</string>
     <string name="AppLinkNotVerifiedTitle">App links not verified</string>
     <string name="AutoTranslate">Auto translate</string>
     <string name="AutoTranslateAbout">Automatically translate messages that are in another language.</string>
@@ -187,14 +187,14 @@
     <string name="TabletMode">Tablet mode</string>
     <string name="TabletModeAuto">Auto</string>
     <string name="DeleteAllFromSelfDone">All your messages are deleted</string>
-    <string name="UnknownNekoSettingsOption">There is no such Neko Settings option.</string>
+    <string name="UnknownNekoSettingsOption">There is no such Zenigram Settings option.</string>
     <string name="ProviderYouDaoTranslate">YouDao Translator</string>
     <string name="ProviderBaiduTranslate">Baidu Translate</string>
     <string name="ProviderSogouTranslate">Sogou Translate</string>
     <string name="Translated">translated</string>
     <string name="PasscodeNeeded">You have to enable passcode lock first</string>
     <string name="PasscodeNeko">Passcode</string>
-    <string name="PasscodeShowInSettings">Show in Neko Settings</string>
+    <string name="PasscodeShowInSettings">Show in Zenigram Settings</string>
     <string name="PasscodeShowInSettingsAbout">After hiding, you can **ONLY** open this page by link:</string>
     <string name="PasscodeSet">Set passcode</string>
     <string name="PasscodeEdit">Change passcode</string>
@@ -276,7 +276,7 @@
     <string name="NavigationAnimationBezier">Classic</string>
     <string name="NavigationAnimationSpring">Natural</string>
     <string name="CloudConfig">Cloud Settings</string>
-    <string name="CloudConfigDesc">Save your Neko Settings to Telegram cloud.</string>
+    <string name="CloudConfigDesc">Save your Zenigram Settings to Telegram cloud.</string>
     <string name="CloudConfigSyncDate">Last synced: %s, cloud: %s</string>
     <string name="CloudConfigSyncDateNever">never</string>
     <string name="CloudConfigSync">Sync to cloud</string>
@@ -285,7 +285,7 @@
     <string name="CloudConfigRestoreShort">Restore</string>
     <string name="CloudConfigSyncing">Syncing...</string>
     <string name="CloudConfigAutoSync">Auto sync</string>
-    <string name="CloudConfigAutoSyncDesc">Sync to cloud automatically after making changes to Neko Settings.</string>
+    <string name="CloudConfigAutoSyncDesc">Sync to cloud automatically after making changes to Zenigram Settings.</string>
     <string name="CloudConfigSyncFailed">Failed to sync settings to cloud.</string>
     <string name="CloudConfigRestoreFailed">Failed to restore settings from cloud.</string>
     <string name="ReducedColors">Reduce colors</string>
@@ -345,9 +345,101 @@
     <string name="PassQRNewPassword">Protect this QR code with a password</string>
     <string name="ConfirmNewPassword">Confirm Password</string>
     <string name="PassQRAbout">Saves your passkey as an encrypted QR code. You can scan it to log in on another device.</string>
-    <string name="PassQREncryption">Scan with Nekogram to log in.</string>
+    <string name="PassQREncryption">Scan with Zenigram to log in.</string>
     <string name="InvalidPassQr">Invalid Passkey QR</string>
 
     <!-- Accessibility -->
     <string name="AccessibilitySettings">Accessibility settings</string>
+
+    <!-- Privacy Preview -->
+    <string name="SecureScreen">Privacy Preview</string>
+    <string name="SecureScreenAbout">Hide app content in recent tasks app switcher and block screenshots.</string>
+
+    <!-- Zenigram Settings / Power Features -->
+    <string name="ZenigramPowerFeatures">Interface Settings</string>
+    <string name="ZenigramThemeStudio">Appearance</string>
+    <string name="ZenigramThemeStudioDescription">Material You dynamic colors, bubbles &amp; style</string>
+    <string name="ZenigramGestureLab">Gestures</string>
+    <string name="ZenigramGestureLabDescription">Chat list swipe, quick reply &amp; navigation</string>
+    <string name="AdaptivePerformance">Smoothness &amp; Speed</string>
+    <string name="AdaptivePerformanceDesc">Animation optimization and fluid UI response</string>
+    <string name="AdaptivePerformanceSettings">Smoothness &amp; Speed</string>
+    <string name="AdaptivePerformanceSettingsDesc">Animation optimization and fluid UI response</string>
+    <string name="ZenigramDiagnostics">System Information</string>
+    <string name="ZenigramDiagnosticsDesc">Memory, cache and device details</string>
+
+    <!-- Theme Studio -->
+    <string name="ThemeStudioThemeMode">Theme Mode</string>
+    <string name="ThemeStudioThemeSystem">Follow System</string>
+    <string name="ThemeStudioThemeLight">Light</string>
+    <string name="ThemeStudioThemeDark">Dark</string>
+    <string name="ThemeStudioDynamicMonet">Dynamic Monet Colors</string>
+    <string name="ThemeStudioDynamicMonetDesc">Material You wallpaper-based colors</string>
+    <string name="ThemeStudioMonetActiveHint">System colors in use</string>
+    <string name="ThemeStudioMonetActiveNotice">When dynamic Monet colors are enabled, the palette is defined by the system</string>
+    <string name="ThemeStudioAccentColor">Accent Color Palette</string>
+    <string name="ThemeStudioBubblesHeader">Messages &amp; Bubbles</string>
+    <string name="ThemeStudioOutBubbleColor">Outgoing message bubble color</string>
+    <string name="ThemeStudioBubbleRadius">Bubble Radius Profile</string>
+    <string name="ThemeStudioBubbleCompact">Compact (8 dp)</string>
+    <string name="ThemeStudioBubbleStandard">Standard (16 dp)</string>
+    <string name="ThemeStudioBubbleRounded">Rounded (24 dp)</string>
+    <string name="ThemeStudioBubbleRadiusIn">Incoming Message Radius</string>
+    <string name="ThemeStudioBubbleRadiusOut">Outgoing Message Radius</string>
+    <string name="ThemeStudioDensity">Interface Density</string>
+    <string name="ThemeStudioDensityCompact">Compact</string>
+    <string name="ThemeStudioDensityDefault">Default</string>
+    <string name="ThemeStudioDensitySpacious">Spacious</string>
+    <string name="ThemeStudioAnimationSpeed">Animation Speed Scaling</string>
+    <string name="ThemeStudioAnimationSpeedOff">Instant (0x)</string>
+    <string name="ThemeStudioAnimationSpeedFast">Fast (0.5x)</string>
+    <string name="ThemeStudioAnimationSpeedNormal">Normal (1.0x)</string>
+    <string name="ThemeStudioAnimationSpeedRelaxed">Cinematic (1.5x)</string>
+    <string name="ThemeStudioReset">Reset to Defaults</string>
+    <string name="ThemeStudioResetConfirm">Reset all Theme Studio customizations back to factory defaults?</string>
+
+    <!-- Gesture Lab -->
+    <string name="GestureChatListSwipe">Swipe Action</string>
+    <string name="GestureChatListSwipeDesc">Action triggered when swiping a chat in the conversation list</string>
+    <string name="GestureDoubleTap">Double-Tap Actions</string>
+    <string name="GestureDoubleTapIn">Incoming Message Double-Tap</string>
+    <string name="GestureDoubleTapOut">Outgoing Message Double-Tap</string>
+    <string name="GestureInChat">In-Chat Navigation Gestures</string>
+    <string name="GestureSwipeToReply">Swipe to Reply</string>
+    <string name="GestureSwipeToReplyDesc">Swipe any message horizontally to reply immediately</string>
+    <string name="GestureQuickForward">Quick Forward Gesture</string>
+    <string name="GestureQuickForwardDesc">Swipe without quoted header attribution</string>
+    <string name="GestureOpenArchiveOnPull">Pulldown to Open Archive</string>
+
+    <!-- Adaptive Performance -->
+    <string name="PerformanceHighMode">High-Performance Bypass</string>
+    <string name="PerformanceHighModeDesc">Bypass multi-pass RenderNode/Blur3 shaders for high frame rates</string>
+    <string name="PerformanceOptimizeThumbnails">Optimize Thumbnail Pipeline</string>
+    <string name="PerformanceOptimizeThumbnailsDesc">Reduce memory footprint and avoid decoding spikes during fast scroll</string>
+    <string name="PerformanceScaleAnimations">Adaptive Animation Pacing</string>
+    <string name="PerformanceScaleAnimationsDesc">Streamline animation durations for fluid 60/120 Hz output</string>
+
+    <!-- Zenigram Diagnostics -->
+    <string name="DiagnosticsStartupHeader">Startup Performance</string>
+    <string name="DiagnosticsColdStart">Cold Startup Time</string>
+    <string name="DiagnosticsColdStartDesc">Measured from process launch to initial frame draw</string>
+    <string name="DiagnosticsAppUptime">App Uptime</string>
+    <string name="DiagnosticsMemoryHeader">Memory Consumption</string>
+    <string name="DiagnosticsPssMemory">Current PSS Memory</string>
+    <string name="DiagnosticsDalvikHeap">Dalvik Heap</string>
+    <string name="DiagnosticsDalvikHeapAllocated">Allocated</string>
+    <string name="DiagnosticsFrameDropHeader">Frame Metrics &amp; Rendering</string>
+    <string name="DiagnosticsFrameRate">Display Refresh Rate</string>
+    <string name="DiagnosticsFrameDrops">Frame Drops</string>
+    <string name="DiagnosticsCacheHeader">Storage &amp; Cache</string>
+    <string name="DiagnosticsCacheTotal">Total Cache Size</string>
+    <string name="DiagnosticsClearCache">Clear All Cache</string>
+    <string name="DiagnosticsClearCacheDone">App cache cleared successfully</string>
+    <string name="DiagnosticsBuildHeader">Build &amp; Environment</string>
+    <string name="DiagnosticsVersion">Zenigram Version</string>
+    <string name="DiagnosticsDeviceModel">Device Model</string>
+    <string name="DiagnosticsAndroidOS">Android OS</string>
+    <string name="DiagnosticsArchitecture">Architecture</string>
+    <string name="DiagnosticsCalculating">Calculating…</string>
+    <string name="DiagnosticsTelemetryNotice">Strictly local diagnostics. Zero telemetry, tracking, or network transmission.</string>
 </resources>
