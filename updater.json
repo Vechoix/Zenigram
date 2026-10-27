@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "downloadUrl": "https://github.com/Vechoix/Zenigram/releases/download/v1.0.0/Zenigram-13.0.2-7175-arm64-v8a.apk",
-  "changelog": "BugFix, Дуга зума в кружках"
+  "versionCode": 7175,
+  "versionName": "1.0.1",
+  "downloadUrl": "https://github.com/Vechoix/Zenigram/releases/download/v1.0.1/Zenigram-1.0.1-7175-arm64-v8a.apk",
+  "changelog": "• Исправлено наложение фото в профиле на кастомные эмодзи\n• Живой предпросмотр шрифтов в настройках внешнего вида\n• MD3-дизайн окна обновлений с защитой от зависаний\n• Градуированная линейка зума в кружках под цвет темы\n• Отладка отложенной отправки сообщений (12 сек)\n• Полное отображение провайдеров карты без усечения\n• Новая иконка оригами и стартовый экран"
 }
