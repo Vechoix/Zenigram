@@ -63,6 +63,8 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.util.TypedValue;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -268,6 +270,179 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     private final LinearLayout buttonsLayout;
     private final int buttonsSizePx;
 
+    private LinearLayout zoomPillLayout;
+
+    private ZoomArcView zoomArcView;
+
+    private class ZoomArcView extends View {
+        private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint tickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint minorTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint thumbBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint thumbTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF thumbRect = new RectF();
+        private final RectF bgRect = new RectF();
+        private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        private boolean isDragging = false;
+        private int lastHapticInt = -1;
+
+        public ZoomArcView(Context context) {
+            super(context);
+            bgPaint.setColor(0xDD18181C);
+            borderPaint.setStyle(Paint.Style.STROKE);
+            borderPaint.setStrokeWidth(AndroidUtilities.dp(1));
+            borderPaint.setColor(0x33FFFFFF);
+
+            trackPaint.setStyle(Paint.Style.STROKE);
+            trackPaint.setStrokeWidth(AndroidUtilities.dp(2));
+            trackPaint.setColor(0x44FFFFFF);
+            trackPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            tickPaint.setStyle(Paint.Style.STROKE);
+            tickPaint.setStrokeWidth(AndroidUtilities.dp(2));
+            tickPaint.setColor(0xCCFFFFFF);
+            tickPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            minorTickPaint.setStyle(Paint.Style.STROKE);
+            minorTickPaint.setStrokeWidth(AndroidUtilities.dp(1));
+            minorTickPaint.setColor(0x66FFFFFF);
+            minorTickPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            textPaint.setTextSize(AndroidUtilities.dp(11));
+            textPaint.setTypeface(AndroidUtilities.bold());
+            textPaint.setColor(0xAAFFFFFF);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+
+            thumbBgPaint.setStyle(Paint.Style.FILL);
+
+            thumbTextPaint.setTextSize(AndroidUtilities.dp(12));
+            thumbTextPaint.setTypeface(AndroidUtilities.bold());
+            thumbTextPaint.setColor(0xFFFFFFFF);
+            thumbTextPaint.setTextAlign(Paint.Align.CENTER);
+        }
+
+        private float zoomToProgress(float zoom) {
+            if (zoom <= 2.0f) {
+                return (zoom - 1.0f) * 0.333f;
+            } else if (zoom <= 5.0f) {
+                return 0.333f + ((zoom - 2.0f) / 3.0f) * 0.333f;
+            } else {
+                return 0.666f + ((zoom - 5.0f) / 5.0f) * 0.334f;
+            }
+        }
+
+        private float progressToZoom(float p) {
+            p = Utilities.clamp(p, 1.0f, 0.0f);
+            if (p <= 0.333f) {
+                return 1.0f + (p / 0.333f) * 1.0f;
+            } else if (p <= 0.666f) {
+                return 2.0f + ((p - 0.333f) / 0.333f) * 3.0f;
+            } else {
+                return 5.0f + ((p - 0.666f) / 0.334f) * 5.0f;
+            }
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            int w = getWidth();
+            int h = getHeight();
+            if (w <= 0 || h <= 0) return;
+
+            // Rounded background pill
+            bgRect.set(0, 0, w, h);
+            canvas.drawRoundRect(bgRect, AndroidUtilities.dp(26), AndroidUtilities.dp(26), bgPaint);
+            canvas.drawRoundRect(bgRect, AndroidUtilities.dp(26), AndroidUtilities.dp(26), borderPaint);
+
+            float padding = AndroidUtilities.dp(36);
+            float trackWidth = w - padding * 2;
+            float lineY = h / 2f + AndroidUtilities.dp(2);
+
+            // Draw track line
+            canvas.drawLine(padding, lineY, w - padding, lineY, trackPaint);
+
+            // Major values: 1x, 2x, 5x, 10x
+            float[] majorZooms = {1.0f, 2.0f, 5.0f, 10.0f};
+            String[] majorLabels = {"1", "2", "5", "10"};
+
+            for (int i = 0; i < majorZooms.length; i++) {
+                float p = zoomToProgress(majorZooms[i]);
+                float tx = padding + p * trackWidth;
+                // Major tick
+                canvas.drawLine(tx, lineY - AndroidUtilities.dp(8), tx, lineY + AndroidUtilities.dp(8), tickPaint);
+                // Label below tick
+                canvas.drawText(majorLabels[i], tx, lineY + AndroidUtilities.dp(19), textPaint);
+            }
+
+            // Minor ticks
+            float[] minorZooms = {1.25f, 1.5f, 1.75f, 2.75f, 3.5f, 4.25f, 6.25f, 7.5f, 8.75f};
+            for (float mz : minorZooms) {
+                float p = zoomToProgress(mz);
+                float mx = padding + p * trackWidth;
+                canvas.drawLine(mx, lineY - AndroidUtilities.dp(4), mx, lineY + AndroidUtilities.dp(4), minorTickPaint);
+            }
+
+            // Draw Active Thumb Pill [ 3.3x ]
+            float currentProg = zoomToProgress(currentStaticZoom);
+            float thumbX = padding + currentProg * trackWidth;
+            float thumbWidth = AndroidUtilities.dp(48);
+            float thumbHeight = AndroidUtilities.dp(24);
+            float thumbY = lineY - AndroidUtilities.dp(4);
+
+            thumbRect.set(thumbX - thumbWidth / 2f, thumbY - thumbHeight / 2f, thumbX + thumbWidth / 2f, thumbY + thumbHeight / 2f);
+
+            int accent = tw.nekomimi.nekogram.NekoConfig.customAccentColor != 0 ?
+                    tw.nekomimi.nekogram.NekoConfig.customAccentColor : Theme.getColor(Theme.key_chats_actionBackground);
+            if (accent == 0) accent = 0xFFC4A98F;
+            thumbBgPaint.setColor(accent);
+
+            canvas.drawRoundRect(thumbRect, AndroidUtilities.dp(12), AndroidUtilities.dp(12), thumbBgPaint);
+
+            String label = String.format(java.util.Locale.US, "%.1fx", currentStaticZoom);
+            canvas.drawText(label, thumbX, thumbY + AndroidUtilities.dp(4.5f), thumbTextPaint);
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            float padding = AndroidUtilities.dp(36);
+            float trackWidth = getWidth() - padding * 2;
+            if (trackWidth <= 0) return false;
+
+            float x = event.getX();
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE:
+                    isDragging = true;
+                    float progress = Utilities.clamp((x - padding) / trackWidth, 1.0f, 0.0f);
+                    float targetZoom = progressToZoom(progress);
+                    float rounded = Math.round(targetZoom * 10f) / 10f;
+                    setStaticZoom(rounded);
+                    int currentInt = (int) rounded;
+                    if (currentInt != lastHapticInt && Math.abs(rounded - currentInt) < 0.05f) {
+                        lastHapticInt = currentInt;
+                        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                    }
+                    invalidate();
+                    getParent().requestDisallowInterceptTouchEvent(true);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    isDragging = false;
+                    lastHapticInt = -1;
+                    invalidate();
+                    return true;
+            }
+            return super.onTouchEvent(event);
+        }
+    }
+
+    private TextView[] zoomButtons = new TextView[3];
+    private float currentStaticZoom = 1.0f;
+    private float pinchStartZoom = 1.0f;
+
 
     @SuppressLint("ClickableViewAccessibility")
     public InstantCameraView(Context context, Delegate delegate, Theme.ResourcesProvider resourcesProvider, boolean isNewDesign) {
@@ -330,9 +505,20 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
 
         buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
-        addView(buttonsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.LEFT | Gravity.BOTTOM, 1, 0, 0, 0));
+        buttonsLayout.setGravity(Gravity.CENTER);
+        addView(buttonsLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 16));
+
+        View.OnTouchListener buttonScaleListener = (v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(120).start();
+            } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start();
+            }
+            return false;
+        };
 
         switchCameraButton = new FlashViews.ImageViewInvertable(context);
+        switchCameraButton.setOnTouchListener(buttonScaleListener);
         switchCameraButton.setScaleType(ImageView.ScaleType.CENTER);
         switchCameraButton.setContentDescription(LocaleController.getString(R.string.AccDescrSwitchCamera));
         buttonsLayout.addView(switchCameraButton, LayoutHelper.createLinear(44, 44));
@@ -392,6 +578,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
         flashButton = new FlashViews.ImageViewInvertable(context);
         flashButton.setScaleType(ImageView.ScaleType.CENTER);
+        flashButton.setOnTouchListener(buttonScaleListener);
         buttonsLayout.addView(flashButton, LayoutHelper.createLinear(44, 44));
         flashButton.setOnClickListener(v -> {
             flashing = !flashing;
@@ -435,8 +622,119 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         };
         addView(textureOverlayView, new LayoutParams(AndroidUtilities.roundPlayingMessageSize, AndroidUtilities.roundPlayingMessageSize, Gravity.CENTER));
 
+        zoomPillLayout = new LinearLayout(context);
+        zoomPillLayout.setOrientation(LinearLayout.HORIZONTAL);
+        zoomPillLayout.setGravity(Gravity.CENTER);
+        android.graphics.drawable.GradientDrawable pillBg = new android.graphics.drawable.GradientDrawable();
+        pillBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+        pillBg.setCornerRadius(dp(22));
+        pillBg.setColor(0xCC18181C);
+        pillBg.setStroke(dp(1), 0x33FFFFFF);
+        zoomPillLayout.setBackground(pillBg);
+        zoomPillLayout.setPadding(dp(5), dp(4), dp(5), dp(4));
+
+        float[] zoomFactors = new float[]{1.0f, 2.0f, 5.0f};
+        String[] zoomLabels = new String[]{"1x", "2x", "5x"};
+
+        zoomArcView = null;
+
+        for (int i = 0; i < 3; i++) {
+            final int index = i;
+            TextView btn = new TextView(context);
+            btn.setText(zoomLabels[i]);
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            btn.setTypeface(AndroidUtilities.bold());
+            btn.setGravity(Gravity.CENTER);
+            btn.setPadding(dp(16), dp(8), dp(16), dp(8));
+            zoomButtons[i] = btn;
+            zoomPillLayout.addView(btn, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, Gravity.CENTER, 2, 0, 2, 0));
+        }
+
+        zoomPillLayout.setOnTouchListener(new OnTouchListener() {
+            private float downX, downY;
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                float x = event.getX();
+                float y = event.getY();
+                int width = v.getWidth();
+                if (width <= 0) return false;
+
+                int targetIndex = (int) Utilities.clamp((x / (float) width) * 3f, 2f, 0f);
+
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        downX = x;
+                        downY = y;
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                        setStaticZoom(zoomFactors[targetIndex]);
+                        v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        if (targetIndex >= 0 && targetIndex < 3) {
+                            if (Math.abs(zoomFactors[targetIndex] - currentStaticZoom) > 0.4f) {
+                                setStaticZoom(zoomFactors[targetIndex]);
+                                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+                            }
+                        }
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        return true;
+                }
+                return false;
+            }
+        });
+
+        updateZoomPillUI();
+        if (zoomArcView != null) zoomArcView.invalidate();
+        zoomPillLayout.setAlpha(0.0f);
+        addView(zoomPillLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 44, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 95));
+
         setVisibilityFromPause = false;
         setVisibility(INVISIBLE);
+    }
+
+    private void updateZoomPillUI() {
+        if (zoomButtons == null || zoomButtons[0] == null) return;
+        int activeColor = tw.nekomimi.nekogram.NekoConfig.customAccentColor != 0 ?
+                tw.nekomimi.nekogram.NekoConfig.customAccentColor : Theme.getColor(Theme.key_chats_actionBackground, resourcesProvider);
+        if (activeColor == 0) activeColor = 0xFF1B6EF3;
+        for (int i = 0; i < 3; i++) {
+            TextView btn = zoomButtons[i];
+            if (btn == null) continue;
+            boolean selected = (i == 0 && currentStaticZoom <= 1.4f) ||
+                               (i == 1 && currentStaticZoom > 1.4f && currentStaticZoom <= 3.2f) ||
+                               (i == 2 && currentStaticZoom > 3.2f);
+            if (selected) {
+                android.graphics.drawable.GradientDrawable activeBg = new android.graphics.drawable.GradientDrawable();
+                activeBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+                activeBg.setCornerRadius(AndroidUtilities.dp(18));
+                activeBg.setColor(activeColor);
+                btn.setBackground(activeBg);
+                btn.setTextColor(AndroidUtilities.computePerceivedBrightness(activeColor) > 0.62f ? 0xFF1A1C1E : 0xFFFFFFFF);
+            } else {
+                btn.setBackground(null);
+                btn.setTextColor(0xDDFFFFFF);
+            }
+        }
+    }
+
+    public void setStaticZoom(float targetFactor) {
+        currentStaticZoom = targetFactor;
+        if (useCamera2) {
+            if (camera2SessionCurrent != null) {
+                float min = camera2SessionCurrent.getMinZoom();
+                float max = camera2SessionCurrent.getMaxZoom();
+                float zoom = Utilities.clamp(targetFactor, max, min);
+                camera2SessionCurrent.setZoom(zoom);
+            }
+        } else {
+            if (cameraSession != null) {
+                float zoom = Math.min(1.0f, Math.max(0.0f, (targetFactor - 1.0f) / 4.0f));
+                cameraSession.setZoom(zoom);
+            }
+        }
+        updateZoomPillUI();
+        if (zoomArcView != null) zoomArcView.invalidate();
     }
 
     public void setButtonsBackground(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
@@ -601,6 +899,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     }
 
     public void destroy(boolean async) {
+        currentStaticZoom = 1.0f;
+        pinchStartZoom = 1.0f;
         if (useCamera2) {
             for (int a = 0; a < camera2Sessions.length; ++a) {
                 if (camera2Sessions[a] != null) {
@@ -623,7 +923,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         rect.set(x - dp(8), y - dp(8), x + cameraContainer.getMeasuredWidth() + dp(8), y + cameraContainer.getMeasuredHeight() + dp(8));
         if (recording) {
             recordedTime = System.currentTimeMillis() - recordStartTime + recordPlusTime;
-            progress = Math.min(1f, recordedTime / 60000.0f);
+            float maxRecordDuration = 60000.0f;
+            progress = Math.min(1f, recordedTime / maxRecordDuration);
             invalidate();
         }
 
@@ -643,6 +944,9 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         super.setVisibility(visibility);
 
         buttonsLayout.setAlpha(0.0f);
+        if (zoomPillLayout != null) {
+            zoomPillLayout.setAlpha(0.0f);
+        }
         cameraContainer.setAlpha(0.0f);
         textureOverlayView.setAlpha(0.0f);
         muteImageView.setAlpha(0.0f);
@@ -713,6 +1017,12 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     }
 
     public void showCamera(boolean fromPaused) {
+        if (!fromPaused) {
+            currentStaticZoom = 1.0f;
+            pinchStartZoom = 1.0f;
+            updateZoomPillUI();
+        if (zoomArcView != null) zoomArcView.invalidate();
+        }
         if (textureView != null) {
             return;
         }
@@ -788,7 +1098,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             if (bothCameras) {
                 for (int a = 0; a < 2; ++a) {
                     if (camera2Sessions[a] == null) {
-                        camera2Sessions[a] = Camera2Session.create(a == 0, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize);
+                        camera2Sessions[a] = Camera2Session.create(a == 0, (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize), (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize));
                         if (camera2Sessions[a] != null) {
                             camera2Sessions[a].setRecordingVideo(true);
                             previewSize[a] = new Size(camera2Sessions[a].getPreviewWidth(), camera2Sessions[a].getPreviewHeight());
@@ -808,7 +1118,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 }
                 if (camera2SessionCurrent == null) return;
             } else {
-                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize);
+                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize), (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize));
                 if (camera2SessionCurrent == null) return;
                 camera2SessionCurrent.setRecordingVideo(true);
                 previewSize[0] = new Size(camera2SessionCurrent.getPreviewWidth(), camera2SessionCurrent.getPreviewHeight());
@@ -914,6 +1224,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         });
         animatorSet.playTogether(
                 ObjectAnimator.ofFloat(buttonsLayout, View.ALPHA, open ? 1.0f : 0.0f),
+                ObjectAnimator.ofFloat(zoomPillLayout, View.ALPHA, open ? 1.0f : 0.0f),
                 ObjectAnimator.ofFloat(muteImageView, View.ALPHA, 0.0f),
                 ObjectAnimator.ofInt(paint, AnimationProperties.PAINT_ALPHA, open ? 255 : 0),
                 ObjectAnimator.ofFloat(cameraContainer, View.ALPHA, open ? 1.0f : 0.0f),
@@ -940,7 +1251,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         } else {
             setTranslationX(0);
         }
-        animatorSet.setDuration(180);
+        animatorSet.setDuration(open ? 180 : 120);
         animatorSet.setInterpolator(new DecelerateInterpolator());
         animatorSet.start();
     }
@@ -1007,7 +1318,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 long endTime = videoEditedInfo.endTime >= 0 ? videoEditedInfo.endTime : videoEditedInfo.estimatedDuration;
                 videoEditedInfo.estimatedDuration = endTime - startTime;
                 videoEditedInfo.estimatedSize = Math.max(1, (long) (size * (videoEditedInfo.estimatedDuration / totalDuration)));
-                videoEditedInfo.bitrate = 1000000;
+                videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500000 : 1000000;
                 if (videoEditedInfo.startTime > 0) {
                     videoEditedInfo.startTime *= 1000;
                 }
@@ -1052,6 +1363,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                     send = 1;
                 }
                 saveLastCameraBitmap();
+                startAnimation(false, false);
                 cameraThread.shutdown(send, notify, scheduleDate, scheduleRepeatPeriod, ttl, effectId);
                 cameraThread = null;
             }
@@ -1181,7 +1493,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                     camera2SessionCurrent = null;
                     camera2Sessions[isFrontface ? 1 : 0] = null;
                 }
-                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize, MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize);
+                camera2SessionCurrent = camera2Sessions[isFrontface ? 0 : 1] = Camera2Session.create(isFrontface, (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize), (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(UserConfig.selectedAccount).roundVideoSize));
                 if (camera2SessionCurrent == null) {
                     legacyCameraSwitchAwaitingFrame = false;
                     logLegacyCameraSwitchStage("failed: Camera2Session.create returned null");
@@ -2385,8 +2697,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             }
 
             started = true;
-            int resolution = MessagesController.getInstance(currentAccount).roundVideoSize;
-            int bitrate = MessagesController.getInstance(currentAccount).roundVideoBitrate * 1024;
+            int resolution = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(currentAccount).roundVideoSize;
+            int bitrate = (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500 : MessagesController.getInstance(currentAccount).roundVideoBitrate) * 1024;
             AndroidUtilities.runOnUIThread(() -> {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
             });
@@ -2915,6 +3227,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             AnimatorSet animatorSet = new AnimatorSet();
             animatorSet.playTogether(
                     ObjectAnimator.ofFloat(buttonsLayout, View.ALPHA, 0.0f),
+                    ObjectAnimator.ofFloat(zoomPillLayout, View.ALPHA, 0.0f),
                     ObjectAnimator.ofInt(paint, AnimationProperties.PAINT_ALPHA, 0),
                     ObjectAnimator.ofFloat(muteImageView, View.ALPHA, 1.0f));
             animatorSet.setDuration(180);
@@ -3096,7 +3409,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                             long endTime = videoEditedInfo.endTime >= 0 ? videoEditedInfo.endTime : videoEditedInfo.estimatedDuration;
                             videoEditedInfo.estimatedDuration = endTime - startTime;
                             videoEditedInfo.estimatedSize = Math.max(1, (long) (size * (videoEditedInfo.estimatedDuration / totalDuration)));
-                            videoEditedInfo.bitrate = 1000000;
+                            videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500000 : 1000000;
                             if (videoEditedInfo.startTime > 0) {
                                 videoEditedInfo.startTime *= 1000;
                             }
@@ -3831,6 +4144,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 pinchStartDistance = (float) Math.hypot(ev.getX(1) - ev.getX(0), ev.getY(1) - ev.getY(0));
 
                 pinchScale = 1f;
+                pinchStartZoom = currentStaticZoom;
 
                 pointerId1 = ev.getPointerId(0);
                 pointerId2 = ev.getPointerId(1);
@@ -3858,15 +4172,23 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 finishZoom();
                 return false;
             }
-            pinchScale = (float) Math.hypot(ev.getX(index2) - ev.getX(index1), ev.getY(index2) - ev.getY(index1)) / pinchStartDistance;
+            pinchScale = pinchStartZoom * ((float) Math.hypot(ev.getX(index2) - ev.getX(index1), ev.getY(index2) - ev.getY(index1)) / pinchStartDistance);
             if (useCamera2) {
                 if (camera2SessionCurrent != null) {
                     float zoom = Utilities.clamp(pinchScale, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom());
                     camera2SessionCurrent.setZoom(zoom);
+                    currentStaticZoom = zoom;
+                    updateZoomPillUI();
+        if (zoomArcView != null) zoomArcView.invalidate();
                 }
             } else {
                 float zoom = Math.min(1f, Math.max(0, pinchScale - 1f));
-                cameraSession.setZoom(zoom);
+                if (cameraSession != null) {
+                    cameraSession.setZoom(zoom);
+                }
+                currentStaticZoom = 1.0f + zoom * 4.0f;
+                updateZoomPillUI();
+        if (zoomArcView != null) zoomArcView.invalidate();
             }
         } else if ((ev.getActionMasked() == MotionEvent.ACTION_UP || (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && checkPointerIds(ev)) || ev.getActionMasked() == MotionEvent.ACTION_CANCEL) && isInPinchToZoomTouchMode) {
             isInPinchToZoomTouchMode = false;
@@ -3878,44 +4200,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     ValueAnimator finishZoomTransition;
 
     public void finishZoom() {
-        if (finishZoomTransition != null) {
-            return;
-        }
-
-        float zoom;
-        if (useCamera2) {
-            if (camera2SessionCurrent == null) return;
-            zoom = Utilities.clamp(pinchScale, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom());
-        } else {
-            zoom = Math.min(1f, Math.max(0, pinchScale - 1f));
-        }
-
-        if (zoom > 0f) {
-            finishZoomTransition = ValueAnimator.ofFloat(zoom, 0);
-            finishZoomTransition.addUpdateListener(valueAnimator -> {
-                if (useCamera2) {
-                    if (camera2SessionCurrent != null) {
-                        camera2SessionCurrent.setZoom((float) valueAnimator.getAnimatedValue());
-                    }
-                } else {
-                    if (cameraSession != null) {
-                        cameraSession.setZoom((float) valueAnimator.getAnimatedValue());
-                    }
-                }
-            });
-            finishZoomTransition.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    if (finishZoomTransition != null) {
-                        finishZoomTransition = null;
-                    }
-                }
-            });
-
-            finishZoomTransition.setDuration(350);
-            finishZoomTransition.setInterpolator(CubicBezierInterpolator.DEFAULT);
-            finishZoomTransition.start();
-        }
+        // Retain static zoom level during recording
     }
 
     public interface Delegate {

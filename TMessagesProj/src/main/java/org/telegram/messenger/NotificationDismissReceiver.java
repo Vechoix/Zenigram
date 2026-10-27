@@ -25,6 +25,9 @@ public class NotificationDismissReceiver extends BroadcastReceiver {
         }
         long dialogId = intent.getLongExtra("dialogId", 0);
         int date = intent.getIntExtra("messageDate", 0);
+        if (date == 0) {
+            date = (int) (System.currentTimeMillis() / 1000);
+        }
         if (intent.hasExtra("story") && intent.getBooleanExtra("story", false)) {
             NotificationsController.getInstance(currentAccount).processIgnoreStories();
         } else if (intent.hasExtra("storyReaction") && intent.getBooleanExtra("storyReaction", false)) {
@@ -32,9 +35,11 @@ public class NotificationDismissReceiver extends BroadcastReceiver {
         } else if (dialogId == 0) {
             FileLog.d("set dismissDate of global to " + date);
             MessagesController.getNotificationsSettings(currentAccount).edit().putInt("dismissDate", date).commit();
+            NotificationsController.getInstance(currentAccount).processDismissNotification(0, date);
         } else {
             FileLog.d("set dismissDate of " + dialogId + " to " + date);
             MessagesController.getNotificationsSettings(currentAccount).edit().putInt("dismissDate" + dialogId, date).commit();
+            NotificationsController.getInstance(currentAccount).processDismissNotification(dialogId, date);
         }
     }
 }

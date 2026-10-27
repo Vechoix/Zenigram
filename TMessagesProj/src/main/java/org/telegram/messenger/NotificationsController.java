@@ -3364,6 +3364,30 @@ public class NotificationsController extends BaseController implements Notificat
         }
     }
 
+    public void processDismissNotification(long dialogId, int date) {
+        notificationsQueue.postRunnable(() -> {
+            FileLog.d("NotificationsController processDismissNotification dialogId=" + dialogId + " date=" + date);
+            if (dialogId == 0) {
+                dismissNotification();
+            } else {
+                boolean changed = false;
+                for (int a = pushMessages.size() - 1; a >= 0; a--) {
+                    MessageObject messageObject = pushMessages.get(a);
+                    if (messageObject.getDialogId() == dialogId && (date == 0 || messageObject.messageOwner.date <= date)) {
+                        pushMessages.remove(a);
+                        pushMessagesDict.remove(messageObject.getId());
+                        changed = true;
+                    }
+                }
+                if (pushMessages.isEmpty()) {
+                    dismissNotification();
+                } else if (changed) {
+                    showOrUpdateNotification(false);
+                }
+            }
+        });
+    }
+
     public ArrayList<MessageObject> getPushMessagesSnapshot() {
         ArrayList<MessageObject> copy;
         synchronized (this) {
@@ -4672,6 +4696,7 @@ public class NotificationsController extends BaseController implements Notificat
             try {
                 Intent dismissIntent = new Intent(ApplicationLoader.applicationContext, NotificationDismissReceiver.class);
                 dismissIntent.putExtra("messageDate", lastMessageObject.messageOwner.date);
+                dismissIntent.putExtra("dialogId", dialog_id);
                 dismissIntent.putExtra("currentAccount", currentAccount);
                 if (lastMessageObject.isStoryPush) {
                     dismissIntent.putExtra("story", true);

@@ -56,6 +56,13 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
 
     private final List<ConfigHelper.News> newsList = new ArrayList<>();
 
+    private final int themeStudioRow = rowId++;
+    private final int ghostSettingsRow = rowId++;
+    private final int updatesRow = rowId++;
+    private final int gestureLabRow = rowId++;
+    private final int adaptivePerformanceRow = rowId++;
+    private final int diagnosticsRow = rowId++;
+
     private final int generalRow = rowId++;
     private final int appearanceRow = rowId++;
     private final int chatRow = rowId++;
@@ -71,7 +78,6 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
 
     private final int sponsorRow = 100;
 
-    private ActionBarMenuItem syncItem;
     private final ArrayList<SearchResult> searchArray = createSearchArray();
     private final ArrayList<CharSequence> resultNames = new ArrayList<>();
     private final ArrayList<SearchResult> searchResults = new ArrayList<>();
@@ -79,40 +85,14 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
     private Runnable searchRunnable;
     private String lastSearchString;
 
-    private FrameLayout topView;
+    private ZenigramHeaderCell headerCell;
 
     @Override
     public View createView(Context context) {
         if (parentLayout != null && parentLayout.isRightLayout()) {
             actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
-        topView = new FrameLayout(context);
-
-        var logoContainer = new FrameLayout(context);
-        var logoView = new BackupImageView(context);
-
-        logoView.setImageDrawable(AppCompatResources.getDrawable(context, R.mipmap.ic_launcher));
-        logoContainer.addView(logoView, LayoutHelper.createFrame(90, 90, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 15, 0, 0));
-        topView.addView(logoContainer, LayoutHelper.createFrame(120, 120, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 23 - 12, 0, 0));
-
-        var titleView = new TextView(context);
-        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 22);
-        titleView.setTypeface(AndroidUtilities.bold());
-        titleView.setGravity(Gravity.CENTER);
-        titleView.setSingleLine();
-        titleView.setEllipsize(TextUtils.TruncateAt.END);
-        titleView.setText(LocaleController.getString(R.string.Nekogram));
-        titleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteBlackText));
-        topView.addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 138.333f - 12, 0, 0));
-
-        var subtitleView = new TextView(context);
-        subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
-        subtitleView.setGravity(Gravity.CENTER);
-        subtitleView.setSingleLine();
-        subtitleView.setEllipsize(TextUtils.TruncateAt.END);
-        subtitleView.setText(String.format(Locale.US, "%s (%d)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
-        subtitleView.setTextColor(getThemedColor(Theme.key_windowBackgroundWhiteGrayText));
-        topView.addView(subtitleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 168 - 12, 0, 0));
+        headerCell = new ZenigramHeaderCell(context, resourcesProvider);
 
         var fragmentView = super.createView(context);
 
@@ -139,27 +119,31 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
                 search(editText.getText().toString());
             }
         });
-        syncItem = menu.addItem(1, R.drawable.cloud_sync);
-        syncItem.setContentDescription(LocaleController.getString(R.string.CloudConfig));
-        syncItem.setOnClickListener(v -> CloudSettingsHelper.getInstance().showDialog(this));
 
         return fragmentView;
     }
 
     @Override
     protected boolean needActionBarPadding() {
-        return false;
+        return true;
     }
 
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         if (isSearchFieldVisible()) {
-            items.add(UItem.asSpace(ActionBar.getCurrentActionBarHeight()));
             fillSearchItems(items);
             return;
         }
 
-        items.add(UItem.asCustomShadow(topView, 200 - 12));
+        items.add(UItem.asCustomShadow(headerCell, LayoutHelper.WRAP_CONTENT));
+
+        items.add(UItem.asHeader(LocaleController.getString(R.string.ZenigramPowerFeatures)));
+        items.add(UItem.asButtonSubtext(themeStudioRow, R.drawable.msg_theme, "Внешний вид", "Шрифты, цвета, скругления").slug("themeStudio"));
+        items.add(UItem.asButtonSubtext(ghostSettingsRow, R.drawable.msg_secret, "Режим призрака", "Чтение, скриншоты, скрытность").slug("ghostSettings"));
+        items.add(UItem.asButtonSubtext(updatesRow, R.drawable.msg_download, "Обновление Zenigram", "Проверка новых версий и ченджлог").slug("updates"));
+        items.add(UItem.asButtonSubtext(gestureLabRow, R.drawable.msg_discussion, "Жесты", "Свайпы и быстрые действия").slug("gestureLab"));
+        items.add(UItem.asButtonSubtext(adaptivePerformanceRow, R.drawable.msg_fave, "Оптимизация", "Плавность, анимации и эффекты").slug("adaptivePerformance"));
+        items.add(UItem.asShadow(null));
 
         items.add(UItem.asButton(generalRow, R.drawable.msg_media, LocaleController.getString(R.string.General)).slug("general"));
         items.add(UItem.asButton(appearanceRow, R.drawable.msg_theme, LocaleController.getString(R.string.ChangeChannelNameColor2)).slug("appearance"));
@@ -174,22 +158,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
         }
         items.add(UItem.asShadow(null));
 
-        items.add(UItem.asButton(channelRow, R.drawable.msg_channel, LocaleController.getString(R.string.OfficialChannel), "@" + LocaleController.getString(R.string.OfficialChannelUsername)).slug("channel"));
-        items.add(UItem.asButton(websiteRow, R.drawable.msg_language, LocaleController.getString(R.string.OfficialSite), "nekogram.app").slug("website"));
-        items.add(UItem.asButton(sourceCodeRow, R.drawable.msg_link, LocaleController.getString(R.string.ViewSourceCode), "GitHub").slug("sourceCode"));
-        items.add(UItem.asButtonSubtext(translationRow, R.drawable.msg_translate, LocaleController.getString(R.string.Translation), LocaleController.getString(R.string.TranslationAbout)).slug("translation"));
-        items.add(UItem.asButtonSubtext(donateRow, R.drawable.msg_input_like, LocaleController.getString(R.string.Donate), LocaleController.getString(R.string.DonateAbout)).slug("donate"));
-        items.add(UItem.asShadow(null));
 
-        newsList.clear();
-        newsList.addAll(ConfigHelper.getNewsForSettings());
-        if (!newsList.isEmpty()) {
-            var newsId = 0;
-            for (var news : newsList) {
-                items.add(TextDetailSettingsCellFactory.of(sponsorRow + newsId++, news.title, news.summary));
-            }
-            items.add(UItem.asShadow(null));
-        }
     }
 
     @Override
@@ -201,7 +170,19 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
             return;
         }
         var id = item.id;
-        if (id == chatRow) {
+        if (id == themeStudioRow) {
+            presentFragment(new ZenigramThemeStudioActivity());
+        } else if (id == ghostSettingsRow) {
+            presentFragment(new ZenigramGhostSettingsActivity());
+        } else if (id == updatesRow) {
+            presentFragment(new ZenigramUpdatesActivity());
+        } else if (id == gestureLabRow) {
+            presentFragment(new ZenigramGestureLabActivity());
+        } else if (id == adaptivePerformanceRow) {
+            presentFragment(new ZenigramPerformanceActivity());
+        } else if (id == diagnosticsRow) {
+            presentFragment(new ZenigramDiagnosticsActivity());
+        } else if (id == chatRow) {
             presentFragment(new NekoChatSettingsActivity());
         } else if (id == generalRow) {
             presentFragment(new NekoGeneralSettingsActivity());
@@ -217,12 +198,6 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
             getMessagesController().openByUserName(LocaleController.getString(R.string.OfficialChannelUsername), this, 1);
         } else if (id == donateRow) {
             presentFragment(new NekoDonateActivity());
-        } else if (id == translationRow) {
-            Browser.openUrl(getParentActivity(), "https://neko.crowdin.com/nekogram");
-        } else if (id == websiteRow) {
-            Browser.openUrl(getParentActivity(), "https://nekogram.app");
-        } else if (id == sourceCodeRow) {
-            Browser.openUrl(getParentActivity(), "https://github.com/Nekogram/Nekogram");
         } else if (id >= sponsorRow) {
             var news = newsList.get(id - sponsorRow);
             Browser.openUrl(getParentActivity(), news.url);
@@ -261,9 +236,6 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
 
     @Override
     public void onFactorChanged(int id, float factor, float fraction, FactorAnimator callee) {
-        if (id == ANIMATOR_ID_SEARCH_PAGE_VISIBLE) {
-            FragmentFloatingButton.setAnimatedVisibility(syncItem, 1f - factor);
-        }
     }
 
     @Override
@@ -308,7 +280,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
                     continue;
                 }
                 if (TextUtils.isEmpty(item.slug)) continue;
-                searchResultList.add(new SearchResult(i * 1000 + item.id, item.text.toString(), null, fragmentTitle, fragmentTitle.equals(headerText) ? null : headerText, icon, () -> {
+                searchResultList.add(new SearchResult(i * 1000 + item.id, item.text.toString(), item.subtext != null ? item.subtext.toString() : null, fragmentTitle, fragmentTitle.equals(headerText) ? null : headerText, icon, () -> {
                     var fragment1 = createFragment(icon);
                     presentFragment(fragment1);
                     fragment1.scrollToRow(item.slug, null);
@@ -322,11 +294,11 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
             fragment.scrollToRow("useSystemEmoji", null);
         }));
 
-        searchResultList.add(new SearchResult(20000, LocaleController.getString(R.string.OfficialChannel), "@" + LocaleController.getString(R.string.OfficialChannelUsername), R.drawable.msg2_help, () -> getMessagesController().openByUserName(LocaleController.getString(R.string.OfficialChannelUsername), this, 1)));
-        searchResultList.add(new SearchResult(20001, LocaleController.getString(R.string.OfficialSite), "nekogram.app", R.drawable.msg2_help, () -> Browser.openUrl(getParentActivity(), "https://nekogram.app")));
-        searchResultList.add(new SearchResult(20002, LocaleController.getString(R.string.ViewSourceCode), "GitHub", R.drawable.msg2_help, () -> Browser.openUrl(getParentActivity(), "https://github.com/Nekogram/Nekogram")));
-        searchResultList.add(new SearchResult(20003, LocaleController.getString(R.string.Translation), LocaleController.getString(R.string.TranslationAbout), R.drawable.msg2_help, () -> Browser.openUrl(getParentActivity(), "https://neko.crowdin.com/nekogram")));
-        searchResultList.add(new SearchResult(20004, LocaleController.getString(R.string.Donate), LocaleController.getString(R.string.DonateAbout), R.drawable.msg2_help, () -> presentFragment(new NekoDonateActivity())));
+        searchResultList.add(new SearchResult(8100, LocaleController.getString(R.string.ZenigramThemeStudio), LocaleController.getString(R.string.ZenigramThemeStudioDescription), R.drawable.msg_theme, () -> presentFragment(new ZenigramThemeStudioActivity())));
+        searchResultList.add(new SearchResult(8104, "Режим призрака", "Скрытый режим, чтение, скриншоты, задержка сообщений", R.drawable.msg_secret, () -> presentFragment(new ZenigramGhostSettingsActivity())));
+        searchResultList.add(new SearchResult(8101, LocaleController.getString(R.string.ZenigramGestureLab), LocaleController.getString(R.string.ZenigramGestureLabDescription), R.drawable.msg_discussion, () -> presentFragment(new ZenigramGestureLabActivity())));
+        searchResultList.add(new SearchResult(8102, LocaleController.getString(R.string.AdaptivePerformanceSettings), LocaleController.getString(R.string.AdaptivePerformanceDesc), R.drawable.msg_fave, () -> presentFragment(new ZenigramPerformanceActivity())));
+        searchResultList.add(new SearchResult(8103, LocaleController.getString(R.string.ZenigramDiagnostics), LocaleController.getString(R.string.ZenigramDiagnosticsDesc), R.drawable.msg_secret, () -> presentFragment(new ZenigramDiagnosticsActivity())));
 
         return searchResultList;
     }
@@ -356,14 +328,23 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
         Utilities.searchQueue.postRunnable(searchRunnable = () -> {
             var results = new ArrayList<SearchResult>();
             var names = new ArrayList<CharSequence>();
-            var lowerQuery = text.toLowerCase();
+            var lowerQuery = text.trim().toLowerCase();
             for (var result : searchArray) {
-                var title = result.searchTitle.toLowerCase();
-                var index = title.indexOf(lowerQuery);
-                var matchLen = lowerQuery.length();
+                var title = result.searchTitle != null ? result.searchTitle.toLowerCase() : "";
+                var row = result.rowName != null ? result.rowName.toLowerCase() : "";
+                var p1 = (result.path != null && result.path.length > 0 && result.path[0] != null) ? result.path[0].toLowerCase() : "";
+                var p2 = (result.path != null && result.path.length > 1 && result.path[1] != null) ? result.path[1].toLowerCase() : "";
+
+                int index = title.indexOf(lowerQuery);
+                if (index < 0 && (row.contains(lowerQuery) || p1.contains(lowerQuery) || p2.contains(lowerQuery))) {
+                    index = 0;
+                }
                 if (index < 0) continue;
                 var ssb = new SpannableStringBuilder(result.searchTitle);
-                ssb.setSpan(new ForegroundColorSpan(getThemedColor(Theme.key_windowBackgroundWhiteBlueText4)), index, Math.min(index + matchLen, ssb.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (title.contains(lowerQuery)) {
+                    int matchIdx = title.indexOf(lowerQuery);
+                    ssb.setSpan(new ForegroundColorSpan(getThemedColor(Theme.key_windowBackgroundWhiteBlueText4)), matchIdx, Math.min(matchIdx + lowerQuery.length(), ssb.length()), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
                 results.add(result);
                 names.add(ssb);
             }

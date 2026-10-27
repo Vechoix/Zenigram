@@ -4065,6 +4065,12 @@ public class Theme {
             themeInfo.previewInColor = MonetHelper.getColor("a2_50");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_600");
             themeInfo.sortIndex = 6;
+            themeInfo.firstAccentIsDefault = true;
+            themeInfo.currentAccentId = DEFALT_THEME_ACCENT_ID;
+            themeInfo.setAccentColorOptions(
+                new int[] { 0xFF2C6BC4, 0xFF46654C, 0xFF2E6B5E, 0xFF61558E, 0xFF525E75, 0xFF8C4F3B, 0xFF924443, 0xFF775A22, 0xFF45464F, 0xFF55624C }
+            );
+            sortAccents(themeInfo);
             themes.add(themeInfo);
             themesDict.put("Monet Light", themeInfo);
 
@@ -4075,6 +4081,12 @@ public class Theme {
             themeInfo.previewInColor = MonetHelper.getColor("n2_800");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
             themeInfo.sortIndex = 7;
+            themeInfo.firstAccentIsDefault = true;
+            themeInfo.currentAccentId = DEFALT_THEME_ACCENT_ID;
+            themeInfo.setAccentColorOptions(
+                new int[] { 0xFFA8C7FA, 0xFFACD0B2, 0xFFA1D1C5, 0xFFC9BFFF, 0xFFBAC6EA, 0xFFFFB59D, 0xFFFFB3B4, 0xFFE9C37C, 0xFFC5C6D0, 0xFFBDCBAE }
+            );
+            sortAccents(themeInfo);
             themes.add(themeInfo);
             themesDict.put("Monet Dark", themeInfo);
 
@@ -4085,6 +4097,12 @@ public class Theme {
             themeInfo.previewInColor = MonetHelper.getColor("n2_800");
             themeInfo.previewOutColor = MonetHelper.getColor("a1_100");
             themeInfo.sortIndex = 8;
+            themeInfo.firstAccentIsDefault = true;
+            themeInfo.currentAccentId = DEFALT_THEME_ACCENT_ID;
+            themeInfo.setAccentColorOptions(
+                new int[] { 0xFFA8C7FA, 0xFFACD0B2, 0xFFA1D1C5, 0xFFC9BFFF, 0xFFBAC6EA, 0xFFFFB59D, 0xFFFFB3B4, 0xFFE9C37C, 0xFFC5C6D0, 0xFFBDCBAE }
+            );
+            sortAccents(themeInfo);
             themes.add(themeInfo);
             themesDict.put("Monet AMOLED", themeInfo);
         }
@@ -4330,7 +4348,7 @@ public class Theme {
                 oldEditorNew.commit();
             }
 
-            selectedAutoNightType = preferences.getInt("selectedAutoNightType", Build.VERSION.SDK_INT >= 29 ? AUTO_NIGHT_TYPE_SYSTEM : AUTO_NIGHT_TYPE_NONE);
+            selectedAutoNightType = AUTO_NIGHT_TYPE_NONE;
             autoNightScheduleByLocation = preferences.getBoolean("autoNightScheduleByLocation", false);
             autoNightBrighnessThreshold = preferences.getFloat("autoNightBrighnessThreshold", 0.25f);
             autoNightDayStartTime = preferences.getInt("autoNightDayStartTime", 22 * 60);
@@ -4389,6 +4407,32 @@ public class Theme {
                 }
             }
             preferences.edit().remove("overrideThemeWallpaper").remove("selectedBackground2").commit();
+        }
+
+        if (currentNightTheme == null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && tw.nekomimi.nekogram.NekoConfig.dynamicMonet) {
+                currentNightTheme = themesDict.get("Monet Dark");
+            }
+            if (currentNightTheme == null) {
+                currentNightTheme = themesDict.get("Dark Blue");
+            }
+            if (currentNightTheme == null) {
+                currentNightTheme = themesDict.get("Night");
+            }
+        }
+        if (applyingTheme == null || !applyingTheme.isDark()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && tw.nekomimi.nekogram.NekoConfig.dynamicMonet) {
+                applyingTheme = themesDict.get("Monet Dark");
+            }
+            if (applyingTheme == null) {
+                applyingTheme = themesDict.get("Dark Blue");
+            }
+            if (applyingTheme == null) {
+                applyingTheme = themesDict.get("Night");
+            }
+            if (applyingTheme == null) {
+                applyingTheme = defaultTheme;
+            }
         }
 
         int switchToTheme = needSwitchToTheme();
@@ -6143,6 +6187,245 @@ public class Theme {
         return hsv[1] > .02f ? adaptHue(baseColor, bubbleColor) : baseColor;
     }
 
+    public static int getZenigramCustomColor(int key) {
+        int accent = tw.nekomimi.nekogram.NekoConfig.customAccentColor;
+        if (key == key_switchTrackChecked || key == key_switch2TrackChecked || key == key_switchTrackBlueChecked || key == key_switchTrackBlueSelectorChecked) {
+            if (accent != 0) {
+                return accent;
+            }
+            int themeAccent = currentColors != null ? currentColors.get(key_chats_actionBackground) : 0;
+            if (themeAccent == 0 && currentColors != null) {
+                themeAccent = currentColors.get(key_featuredStickers_addButton);
+            }
+            if (themeAccent != 0) {
+                return themeAccent;
+            }
+            return isCurrentThemeDark() ? 0xFFC4A98F : 0xFF8F6E54;
+        }
+        if (accent != 0) {
+            if (key == key_chats_actionBackground ||
+                key == key_chat_recordVoiceCancel ||
+                key == key_chat_recordedVoicePlayPause ||
+                key == key_chat_messagePanelSend ||
+                key == key_chat_messagePanelVoiceBackground ||
+                key == key_chat_recordedVoiceBackground ||
+                key == key_chat_recordTime ||
+                key == key_featuredStickers_addButton ||
+                key == key_switch2TrackChecked ||
+                key == key_windowBackgroundWhiteBlueHeader ||
+                key == key_glass_tabSelected ||
+                key == key_glass_tabSelectedText ||
+                key == key_chat_messagePanelSend ||
+                key == key_dialogFloatingButton ||
+                key == key_dialogRoundCheckBoxCheck ||
+                key == key_dialogRadioBackgroundChecked ||
+                key == key_chats_archivePullDownBackgroundActive ||
+                key == key_chat_topPanelLine ||
+                key == key_actionBarTabActiveText ||
+                key == key_windowBackgroundWhiteInputFieldActivated ||
+                key == key_windowBackgroundWhiteValueText ||
+                key == key_contextProgressInner2) {
+                return accent;
+            } else if (key == key_chats_actionIcon || key == key_dialogFloatingIcon) {
+                return AndroidUtilities.computePerceivedBrightness(accent) > 0.55f ? 0xFF1A1C1E : 0xFFFFFFFF;
+            } else if (key == key_chats_actionPressedBackground || key == key_dialogFloatingButtonPressed) {
+                return Theme.blendOver(accent, 0x22000000);
+            } else if (key == key_actionBarTabSelector) {
+                return Theme.blendOver(accent, 0x1A000000);
+            }
+        } else if (isCurrentThemeDark()) {
+            if (key == key_windowBackgroundWhiteInputFieldActivated || key == key_windowBackgroundWhiteValueText || key == key_chat_recordVoiceCancel || key == key_chat_messagePanelSend) {
+                return 0xFFC4A98F;
+            }
+        }
+        if (key == key_chats_verifiedBackground || key == key_profile_verifiedBackground) {
+            return accent != 0 ? accent : 0xFFC4A98F;
+        } else if (key == key_chats_verifiedCheck || key == key_profile_verifiedCheck) {
+            return 0xFFFFFFFF;
+        }
+
+        int outBubble = tw.nekomimi.nekogram.NekoConfig.customOutBubbleColor;
+        if (outBubble != 0) {
+            boolean isLight = AndroidUtilities.computePerceivedBrightness(outBubble) > 0.62f;
+            int primaryText = isLight ? 0xFF1A1C1E : 0xFFFFFFFF;
+            int secondaryText = isLight ? 0x991A1C1E : 0xB3FFFFFF;
+            int linkText = isLight ? 0xFF0B57D0 : 0xFFA8C7FA;
+            int seekbar = isLight ? 0x441A1C1E : 0x44FFFFFF;
+            int selectedBubble = isLight ? Theme.blendOver(outBubble, 0x24000000) : Theme.blendOver(outBubble, 0x28FFFFFF);
+
+            if (key == key_chat_outBubble) {
+                return outBubble;
+            } else if (key == key_chat_outBubbleGradient1 || key == key_chat_outBubbleGradient2 || key == key_chat_outBubbleGradient3 || key == key_chat_outBubbleGradientAnimated) {
+                return 0;
+            } else if (key == key_chat_outBubbleSelected) {
+                return selectedBubble;
+            } else if (key == key_chat_messageTextOut ||
+                       key == key_chat_outAudioTitleText ||
+                       key == key_chat_outAudioPerformerText ||
+                       key == key_chat_outFileNameText ||
+                       key == key_chat_outContactNameText ||
+                       key == key_chat_outSentCheckRead ||
+                       key == key_chat_outSentCheckReadSelected ||
+                       key == key_chat_outReplyLine ||
+                       key == key_chat_outReplyLine2 ||
+                       key == key_chat_outReplyNameText ||
+                       key == key_chat_outAudioSeekbarFill ||
+                       key == key_chat_outVoiceSeekbarFill ||
+                       key == key_chat_outFileProgress ||
+                       key == key_chat_outFileProgressSelected) {
+                return primaryText;
+            } else if (key == key_chat_outLoader || key == key_chat_outLoaderSelected) {
+                return primaryText;
+            } else if (key == key_chat_outMediaIcon || key == key_chat_outMediaIconSelected) {
+                return isLight ? 0xFFFFFFFF : outBubble;
+            } else if (key == key_chat_outTimeText ||
+                       key == key_chat_outSentCheck ||
+                       key == key_chat_outSentCheckSelected ||
+                       key == key_chat_outSentClock ||
+                       key == key_chat_outSentClockSelected ||
+                       key == key_chat_outAudioDurationText ||
+                       key == key_chat_outAudioDurationSelectedText ||
+                       key == key_chat_outContactPhoneText ||
+                       key == key_chat_outContactPhoneSelectedText ||
+                       key == key_chat_outFileInfoText ||
+                       key == key_chat_outFileInfoSelectedText ||
+                       key == key_chat_outVenueInfoText ||
+                       key == key_chat_outVenueInfoSelectedText ||
+                       key == key_chat_outViews ||
+                       key == key_chat_outViewsSelected ||
+                       key == key_chat_outMenu ||
+                       key == key_chat_outMenuSelected) {
+                return secondaryText;
+            } else if (key == key_chat_outTimeSelectedText) {
+                return isLight ? 0xCC1A1C1E : 0xE6FFFFFF;
+            } else if (key == key_chat_outReplyMessageText || key == key_chat_outReplyMediaMessageText || key == key_chat_outReplyMediaMessageSelectedText) {
+                return isLight ? 0xCC1A1C1E : 0xCCFFFFFF;
+            } else if (key == key_chat_messageLinkOut || key == key_chat_outSiteNameText || key == key_chat_outPreviewInstantText || key == key_chat_outInstant || key == key_chat_outInstantSelected) {
+                return linkText;
+            } else if (key == key_chat_outAudioSeekbar || key == key_chat_outAudioSeekbarSelected || key == key_chat_outAudioCacheSeekbar || key == key_chat_outVoiceSeekbar || key == key_chat_outVoiceSeekbarSelected || key == key_chat_outAudioProgress || key == key_chat_outAudioSelectedProgress) {
+                return seekbar;
+            }
+        }
+        return Integer.MIN_VALUE;
+    }
+
+    public static void applyZenigramCustomColors(SparseIntArray colors) {
+        if (colors == null) return;
+        int accent = tw.nekomimi.nekogram.NekoConfig.customAccentColor;
+        if (accent != 0) {
+            colors.put(key_chats_actionBackground, accent);
+            colors.put(key_featuredStickers_addButton, accent);
+            colors.put(key_switchTrackChecked, accent);
+            colors.put(key_switch2TrackChecked, accent);
+            colors.put(key_switchTrackBlueChecked, accent);
+            colors.put(key_windowBackgroundWhiteBlueHeader, accent);
+            colors.put(key_glass_tabSelected, accent);
+            colors.put(key_glass_tabSelectedText, accent);
+            colors.put(key_chat_messagePanelSend, accent);
+            colors.put(key_dialogFloatingButton, accent);
+            colors.put(key_dialogRoundCheckBoxCheck, accent);
+            colors.put(key_dialogRadioBackgroundChecked, accent);
+            colors.put(key_chats_archivePullDownBackgroundActive, accent);
+            colors.put(key_chat_topPanelLine, accent);
+            colors.put(key_actionBarTabActiveText, accent);
+            colors.put(key_contextProgressInner2, accent);
+            colors.put(key_chat_recordVoiceCancel, accent);
+            colors.put(key_chat_recordedVoicePlayPause, accent);
+            colors.put(key_chat_messagePanelVoiceBackground, accent);
+            colors.put(key_chat_recordedVoiceBackground, accent);
+            colors.put(key_chat_recordTime, accent);
+            colors.put(key_chat_recordedVoiceDot, accent);
+
+            int actionIcon = AndroidUtilities.computePerceivedBrightness(accent) > 0.55f ? 0xFF1A1C1E : 0xFFFFFFFF;
+            colors.put(key_chats_actionIcon, actionIcon);
+            colors.put(key_dialogFloatingIcon, actionIcon);
+
+            int pressed = Theme.blendOver(accent, 0x22000000);
+            colors.put(key_chats_actionPressedBackground, pressed);
+            colors.put(key_dialogFloatingButtonPressed, pressed);
+            colors.put(key_actionBarTabSelector, Theme.blendOver(accent, 0x1A000000));
+        }
+        int verifiedBg = accent != 0 ? accent : 0xFFC4A98F;
+        colors.put(key_chats_verifiedBackground, verifiedBg);
+        colors.put(key_profile_verifiedBackground, verifiedBg);
+        colors.put(key_chats_verifiedCheck, 0xFFFFFFFF);
+        colors.put(key_profile_verifiedCheck, 0xFFFFFFFF);
+
+        int outBubble = tw.nekomimi.nekogram.NekoConfig.customOutBubbleColor;
+        if (outBubble != 0) {
+            boolean isLight = AndroidUtilities.computePerceivedBrightness(outBubble) > 0.62f;
+            int primaryText = isLight ? 0xFF1A1C1E : 0xFFFFFFFF;
+            int secondaryText = isLight ? 0x991A1C1E : 0xB3FFFFFF;
+            int linkText = isLight ? 0xFF0B57D0 : 0xFFA8C7FA;
+            int seekbar = isLight ? 0x441A1C1E : 0x44FFFFFF;
+            int selectedBubble = isLight ? Theme.blendOver(outBubble, 0x24000000) : Theme.blendOver(outBubble, 0x28FFFFFF);
+
+            colors.put(key_chat_outBubble, outBubble);
+            colors.put(key_chat_outBubbleGradient1, 0);
+            colors.put(key_chat_outBubbleGradient2, 0);
+            colors.put(key_chat_outBubbleGradient3, 0);
+            colors.put(key_chat_outBubbleGradientAnimated, 0);
+            colors.put(key_chat_outBubbleSelected, selectedBubble);
+
+            colors.put(key_chat_messageTextOut, primaryText);
+            colors.put(key_chat_outAudioTitleText, primaryText);
+            colors.put(key_chat_outAudioPerformerText, primaryText);
+            colors.put(key_chat_outFileNameText, primaryText);
+            colors.put(key_chat_outContactNameText, primaryText);
+            colors.put(key_chat_outSentCheckRead, primaryText);
+            colors.put(key_chat_outSentCheckReadSelected, primaryText);
+            colors.put(key_chat_outReplyLine, primaryText);
+            colors.put(key_chat_outReplyLine2, primaryText);
+            colors.put(key_chat_outReplyNameText, primaryText);
+            colors.put(key_chat_outAudioSeekbarFill, primaryText);
+            colors.put(key_chat_outVoiceSeekbarFill, primaryText);
+            colors.put(key_chat_outLoader, primaryText);
+            colors.put(key_chat_outLoaderSelected, primaryText);
+            colors.put(key_chat_outFileProgress, primaryText);
+            colors.put(key_chat_outFileProgressSelected, primaryText);
+            int mediaIconColor = isLight ? 0xFFFFFFFF : outBubble;
+            colors.put(key_chat_outMediaIcon, mediaIconColor);
+            colors.put(key_chat_outMediaIconSelected, mediaIconColor);
+
+            colors.put(key_chat_outTimeText, secondaryText);
+            colors.put(key_chat_outSentCheck, secondaryText);
+            colors.put(key_chat_outSentCheckSelected, secondaryText);
+            colors.put(key_chat_outSentClock, secondaryText);
+            colors.put(key_chat_outSentClockSelected, secondaryText);
+            colors.put(key_chat_outAudioDurationText, secondaryText);
+            colors.put(key_chat_outAudioDurationSelectedText, secondaryText);
+            colors.put(key_chat_outContactPhoneText, secondaryText);
+            colors.put(key_chat_outContactPhoneSelectedText, secondaryText);
+            colors.put(key_chat_outFileInfoText, secondaryText);
+            colors.put(key_chat_outFileInfoSelectedText, secondaryText);
+            colors.put(key_chat_outVenueInfoText, secondaryText);
+            colors.put(key_chat_outVenueInfoSelectedText, secondaryText);
+            colors.put(key_chat_outViews, secondaryText);
+            colors.put(key_chat_outViewsSelected, secondaryText);
+            colors.put(key_chat_outMenu, secondaryText);
+            colors.put(key_chat_outMenuSelected, secondaryText);
+
+            colors.put(key_chat_outTimeSelectedText, isLight ? 0xCC1A1C1E : 0xE6FFFFFF);
+            colors.put(key_chat_outReplyMessageText, isLight ? 0xCC1A1C1E : 0xCCFFFFFF);
+            colors.put(key_chat_outReplyMediaMessageText, isLight ? 0xCC1A1C1E : 0xCCFFFFFF);
+            colors.put(key_chat_outReplyMediaMessageSelectedText, isLight ? 0xCC1A1C1E : 0xCCFFFFFF);
+
+            colors.put(key_chat_messageLinkOut, linkText);
+            colors.put(key_chat_outSiteNameText, linkText);
+            colors.put(key_chat_outPreviewInstantText, linkText);
+            colors.put(key_chat_outInstant, linkText);
+            colors.put(key_chat_outInstantSelected, linkText);
+
+            colors.put(key_chat_outAudioSeekbar, seekbar);
+            colors.put(key_chat_outAudioSeekbarSelected, seekbar);
+            colors.put(key_chat_outAudioCacheSeekbar, seekbar);
+            colors.put(key_chat_outVoiceSeekbar, seekbar);
+            colors.put(key_chat_outVoiceSeekbarSelected, seekbar);
+            colors.put(key_chat_outAudioProgress, seekbar);
+            colors.put(key_chat_outAudioSelectedProgress, seekbar);
+        }
+    }
+
     public static void refreshThemeColors() {
         refreshThemeColors(false, false);
     }
@@ -6156,6 +6439,7 @@ public class Theme {
         }
         applyCalculatedTableColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
         applyCalculatedArticleCodeColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
+        applyZenigramCustomColors(currentColors);
         if (!messages) {
             boolean async = !(LaunchActivity.getLastFragment() instanceof ChatActivity);
             reloadWallpaper(async);
@@ -6566,6 +6850,14 @@ public class Theme {
         }
     };
 
+    public static void setCurrentDayTheme(ThemeInfo theme) {
+        boolean apply = currentTheme == currentDayTheme;
+        currentDayTheme = theme;
+        if (apply) {
+            applyDayNightThemeMaybe(false);
+        }
+    }
+
     public static void setCurrentNightTheme(ThemeInfo theme) {
         boolean apply = currentTheme == currentNightTheme;
         currentNightTheme = theme;
@@ -6600,75 +6892,7 @@ public class Theme {
     }
 
     private static int needSwitchToTheme() {
-        if (selectedAutoNightType == AUTO_NIGHT_TYPE_SCHEDULED) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            int time = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
-            int timeStart;
-            int timeEnd;
-            if (autoNightScheduleByLocation) {
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-                if (autoNightLastSunCheckDay != day && autoNightLocationLatitude != 10000 && autoNightLocationLongitude != 10000) {
-                    int[] t = SunDate.calculateSunriseSunset(autoNightLocationLatitude, autoNightLocationLongitude);
-                    autoNightSunriseTime = t[0];
-                    autoNightSunsetTime = t[1];
-                    autoNightLastSunCheckDay = day;
-                    saveAutoNightThemeConfig();
-                }
-                timeStart = autoNightSunsetTime;
-                timeEnd = autoNightSunriseTime;
-            } else {
-                timeStart = autoNightDayStartTime;
-                timeEnd = autoNightDayEndTime;
-            }
-            if (timeStart < timeEnd) {
-                if (timeStart <= time && time <= timeEnd) {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            } else {
-                if (timeStart <= time && time <= 24 * 60 || 0 <= time && time <= timeEnd) {
-                    return 2;
-                } else {
-                    return 1;
-                }
-            }
-        } else if (selectedAutoNightType == AUTO_NIGHT_TYPE_AUTOMATIC) {
-            if (lightSensor == null) {
-                sensorManager = (SensorManager) ApplicationLoader.applicationContext.getSystemService(Context.SENSOR_SERVICE);
-                lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-            }
-            if (!lightSensorRegistered && lightSensor != null && ambientSensorListener != null) {
-                sensorManager.registerListener(ambientSensorListener, lightSensor, 500000);
-                lightSensorRegistered = true;
-                if (BuildVars.LOGS_ENABLED) {
-                    FileLog.d("light sensor registered");
-                }
-            }
-            if (lastBrightnessValue <= autoNightBrighnessThreshold) {
-                if (!switchNightRunnableScheduled) {
-                    return 2;
-                }
-            } else {
-                if (!switchDayRunnableScheduled) {
-                    return 1;
-                }
-            }
-        } else if (selectedAutoNightType == AUTO_NIGHT_TYPE_SYSTEM) {
-            Configuration configuration = ApplicationLoader.applicationContext.getResources().getConfiguration();
-            int currentNightMode = configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK;
-            switch (currentNightMode) {
-                case Configuration.UI_MODE_NIGHT_NO:
-                case Configuration.UI_MODE_NIGHT_UNDEFINED:
-                    return 1;
-                case Configuration.UI_MODE_NIGHT_YES:
-                    return 2;
-            }
-        } else if (selectedAutoNightType == AUTO_NIGHT_TYPE_NONE) {
-            return 1;
-        }
-        return 0;
+        return 2;
     }
 
     public static void setChangingWallpaper(boolean value) {
@@ -6712,7 +6936,7 @@ public class Theme {
     }
 
     public static void applyDayNightThemeMaybe(boolean night) {
-        if (previousTheme != null) {
+        if (!night || previousTheme != null) {
             return;
         }
 
@@ -7895,6 +8119,10 @@ public class Theme {
                 dialogs_nameEncryptedPaint[a].setTypeface(AndroidUtilities.bold());
                 dialogs_messagePaint[a] = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
                 dialogs_messagePrintingPaint[a] = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+                if (tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA) {
+                    dialogs_messagePaint[a].setTypeface(tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false));
+                    dialogs_messagePrintingPaint[a].setTypeface(tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false));
+                }
             }
             dialogs_searchNamePaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
             dialogs_searchNamePaint.setTypeface(AndroidUtilities.bold());
@@ -7933,10 +8161,10 @@ public class Theme {
             dialogs_muteDrawable = resources.getDrawable(R.drawable.list_mute).mutate();
             dialogs_unmuteDrawable = resources.getDrawable(R.drawable.list_unmute).mutate();
             dialogs_hiddenDrawable = resources.getDrawable(R.drawable.mini_ephemeral_hidden_16).mutate();
-            dialogs_verifiedDrawable = resources.getDrawable(R.drawable.verified_area).mutate();
+            dialogs_verifiedDrawable = resources.getDrawable(R.drawable.ic_verified_extera).mutate();
             dialogs_scamDrawable = new ScamDrawable(11, 0);
             dialogs_fakeDrawable = new ScamDrawable(11, 1);
-            dialogs_verifiedCheckDrawable = resources.getDrawable(R.drawable.verified_check).mutate();
+            dialogs_verifiedCheckDrawable = resources.getDrawable(R.drawable.ic_verified_extera_check).mutate();
 
             dialogs_mentionDrawable = resources.getDrawable(R.drawable.filled_chatlist_mention).mutate();
             dialogs_reactionsMentionDrawable = resources.getDrawable(R.drawable.filled_chatlist_reaction).mutate();
@@ -7993,6 +8221,21 @@ public class Theme {
         if (dialogs_namePaint == null) {
             return;
         }
+        android.graphics.Typeface boldTf = AndroidUtilities.bold();
+        android.graphics.Typeface regTf = tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA ?
+                tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false) : AndroidUtilities.getTypeface("");
+        for (int a = 0; a < 2; a++) {
+            if (dialogs_namePaint[a] != null) dialogs_namePaint[a].setTypeface(boldTf);
+            if (dialogs_nameEncryptedPaint[a] != null) dialogs_nameEncryptedPaint[a].setTypeface(boldTf);
+            if (dialogs_messagePaint[a] != null) dialogs_messagePaint[a].setTypeface(regTf);
+            if (dialogs_messagePrintingPaint[a] != null) dialogs_messagePrintingPaint[a].setTypeface(regTf);
+        }
+        if (dialogs_searchNamePaint != null) dialogs_searchNamePaint.setTypeface(boldTf);
+        if (dialogs_searchNameEncryptedPaint != null) dialogs_searchNameEncryptedPaint.setTypeface(boldTf);
+        if (dialogs_messageNamePaint != null) dialogs_messageNamePaint.setTypeface(boldTf);
+        if (dialogs_archiveTextPaint != null) dialogs_archiveTextPaint.setTypeface(boldTf);
+        if (dialogs_archiveTextPaintSmall != null) dialogs_archiveTextPaintSmall.setTypeface(boldTf);
+        if (dialogs_tagTextPaint != null) dialogs_tagTextPaint.setTypeface(boldTf);
         for (int a = 0; a < 2; a++) {
             dialogs_namePaint[a].setColor(getColor(key_chats_name));
             dialogs_nameEncryptedPaint[a].setColor(getColor(key_chats_secretName));
@@ -8075,6 +8318,11 @@ public class Theme {
         synchronized (sync) {
             if (chat_msgTextPaint == null) {
                 chat_msgTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+                if (tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA && tw.nekomimi.nekogram.NekoConfig.customFontScope == tw.nekomimi.nekogram.NekoConfig.FONT_SCOPE_ALL) {
+                    chat_msgTextPaint.setTypeface(tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false));
+                } else {
+                    chat_msgTextPaint.setTypeface(android.graphics.Typeface.DEFAULT);
+                }
                 chat_msgGameTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
                 chat_msgTextPaintEmoji = new TextPaint[6];
                 chat_msgTextPaintOneEmoji = new TextPaint(Paint.ANTI_ALIAS_FLAG);
@@ -8244,7 +8492,7 @@ public class Theme {
     public static void createChatResources(Context context, boolean fontsOnly) {
         createCommonChatResources();
 
-        if (!fontsOnly && chat_msgInDrawable == null) {
+        if (!fontsOnly && (chat_msgInDrawable == null || chat_fileStatesDrawable[0][0] == null)) {
 
             Resources resources = context.getResources();
 
@@ -8515,6 +8763,21 @@ public class Theme {
         if (chat_msgTextPaint == null) {
             return;
         }
+        invalidateChatOutBubble();
+        android.graphics.Typeface boldTf = AndroidUtilities.bold();
+        android.graphics.Typeface regTf = tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA ?
+                tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false) : AndroidUtilities.getTypeface("");
+        android.graphics.Typeface msgTf = (tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA && tw.nekomimi.nekogram.NekoConfig.customFontScope == tw.nekomimi.nekogram.NekoConfig.FONT_SCOPE_ALL) ?
+                tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(false) : android.graphics.Typeface.DEFAULT;
+        if (chat_namePaint != null) chat_namePaint.setTypeface(boldTf);
+        if (chat_replyNamePaint != null) chat_replyNamePaint.setTypeface(boldTf);
+        if (chat_forwardNamePaint != null) chat_forwardNamePaint.setTypeface(boldTf);
+        if (chat_msgTextPaint != null) chat_msgTextPaint.setTypeface(msgTf);
+        if (chat_docNamePaint != null) chat_docNamePaint.setTypeface(boldTf);
+        if (chat_audioTitlePaint != null) chat_audioTitlePaint.setTypeface(boldTf);
+        if (chat_audioPerformerPaint != null) chat_audioPerformerPaint.setTypeface(regTf);
+        if (chat_botButtonPaint != null) chat_botButtonPaint.setTypeface(boldTf);
+        if (chat_commentTextPaint != null) chat_commentTextPaint.setTypeface(boldTf);
 
         if (chat_msgInDrawable != null && !fontsOnly) {
             chat_gamePaint.setColor(getColor(key_chat_previewGameText));
@@ -8945,8 +9208,8 @@ public class Theme {
 
             Resources resources = context.getResources();
 
-            profile_verifiedDrawable = resources.getDrawable(R.drawable.verified_area).mutate();
-            profile_verifiedCheckDrawable = resources.getDrawable(R.drawable.verified_check).mutate();
+            profile_verifiedDrawable = resources.getDrawable(R.drawable.ic_verified_extera).mutate();
+            profile_verifiedCheckDrawable = resources.getDrawable(R.drawable.ic_verified_extera_check).mutate();
             profile_verifiedCatDrawable = resources.getDrawable(R.drawable.black_cat_18dp).mutate();
 
             applyProfileTheme();
@@ -9067,7 +9330,34 @@ public class Theme {
     }
 
     public static int getCurrentColor(int key) {
+        int zeniColor = getZenigramCustomColor(key);
+        if (zeniColor != Integer.MIN_VALUE) {
+            return zeniColor;
+        }
         return currentColors.get(key);
+    }
+
+    public static void invalidateChatOutBubble() {
+        if (chat_msgInDrawable == null || chat_fileStatesDrawable == null || chat_fileStatesDrawable[0][0] == null) {
+            return;
+        }
+        chat_msgInDrawable = new MessageDrawable(MessageDrawable.TYPE_TEXT, false, false);
+        chat_msgInSelectedDrawable = new MessageDrawable(MessageDrawable.TYPE_TEXT, false, true);
+        chat_msgInMediaDrawable = new MessageDrawable(MessageDrawable.TYPE_MEDIA, false, false);
+        chat_msgInMediaSelectedDrawable = new MessageDrawable(MessageDrawable.TYPE_MEDIA, false, true);
+        addChatDrawable(key_drawable_msgIn, chat_msgInDrawable, -1);
+        addChatDrawable(key_drawable_msgInSelected, chat_msgInSelectedDrawable, -1);
+        addChatDrawable(key_drawable_msgInMedia, chat_msgInMediaDrawable, -1);
+        addChatDrawable(key_drawable_msgInMediaSelected, chat_msgInMediaSelectedDrawable, -1);
+
+        chat_msgOutDrawable = new MessageDrawable(MessageDrawable.TYPE_TEXT, true, false);
+        chat_msgOutSelectedDrawable = new MessageDrawable(MessageDrawable.TYPE_TEXT, true, true);
+        chat_msgOutMediaDrawable = new MessageDrawable(MessageDrawable.TYPE_MEDIA, true, false);
+        chat_msgOutMediaSelectedDrawable = new MessageDrawable(MessageDrawable.TYPE_MEDIA, true, true);
+        addChatDrawable(key_drawable_msgOut, chat_msgOutDrawable, -1);
+        addChatDrawable(key_drawable_msgOutSelected, chat_msgOutSelectedDrawable, -1);
+        addChatDrawable(key_drawable_msgOutMedia, chat_msgOutMediaDrawable, -1);
+        addChatDrawable(key_drawable_msgOutMediaSelected, chat_msgOutMediaSelectedDrawable, -1);
     }
 
     public static int getColor(int key) {
@@ -9079,6 +9369,13 @@ public class Theme {
     }
 
     public static int getColor(int key, boolean[] isDefault, boolean ignoreAnimation) {
+        int zeniColor = getZenigramCustomColor(key);
+        if (zeniColor != Integer.MIN_VALUE) {
+            if (isDefault != null) {
+                isDefault[0] = false;
+            }
+            return zeniColor;
+        }
         if (!ignoreAnimation && animatingColors != null) {
             int index = animatingColors.indexOfKey(key);
             if (index >= 0) {
@@ -9116,19 +9413,21 @@ public class Theme {
             if (fallbackKey != -1) {
                 int fallbackIndex = currentColors.indexOfKey(fallbackKey);
                 if (fallbackIndex >= 0) {
-                    return currentColors.valueAt(fallbackIndex);
+                    color = currentColors.valueAt(fallbackIndex);
+                } else {
+                    color = getDefaultColor(key);
                 }
+            } else {
+                if (isDefault != null) {
+                    isDefault[0] = true;
+                }
+                if (key == key_chat_serviceBackground) {
+                    return serviceMessageColor;
+                } else if (key == key_chat_serviceBackgroundSelected) {
+                    return serviceSelectedMessageColor;
+                }
+                color = getDefaultColor(key);
             }
-
-            if (isDefault != null) {
-                isDefault[0] = true;
-            }
-            if (key == key_chat_serviceBackground) {
-                return serviceMessageColor;
-            } else if (key == key_chat_serviceBackgroundSelected) {
-                return serviceSelectedMessageColor;
-            }
-            return getDefaultColor(key);
         } else {
             color = currentColors.valueAt(index);
         }
@@ -9709,6 +10008,16 @@ public class Theme {
     }
 
     public static Drawable createDefaultWallpaper(int w, int h) {
+        if (isCurrentThemeDark() || (currentTheme != null && currentTheme.isDark())) {
+            MotionBackgroundDrawable motionBackgroundDrawable = new MotionBackgroundDrawable(0xff161311, 0xff201b17, 0xff1a1714, 0xff14110f, w != 0);
+            if (w <= 0 || h <= 0) {
+                w = Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);
+                h = Math.max(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);
+            }
+            motionBackgroundDrawable.setPatternBitmap(20, SvgHelper.getBitmap(R.raw.default_pattern, w, h, Color.WHITE, 1f, SvgHelper.ScaleMode.ByWidth));
+            motionBackgroundDrawable.setPatternColorFilter(motionBackgroundDrawable.getPatternColor());
+            return motionBackgroundDrawable;
+        }
         MotionBackgroundDrawable motionBackgroundDrawable = new MotionBackgroundDrawable(0xffdbddbb, 0xff6ba587, 0xffd5d88d, 0xff88b884, w != 0);
         if (w <= 0 || h <= 0) {
             w = Math.min(AndroidUtilities.displaySize.x, AndroidUtilities.displaySize.y);

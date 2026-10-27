@@ -787,14 +787,22 @@ public class ChatActivityEnterView extends FrameLayout implements
     boolean doneButtonEnabled = true;
     private ValueAnimator doneButtonColorAnimator;
 
+    private int openKeyboardRetryCount = 0;
     private Runnable openKeyboardRunnable = new Runnable() {
         @Override
         public void run() {
             if (hasBotWebView() && botCommandsMenuIsShowing() || BaseFragment.hasSheets(parentFragment)) {
+                waitingForKeyboardOpen = false;
+                openKeyboardRetryCount = 0;
                 return;
             }
 
             if (!destroyed && messageEditText != null && waitingForKeyboardOpen && !keyboardVisible && !AndroidUtilities.usingHardwareInput && !AndroidUtilities.isInMultiwindow) {
+                if (++openKeyboardRetryCount > 5) {
+                    waitingForKeyboardOpen = false;
+                    openKeyboardRetryCount = 0;
+                    return;
+                }
                 if (delegate != null) {
                     delegate.onKeyboardRequested();
                 }
@@ -802,6 +810,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                 AndroidUtilities.showKeyboard(messageEditText);
                 AndroidUtilities.cancelRunOnUIThread(openKeyboardRunnable);
                 AndroidUtilities.runOnUIThread(openKeyboardRunnable, 100);
+            } else {
+                waitingForKeyboardOpen = false;
+                openKeyboardRetryCount = 0;
             }
         }
     };
@@ -1537,7 +1548,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             float progressToSeekbarStep1 = 0f;
             float progressToSeekbarStep2 = 0;
             float exitProgress2 = 0f;
-            float hidePause = hidePauseT.set(isInVideoMode && millisecondsRecorded >= 59_000);
+            float hidePause = hidePauseT.set(isInVideoMode && millisecondsRecorded >= (59_000));
 
             if (transformToSeekbar != 0 && audioTimelineView != null) {
                 float step1Time = 0.38f;
@@ -2872,7 +2883,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 notifyButton.setContentDescription(silent ? getString("AccDescrChanSilentOn", R.string.AccDescrChanSilentOn) : getString("AccDescrChanSilentOff", R.string.AccDescrChanSilentOff));
                 notifyButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_glass_defaultIcon), PorterDuff.Mode.MULTIPLY));
                 notifyButton.setScaleType(ImageView.ScaleType.CENTER);
-                notifyButton.setBackgroundDrawable(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
+                notifyButton.setBackground(Theme.createInsetRoundRectDrawable(getThemedColor(Theme.key_listSelector), dp(19), dp(1), dp(3)));
                 notifyButton.setVisibility(canWriteToChannel && (delegate == null || !delegate.hasScheduledMessages()) ? VISIBLE : GONE);
                 attachLayout.addView(notifyButton, LayoutHelper.createLinear(DEFAULT_HEIGHT, DEFAULT_HEIGHT));
                 notifyButton.setOnClickListener(new OnClickListener() {
@@ -2907,7 +2918,7 @@ public class ChatActivityEnterView extends FrameLayout implements
             attachButton.setScaleType(ImageView.ScaleType.CENTER);
             attachButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_glass_defaultIcon), PorterDuff.Mode.MULTIPLY));
             attachButton.setImageResource(R.drawable.msg_input_attach2);
-            attachButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_listSelector)));
+            attachButton.setBackground(Theme.createInsetRoundRectDrawable(getThemedColor(Theme.key_listSelector), dp(19), dp(1), dp(3)));
             messageEditTextContainer.addView(attachButton, LayoutHelper.createFrame(DEFAULT_HEIGHT, DEFAULT_HEIGHT, Gravity.BOTTOM | Gravity.RIGHT));
             attachButton.setOnClickListener(v -> {
                 if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress() || attachLayoutPaddingAlpha == 0f) {
@@ -3308,7 +3319,6 @@ public class ChatActivityEnterView extends FrameLayout implements
                         }
                     }
 
-                    final float r = dpf2(19);
                     paint.setColor(getThemedColor(Theme.key_chat_messagePanelSend));
                     final float margin = dpf2(3);
                     final float height = dpf2(38);
@@ -3319,6 +3329,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                             getMeasuredWidth() - margin,
                             getMeasuredHeight() - margin
                     );
+                    final float r = backgroundRect.height() / 2f;
 
                     canvas.save();
                     canvas.scale(s, s, backgroundRect.centerX(), backgroundRect.centerY());
@@ -3993,7 +4004,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                 } else if (isPopupShowing() && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD) {
                     showPopup(0, POPUP_CONTENT_BOT_KEYBOARD, true, false);
                 }
-            } else if (hasBotCommands || hasQuickReplies) {
+            } else if (hasBotCommands || hasQuickReplies || (parentFragment != null && parentFragment.getCurrentUser() != null && parentFragment.getCurrentUser().bot)) {
                 setFieldText("/");
                 if (messageEditText != null) {
                     messageEditText.requestFocus();
@@ -11374,7 +11385,8 @@ public class ChatActivityEnterView extends FrameLayout implements
         boolean hasBotWebView = hasBotWebView();
         boolean canShowBotsMenu = botMenuButtonType != BotMenuButtonType.NO_BUTTON && dialog_id > 0;
         boolean wasVisible = botButton != null && botButton.getVisibility() == VISIBLE;
-        if (hasBotWebView || hasBotCommands || hasQuickReplies || botReplyMarkup != null) {
+        boolean isBot = (parentFragment != null && parentFragment.getCurrentUser() != null && parentFragment.getCurrentUser().bot);
+        if (hasBotWebView || hasBotCommands || hasQuickReplies || botReplyMarkup != null || isBot) {
             if (botReplyMarkup != null) {
                 if (isPopupShowing() && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD && botReplyMarkup.is_persistent) {
                     if (botButton != null && botButton.getVisibility() != GONE) {
@@ -11386,17 +11398,38 @@ public class ChatActivityEnterView extends FrameLayout implements
                         botButton.setVisibility(VISIBLE);
                     }
 
-                    botButtonDrawable.setIcon(R.drawable.input_bot2, true);
+                    boolean isBotKeyboardOpen = isPopupShowing() && currentPopupContentType == POPUP_CONTENT_BOT_KEYBOARD;
+                    botButtonDrawable.setIcon(isBotKeyboardOpen ? R.drawable.input_keyboard : R.drawable.input_bot2, animated);
                     botButton.setContentDescription(getString("AccDescrBotKeyboard", R.string.AccDescrBotKeyboard));
+                    if (!animated) {
+                        botButton.setAlpha(1.0f);
+                        botButton.setScaleX(1.0f);
+                        botButton.setScaleY(1.0f);
+                        botButton.setTag(1);
+                    }
+                    if (attachLayout != null && attachLayout.getVisibility() != VISIBLE) {
+                        attachLayout.setVisibility(VISIBLE);
+                        attachLayout.setAlpha(1.0f);
+                        attachLayout.setScaleX(1.0f);
+                        attachLayout.setScaleY(1.0f);
+                    }
                 }
             } else {
-                if (!canShowBotsMenu) {
-                    createBotButton();
-                    botButtonDrawable.setIcon(R.drawable.input_bot1, true);
-                    botButton.setContentDescription(getString("AccDescrBotCommands", R.string.AccDescrBotCommands));
-                    botButton.setVisibility(VISIBLE);
-                } else if (botButton != null) {
-                    botButton.setVisibility(GONE);
+                createBotButton();
+                botButtonDrawable.setIcon(R.drawable.input_bot1, true);
+                botButton.setContentDescription(getString("AccDescrBotCommands", R.string.AccDescrBotCommands));
+                botButton.setVisibility(VISIBLE);
+                if (!animated) {
+                    botButton.setAlpha(1.0f);
+                    botButton.setScaleX(1.0f);
+                    botButton.setScaleY(1.0f);
+                    botButton.setTag(1);
+                }
+                if (attachLayout != null && attachLayout.getVisibility() != VISIBLE) {
+                    attachLayout.setVisibility(VISIBLE);
+                    attachLayout.setAlpha(1.0f);
+                    attachLayout.setScaleX(1.0f);
+                    attachLayout.setScaleY(1.0f);
                 }
             }
         } else if (botButton != null) {
@@ -11423,6 +11456,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                     botButton.setAlpha(0f);
                     botButton.setScaleX(0.1f);
                     botButton.setScaleY(0.1f);
+                    if (attachLayout != null) {
+                        attachLayout.setVisibility(VISIBLE);
+                        attachLayout.setAlpha(1.0f);
+                    }
                 } else if (!show) {
                     botButton.setAlpha(1f);
                     botButton.setScaleX(1f);
@@ -13192,6 +13229,10 @@ public class ChatActivityEnterView extends FrameLayout implements
     }
 
     public void closeKeyboard() {
+        waitingForKeyboardOpen = false;
+        showKeyboardOnResume = false;
+        openKeyboardRetryCount = 0;
+        AndroidUtilities.cancelRunOnUIThread(openKeyboardRunnable);
         AndroidUtilities.hideKeyboard(messageEditText);
     }
 
@@ -13355,11 +13396,17 @@ public class ChatActivityEnterView extends FrameLayout implements
         }
         if (keyboardVisible && waitingForKeyboardOpen) {
             waitingForKeyboardOpen = false;
+            openKeyboardRetryCount = 0;
             if (clearBotButtonsOnKeyboardOpen) {
                 clearBotButtonsOnKeyboardOpen = false;
                 botKeyboardView.setButtons(botReplyMarkup);
             }
 
+            AndroidUtilities.cancelRunOnUIThread(openKeyboardRunnable);
+        } else if (!keyboardVisible) {
+            showKeyboardOnResume = false;
+            waitingForKeyboardOpen = false;
+            openKeyboardRetryCount = 0;
             AndroidUtilities.cancelRunOnUIThread(openKeyboardRunnable);
         }
         onWindowSizeChanged();
@@ -14405,7 +14452,8 @@ public class ChatActivityEnterView extends FrameLayout implements
             int ms = (int) (t % 1000L) / 10;
 
             if (isInVideoMode()) {
-                if (t >= 59500 && !stoppedInternal) {
+                long videoTimeCutoff = 59500;
+                if (t >= videoTimeCutoff && !stoppedInternal) {
                     startedDraggingX = -1;
                     delegate.needStartRecordVideo(3, true, 0, 0, voiceOnce ? 0x7FFFFFFF : 0, effectId, 0);
                     sendButton.setEffect(effectId = 0);
@@ -15232,7 +15280,8 @@ public class ChatActivityEnterView extends FrameLayout implements
             updateColors();
             checkBackgroundRect();
             if (isNewDesignSendButton) {
-                canvas.drawRoundRect(backgroundRect, dp(RADIUS), dp(RADIUS), backgroundPaint);
+                final float r = backgroundRect.height() / 2f;
+                canvas.drawRoundRect(backgroundRect, r, r, backgroundPaint);
             }
 
             final boolean inactive = isInactive();

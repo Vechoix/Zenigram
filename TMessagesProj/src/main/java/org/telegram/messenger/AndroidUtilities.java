@@ -261,7 +261,17 @@ public class AndroidUtilities {
     public static ThreadLocal<byte[]> readBufferLocal = new ThreadLocal<>();
     public static ThreadLocal<byte[]> bufferLocal = new ThreadLocal<>();
 
+    public static void resetTypefaces() {
+        mediumTypeface = null;
+        synchronized (typefaceCache) {
+            typefaceCache.clear();
+        }
+    }
+
     public static Typeface bold() {
+        if (tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA) {
+            return tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(true);
+        }
         if (mediumTypeface == null) {
             if (SharedConfig.useSystemBoldFont && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 mediumTypeface = Typeface.create(null, 500, false);
@@ -2392,6 +2402,16 @@ public class AndroidUtilities {
     }
 
     public static Typeface getTypeface(String assetPath) {
+        if (tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA) {
+            if (!"fonts/num.otf".equals(assetPath) && !TYPEFACE_ROBOTO_MONO.equals(assetPath) && !"fonts/rmono.ttf".equals(assetPath)) {
+                boolean isBold = TYPEFACE_ROBOTO_MEDIUM.equals(assetPath) ||
+                                TYPEFACE_ROBOTO_EXTRA_BOLD.equals(assetPath) ||
+                                TYPEFACE_ROBOTO_MEDIUM_ITALIC.equals(assetPath) ||
+                                "fonts/rcondensedbold.ttf".equals(assetPath) ||
+                                "fonts/rmedium.ttf".equals(assetPath);
+                return tw.nekomimi.nekogram.helpers.TypefaceHelper.getComfortaa(isBold);
+            }
+        }
         synchronized (typefaceCache) {
             if (!typefaceCache.containsKey(assetPath)) {
                 try {
@@ -3644,6 +3664,28 @@ public class AndroidUtilities {
         ApplicationLoader.appCenterLog(e);
     }
 
+    public static String getDeviceModel() {
+        String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.trim() : "";
+        String model = Build.MODEL != null ? Build.MODEL.trim() : "";
+        if (TextUtils.isEmpty(manufacturer)) {
+            return TextUtils.isEmpty(model) ? "Android" : model;
+        }
+        if (TextUtils.isEmpty(model)) {
+            return manufacturer;
+        }
+        String result;
+        if (model.toLowerCase(Locale.US).startsWith(manufacturer.toLowerCase(Locale.US))) {
+            result = model;
+        } else {
+            result = manufacturer + " " + model;
+        }
+        String[] parts = result.split(" ");
+        if (parts.length >= 2 && parts[0].equalsIgnoreCase(parts[1])) {
+            result = result.substring(parts[0].length()).trim();
+        }
+        return result;
+    }
+
     public static boolean shouldShowClipboardToast() {
         return (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !OneUIUtilities.hasBuiltInClipboardToasts()) && (Build.VERSION.SDK_INT < 32 || XiaomiUtilities.isMIUI());
     }
@@ -3718,7 +3760,7 @@ public class AndroidUtilities {
         }
         File storageDir = null;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Nekogram");
+            storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Zenigram");
             if (!storageDir.mkdirs()) {
                 if (!storageDir.exists()) {
                     if (BuildVars.LOGS_ENABLED) {
@@ -6686,9 +6728,7 @@ public class AndroidUtilities {
     public static String getBuildVersionInfo() {
         try {
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
-            int code = pInfo.versionCode / 10;
-            String abi = BuildConfig.BUILD_TYPE + " " + Build.SUPPORTED_ABIS[0];
-            return formatString(R.string.NekogramVersion, String.format(Locale.US, "v%s (%d) %s", pInfo.versionName, code, abi), String.format(Locale.US, "v%s (%d)", BuildVars.BUILD_VERSION_STRING, BuildConfig.BUILD_VERSION), "@Duang");
+            return formatString(R.string.NekogramVersion, String.format(Locale.US, "v%s", pInfo.versionName));
         } catch (Exception e) {
             FileLog.e(e);
         }
