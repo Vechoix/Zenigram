@@ -28,6 +28,27 @@ import tw.nekomimi.nekogram.NekoConfig;
 
 public class TypefaceHelper {
 
+    private static Typeface comfortaaRegular;
+    private static Typeface comfortaaBold;
+
+    public static Typeface getComfortaa(boolean bold) {
+        if (comfortaaRegular == null) {
+            try {
+                if (org.telegram.messenger.ApplicationLoader.applicationContext != null) {
+                    comfortaaRegular = Typeface.createFromAsset(org.telegram.messenger.ApplicationLoader.applicationContext.getAssets(), "fonts/Comfortaa.ttf");
+                    comfortaaBold = Typeface.create(comfortaaRegular, Typeface.BOLD);
+                }
+            } catch (Throwable e) {
+                FileLog.e(e);
+            }
+            if (comfortaaRegular == null) {
+                comfortaaRegular = Typeface.DEFAULT;
+                comfortaaBold = Typeface.DEFAULT_BOLD;
+            }
+        }
+        return bold ? comfortaaBold : comfortaaRegular;
+    }
+
     private static final String TEST_TEXT;
     private static final int CANVAS_SIZE = 40;
     private static final Paint PAINT = new Paint() {{
@@ -124,6 +145,9 @@ public class TypefaceHelper {
     }
 
     public static Typeface createTypeface(int weight, boolean italic) {
+        if (NekoConfig.customFont == NekoConfig.FONT_COMFORTAA) {
+            return getComfortaa(weight >= 500);
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             return Typeface.create(null, weight, italic);
         }

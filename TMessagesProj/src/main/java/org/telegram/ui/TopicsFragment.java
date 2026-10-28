@@ -405,7 +405,7 @@ public class TopicsFragment extends BaseFragment implements NotificationCenter.N
     @Override
     public View createView(Context context) {
         additionNavigationBarHeight = parentDialogsActivity != null && parentDialogsActivity.hasMainTabs && !NekoConfig.hideBottomNavigationBar ? dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
-        additionFloatingButtonOffset = parentDialogsActivity != null && parentDialogsActivity.hasMainTabs && !NekoConfig.hideBottomNavigationBar ? dp(DialogsActivity.MAIN_TABS_HEIGHT + DialogsActivity.MAIN_TABS_MARGIN) : 0;
+        additionFloatingButtonOffset = parentDialogsActivity != null && parentDialogsActivity.hasMainTabs && !NekoConfig.hideBottomNavigationBar ? dp(80) : 0;
 
         fragmentView = contentView = new SizeNotifierFrameLayout(context) {
             {

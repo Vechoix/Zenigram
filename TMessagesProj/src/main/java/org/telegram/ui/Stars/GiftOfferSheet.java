@@ -661,6 +661,7 @@ public class GiftOfferSheet extends BottomSheetWithRecyclerListView {
         ));
         topView.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 4, 24, 4));
         final TableView tableView = new TableView(getContext(), resourcesProvider);
+        tableView.setDrawBorder(false);
 
         final long paywall = MessagesController.getInstance(currentAccount).getSendPaidMessagesStars(dialogId);
         final AmountUtils.Amount paywallAmount = AmountUtils.Amount.fromDecimal(paywall, AmountUtils.Currency.STARS);
@@ -795,6 +796,7 @@ public class GiftOfferSheet extends BottomSheetWithRecyclerListView {
         tableLayout.setClipChildren(false);
         tableLayout.setClipToPadding(false);
         final TableView tableView = new TableView(context, resourcesProvider);
+        tableView.setDrawBorder(false);
         tableLayout.addView(tableView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
 
 

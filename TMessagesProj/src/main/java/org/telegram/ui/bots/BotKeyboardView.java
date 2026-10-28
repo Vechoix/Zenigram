@@ -271,7 +271,11 @@ public class BotKeyboardView extends LinearLayout implements InAppKeyboardInsetV
         if (botButtons == null) {
             return 0;
         }
-        return isFullSize ? panelHeight : botButtons.rows.size() * dp(buttonHeight) + dp(BORDER_MARGIN * 2) + (botButtons.rows.size() - 1) * dp(MIDDLE_MARGIN);
+        int height = isFullSize ? panelHeight : botButtons.rows.size() * dp(buttonHeight) + dp(BORDER_MARGIN * 2) + (botButtons.rows.size() - 1) * dp(MIDDLE_MARGIN);
+        if (!isFullSize && navigationBarHeight > 0) {
+            height += navigationBarHeight;
+        }
+        return height;
     }
 
     private int getThemedColor(int key) {
@@ -291,6 +295,7 @@ public class BotKeyboardView extends LinearLayout implements InAppKeyboardInsetV
         if (scrollView.getPaddingBottom() != height) {
             scrollView.setPadding(0, 0, 0, height);
         }
+        requestLayout();
         invalidate();
     }
 

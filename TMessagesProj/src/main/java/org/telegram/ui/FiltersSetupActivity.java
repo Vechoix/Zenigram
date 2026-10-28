@@ -636,6 +636,7 @@ public class FiltersSetupActivity extends BaseFragment implements NotificationCe
 
     @Override
     public View createView(Context context) {
+        hasOwnBackground = true;
         actionBar.setBackButtonImage(R.drawable.ic_ab_back);
         actionBar.setAllowOverlayTitle(true);
         actionBar.setTitle(LocaleController.getString(R.string.Filters));

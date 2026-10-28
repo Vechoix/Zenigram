@@ -25,6 +25,7 @@ import org.telegram.messenger.AccountInstance;
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ApplicationLoader;
 import org.telegram.messenger.BaseController;
+import org.telegram.messenger.BuildConfig;
 import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.CaptchaController;
 import org.telegram.messenger.EmuDetector;
@@ -224,14 +225,9 @@ public class ConnectionsManager extends BaseController {
         try {
             systemLangCode = LocaleController.getSystemLocaleStringIso639().toLowerCase();
             langCode = LocaleController.getLocaleStringIso639().toLowerCase();
-            deviceModel = Build.MANUFACTURER + Build.MODEL;
+            deviceModel = AndroidUtilities.getDeviceModel();
             PackageInfo pInfo = ApplicationLoader.applicationContext.getPackageManager().getPackageInfo(ApplicationLoader.applicationContext.getPackageName(), 0);
             appVersion = pInfo.versionName + " (" + pInfo.versionCode + ")";
-            if (BuildVars.DEBUG_PRIVATE_VERSION) {
-                appVersion += " pbeta";
-            } else if (BuildVars.DEBUG_VERSION) {
-                appVersion += " beta";
-            }
             systemVersion = "SDK " + Build.VERSION.SDK_INT;
         } catch (Exception e) {
             systemLangCode = "en";

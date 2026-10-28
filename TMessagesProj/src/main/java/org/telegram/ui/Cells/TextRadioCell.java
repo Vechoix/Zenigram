@@ -81,9 +81,8 @@ public class TextRadioCell extends FrameLayout {
         textView = new TextView(context);
         textView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        textView.setLines(1);
-        textView.setMaxLines(1);
-        textView.setSingleLine(true);
+        textView.setMaxLines(2);
+        textView.setSingleLine(false);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? padding : 64, 0, LocaleController.isRTL ? 64 : padding, 0));
@@ -134,10 +133,25 @@ public class TextRadioCell extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (isMultiline) {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-        } else {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(valueTextView.getVisibility() == VISIBLE ? 64 : height) + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        int minHeight = AndroidUtilities.dp(valueTextView.getVisibility() == VISIBLE ? 64 : height);
+        int contentH = (valueTextView.getVisibility() == VISIBLE)
+                ? (AndroidUtilities.dp(10) + textView.getMeasuredHeight() + AndroidUtilities.dp(3) + valueTextView.getMeasuredHeight() + AndroidUtilities.dp(10))
+                : (textView.getMeasuredHeight() + AndroidUtilities.dp(20));
+        int measuredH = Math.max(minHeight, contentH);
+        setMeasuredDimension(width, measuredH + (needDivider ? 1 : 0));
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (valueTextView != null && valueTextView.getVisibility() == VISIBLE && textView != null) {
+            int desiredValTop = textView.getBottom() + AndroidUtilities.dp(3);
+            int currentValTop = valueTextView.getTop();
+            if (currentValTop != desiredValTop) {
+                valueTextView.offsetTopAndBottom(desiredValTop - currentValTop);
+            }
         }
     }
 

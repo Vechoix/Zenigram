@@ -286,7 +286,7 @@ public class MainTabsLayout extends AnimatedLinearLayout {
     private void setSkipDrawSelector(boolean skipDrawSelector) {
         drawCustomSelector = skipDrawSelector;
         if (drawCustomSelector) {
-            selectorPaint.setColor(Theme.multAlpha(Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider), 0.09f));
+            selectorPaint.setColor(Theme.multAlpha(Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider), 0.22f));
         }
         for (int a = 0, N = getChildCount(); a < N; a++) {
             final View child = getChildAt(a);
@@ -311,13 +311,14 @@ public class MainTabsLayout extends AnimatedLinearLayout {
     protected void dispatchDraw(@NonNull Canvas canvas) {
         if (drawCustomSelector) {
             final float x = animatedLongSelectedViewCenterX + animatedLongSelectedViewOffsetX;
-            final float sWidth = getInterpolatedWidthByX(x, this);
-            final float sHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+            final float sWidth = Math.min(dp(56), getInterpolatedWidthByX(x, this) - dp(8));
+            final float pillHeight = AndroidUtilities.dpf2(28);
+            final float pillTop = getPaddingTop() + AndroidUtilities.dpf2(2);
 
             canvas.drawRoundRect(
-                    x - sWidth / 2f, (getHeight() - sHeight) / 2f,
-                    x + sWidth / 2f, (getHeight() + sHeight) / 2f,
-                    sHeight / 2f, sHeight / 2f, selectorPaint);
+                    x - sWidth / 2f, pillTop,
+                    x + sWidth / 2f, pillTop + pillHeight,
+                    pillHeight / 2f, pillHeight / 2f, selectorPaint);
         }
 
         super.dispatchDraw(canvas);

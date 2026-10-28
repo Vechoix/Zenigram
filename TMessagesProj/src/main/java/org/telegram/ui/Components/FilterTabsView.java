@@ -917,7 +917,7 @@ public class FilterTabsView extends FrameLayout {
         deletePaint.setStrokeWidth(dp(1.5f));
 
         selectorDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, null);
-        float rad = AndroidUtilities.dpf2(14);
+        float rad = AndroidUtilities.dpf2(16);
         selectorDrawable.setCornerRadii(new float[]{rad, rad, rad, rad, rad, rad, rad, rad});
         selectorDrawable.setColor(Theme.getColor(tabLineColorKey, resourcesProvider));
 
@@ -1522,9 +1522,9 @@ public class FilterTabsView extends FrameLayout {
 
             final float add = additionalTabWidth / 2f;
 
-            final int y = height / 2 - dp(14);
-            selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(28));
-            selectorDrawable.setAlpha(31);
+            final int y = height / 2 - dp(16);
+            selectorDrawable.setBounds((int) (indicatorX - dp(TAB_INTERNAL_PADDING) - add), y, (int) (indicatorX + indicatorWidth + dp(TAB_INTERNAL_PADDING) + add), y + dp(32));
+            selectorDrawable.setAlpha((int) (255 * 0.22f * listView.getAlpha()));
             selectorDrawable.draw(canvas);
             canvas.restore();
         }

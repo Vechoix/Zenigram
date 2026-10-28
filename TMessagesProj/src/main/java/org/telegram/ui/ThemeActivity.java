@@ -684,10 +684,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
             chatListRow = rowCount++;
             chatListInfoRow = rowCount++;
 
-            // Unified Zenigram icon - hide legacy Neko icon selector
-            appIconHeaderRow = -1;
-            appIconSelectorRow = -1;
-            appIconShadowRow = -1;
+            appIconHeaderRow = rowCount++;
+            appIconSelectorRow = rowCount++;
+            appIconShadowRow = rowCount++;
 
             nightThemeRow = rowCount++;
             browserRow = rowCount++;

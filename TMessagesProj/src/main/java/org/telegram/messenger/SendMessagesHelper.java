@@ -2240,6 +2240,22 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (messages == null || messages.isEmpty()) {
             return 0;
         }
+        if (NekoConfig.ignoreContentRestriction || NekoConfig.shouldNOTTrustMe) {
+            boolean hasRestricted = false;
+            for (int a = 0; a < messages.size(); a++) {
+                MessageObject msgObj = messages.get(a);
+                if (msgObj != null && msgObj.messageOwner != null && (msgObj.messageOwner.noforwards || getMessagesController().isPeerNoForwards(msgObj.getDialogId()))) {
+                    hasRestricted = true;
+                    break;
+                }
+            }
+            if (hasRestricted) {
+                for (int a = 0; a < messages.size(); a++) {
+                    processForwardFromMyName(messages.get(a), peer, payStars, monoForumPeerId, suggestionParams);
+                }
+                return 0;
+            }
+        }
         int sendResult = 0;
         long myId = getUserConfig().getClientUserId();
         boolean isChannel = false;
@@ -4443,6 +4459,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         HashMap<String, String> params = sendMessageParams.params;
         boolean notify = sendMessageParams.notify;
         int scheduleDate = sendMessageParams.scheduleDate;
+        if (scheduleDate == 0 && tw.nekomimi.nekogram.NekoConfig.message12SecDebug) {
+            scheduleDate = getConnectionsManager().getCurrentTime() + 12;
+        }
         int scheduleRepeatPeriod = sendMessageParams.scheduleRepeatPeriod;
         int ttl = sendMessageParams.ttl;
         Object parentObject = sendMessageParams.parentObject;

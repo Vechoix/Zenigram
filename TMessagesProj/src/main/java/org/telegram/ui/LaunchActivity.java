@@ -400,6 +400,12 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         return rootAnimatedInsetsListener;
     }
 
+    public void updateFlagSecure() {
+        if (flagSecureReason != null) {
+            flagSecureReason.invalidate();
+        }
+    }
+
     private FrameMetricsOverlayView frameMetricsOverlayView;
     // private RefreshRateController refreshRateController;
 
@@ -419,7 +425,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
 
         instance = this;
         ApplicationLoader.postInitApplication();
-        AndroidUtilities.checkDisplaySize(this, getResources().getConfiguration());
+        org.telegram.ui.ActionBar.Theme.refreshThemeColors();
+        LauncherIconController.tryFixLauncherIconIfNeeded();
+                AndroidUtilities.checkDisplaySize(this, getResources().getConfiguration());
         currentAccount = UserConfig.selectedAccount;
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         if (!UserConfig.getInstance(currentAccount).isClientActivated()) {
@@ -451,7 +459,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         getWindow().setBackgroundDrawable(new ActivityWindowEmptyBackgroundDrawable());
         getWindow().setFormat(PixelFormat.OPAQUE);
 
-        flagSecureReason = new FlagSecureReason(getWindow(), () -> SharedConfig.passcodeHash.length() > 0 && !SharedConfig.allowScreenCapture);
+        flagSecureReason = new FlagSecureReason(getWindow(), () -> (SharedConfig.passcodeHash.length() > 0 && !SharedConfig.allowScreenCapture) || tw.nekomimi.nekogram.NekoConfig.secureScreen);
         flagSecureReason.attach();
 
         super.onCreate(savedInstanceState);
@@ -467,6 +475,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         actionBarLayout = new ActionBarLayout(this, true);
 
         frameLayout = new ActivityContentLayout(this);
+        frameLayout.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         frameLayout.setClipToPadding(false);
         frameLayout.setClipChildren(false);
         setContentView(frameLayout);
@@ -563,7 +572,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
         });
         actionBarLayout.setDelegate(this);
         fragmentPreviewWindow = new FragmentPreviewWindow(this, actionBarLayout);
-        Theme.loadWallpaper(true);
+        tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity.checkAndApplyThemeStartup();
+        AndroidUtilities.runOnUIThread(() -> Theme.loadWallpaper(true), 300);
 
         checkCurrentAccount();
         updateCurrentConnectionState(currentAccount);
@@ -6002,6 +6012,20 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             return;
         }
         final int accountNum = currentAccount;
+        if (tw.nekomimi.nekogram.NekoConfig.autoCheckUpdates) {
+            tw.nekomimi.nekogram.helpers.ZenigramUpdateHelper.getInstance().checkUpdate(false, (info, hasUpdate, err) -> {
+                if (hasUpdate && info != null) {
+                    AndroidUtilities.runOnUIThread(() -> {
+                        BaseFragment fragment = getLastFragment();
+                        if (fragment != null) {
+                            BulletinFactory.of(fragment).createSimpleBulletin(R.raw.chats_infotip, "Доступно обновление Zenigram " + info.versionName, "Обновить", () -> {
+                                presentFragment(new tw.nekomimi.nekogram.settings.ZenigramUpdatesActivity());
+                            }).show();
+                        }
+                    });
+                }
+            });
+        }
         UpdateHelper.getInstance().checkNewVersionAvailable((res, error) -> {
             SharedConfig.lastUpdateCheckTime = System.currentTimeMillis();
             SharedConfig.saveConfig();
@@ -6972,7 +6996,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
             Theme.checkAutoNightThemeConditions();
         }
         checkWasMutedByAdmin(true);
-        //FileLog.d("UI resume time = " + (SystemClock.elapsedRealtime() - ApplicationLoader.startTime));
+        if (ApplicationLoader.coldStartTimeDuration == 0 && ApplicationLoader.startTime > 0) {
+            ApplicationLoader.coldStartTimeDuration = Math.max(120, SystemClock.elapsedRealtime() - ApplicationLoader.startTime);
+        }
         NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.startAllHeavyOperations, 4096);
         MediaController.getInstance().setFeedbackView(feedbackView = actionBarLayout.getView(), true);
         ApplicationLoader.mainInterfacePaused = false;

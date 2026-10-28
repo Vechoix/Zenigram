@@ -21,9 +21,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.R;
 import org.telegram.messenger.SharedConfig;
+import tw.nekomimi.nekogram.NekoConfig;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -84,14 +86,14 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
             iBlur3SourceGlassFrosted.setupRenderer(new RenderNodeWithHash.Renderer() {
                 @Override
                 public void renderNodeCalculateHash(IBlur3Hash hash) {
-                    hash.add(getThemedColor(Theme.key_windowBackgroundWhite));
+                    hash.add(getThemedColor(Theme.key_windowBackgroundGray));
                     hash.add(SharedConfig.chatBlurEnabled());
                 }
 
                 @Override
                 public void renderNodeUpdateDisplayList(Canvas canvas) {
-                    canvas.drawColor(getThemedColor(Theme.key_windowBackgroundWhite));
-                    if (SharedConfig.chatBlurEnabled()) {
+                    canvas.drawColor(getThemedColor(Theme.key_windowBackgroundGray));
+                    if (SharedConfig.chatBlurEnabled() && !(NekoConfig.adaptivePerformanceMode && NekoConfig.disableBlurPasses)) {
                         scrollableViewNoiseSuppressor.draw(canvas, DownscaleScrollableNoiseSuppressor.DRAW_FROSTED_GLASS);
                     }
                 }
@@ -131,8 +133,6 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
                         .add(R.drawable.msg_copy, LocaleController.getString(R.string.CopyLink), () -> {
                             if ("copyReportId".equals(slug)) {
                                 AndroidUtilities.addToClipboard(String.format(Locale.getDefault(), "https://%s/nekosettings/%s", getMessagesController().linkPrefix, "reportId"));
-                            } else if ("checkUpdate".equals(slug)) {
-                                AndroidUtilities.addToClipboard(String.format(Locale.getDefault(), "https://%s/nekosettings/%s", getMessagesController().linkPrefix, "update"));
                             } else {
                                 AndroidUtilities.addToClipboard(String.format(Locale.getDefault(), "https://%s/nekosettings/%s?r=%s", getMessagesController().linkPrefix, key, slug));
                             }
@@ -175,7 +175,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
             protected void onDraw(@NonNull Canvas canvas) {
                 var actionBarHeight = actionBarContainer.getMeasuredHeight();
                 rect.set(0, 0, getMeasuredWidth(), actionBarHeight);
-                blurScrimPaint.setColor(Theme.getColor(Theme.key_actionBarDefault, resourcesProvider));
+                blurScrimPaint.setColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && iBlur3SourceGlassFrosted != null) {
                     iBlur3SourceGlassFrosted.draw(canvas, rect.left, rect.top, rect.right, rect.bottom);
                     canvas.saveLayerAlpha(rect, ChatActivity.ACTION_BAR_BLUR_ALPHA);
@@ -328,7 +328,11 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
     }
 
     protected void showRestartBulletin() {
-        BulletinFactory.of(this).createErrorBulletin(LocaleController.formatString(R.string.RestartAppToTakeEffect)).show();
+        try {
+            BulletinFactory.of(this).createSimpleBulletin(R.drawable.msg_retry, LocaleController.getString(R.string.RestartAppToTakeEffect)).show();
+        } catch (Exception e) {
+            FileLog.e(e);
+        }
     }
 
     protected void updateRows() {
@@ -421,7 +425,7 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
     }
 
     private void blur3_InvalidateBlur() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || scrollableViewNoiseSuppressor == null) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || scrollableViewNoiseSuppressor == null || (NekoConfig.adaptivePerformanceMode && NekoConfig.disableBlurPasses)) {
             return;
         }
 
@@ -442,7 +446,9 @@ public abstract class BaseNekoSettingsActivity extends BaseFragment {
         @Override
         public TextSettingsCell createView(Context context, RecyclerListView listView, int currentAccount, int classGuid, Theme.ResourcesProvider resourcesProvider) {
             this.resourcesProvider = resourcesProvider;
-            return new TextSettingsCell(context, resourcesProvider);
+            TextSettingsCell cell = new TextSettingsCell(context, resourcesProvider);
+            cell.setBetterLayout(true);
+            return cell;
         }
 
         @Override

@@ -222,12 +222,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             @Override
             protected void dispatchDraw(@NonNull Canvas canvas) {
                 final int color = getEstBackgroundColor();
-                if (insetLeft != 0) {
-                    canvas.drawRect(0, 0, insetLeft, getHeight(), Theme.fillingPaint(color));
-                }
-                if (insetRight != 0) {
-                    canvas.drawRect(getWidth() - insetRight, 0, getWidth(), getHeight(), Theme.fillingPaint(color));
-                }
+                canvas.drawRect(0, 0, getWidth(), getHeight(), Theme.fillingPaint(color));
 
                 super.dispatchDraw(canvas);
                 blur3_invalidateBlur();
@@ -383,7 +378,20 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
 
         contentView.addView(fadeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 0, Gravity.BOTTOM));
 
-        tabsViewWrapper = new FrameLayout(context);
+        tabsViewWrapper = new FrameLayout(context) {
+            private final Paint topDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+            @Override
+            protected void dispatchDraw(Canvas canvas) {
+                super.dispatchDraw(canvas);
+                if (!Theme.isCurrentThemeDark() && tabsView != null && tabsView.getVisibility() == VISIBLE) {
+                    topDividerPaint.setColor(Theme.getColor(Theme.key_divider, resourceProvider));
+                    topDividerPaint.setStrokeWidth(dp(1));
+                    canvas.drawLine(0, 0, getWidth(), 0, topDividerPaint);
+                }
+            }
+        };
+        tabsViewWrapper.setWillNotDraw(false);
         tabsViewWrapper.setOnClickListener(v -> {});
         tabsViewWrapper.addView(tabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS, Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
         tabsViewWrapper.setClipToPadding(false);
@@ -899,11 +907,12 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
     @Override
     protected WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
         final Insets systemInsets = AndroidUtilities.getDefaultWindowInsets(insets, false);
+        final Insets navBarInsets = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
 
-        insetLeft = systemInsets.left;
-        insetRight = systemInsets.right;
+        insetLeft = Math.max(systemInsets.left, navBarInsets.left);
+        insetRight = Math.max(systemInsets.right, navBarInsets.right);
 
-        navigationBarHeight = systemInsets.bottom;
+        navigationBarHeight = Math.max(systemInsets.bottom, navBarInsets.bottom);
         final boolean isUpdateLayoutVisible = updateLayoutWrapper.isUpdateLayoutVisible();
         final int updateLayoutHeight = isUpdateLayoutVisible ? dp(UpdateLayoutWrapper.HEIGHT) : 0;
         updateLayoutWrapper.setPadding(0, 0, 0, navigationBarHeight);
@@ -923,15 +932,15 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                 bottomMargin = Math.max(bottomMargin, navigationBarHeight + dp(DialogsActivity.MAIN_TABS_HEIGHT_WITH_MARGINS));
             }
             lp = (ViewGroup.MarginLayoutParams) viewPager.getLayoutParams();
-            if (lp.bottomMargin != bottomMargin || lp.leftMargin != systemInsets.left || lp.rightMargin != systemInsets.right) {
-                lp.leftMargin = systemInsets.left;
-                lp.rightMargin = systemInsets.right;
+            if (lp.bottomMargin != bottomMargin || lp.leftMargin != insetLeft || lp.rightMargin != insetRight) {
+                lp.leftMargin = insetLeft;
+                lp.rightMargin = insetRight;
                 lp.bottomMargin = bottomMargin;
                 viewPager.setLayoutParams(lp);
             }
         }
 
-        tabsViewWrapper.setPadding(systemInsets.left, 0, systemInsets.right, navigationBarHeight);
+        tabsViewWrapper.setPadding(insetLeft, 0, insetRight, navigationBarHeight);
 
         final WindowInsetsCompat consumed = isUpdateLayoutVisible ?
             insets.inset(0, 0, 0, navigationBarHeight) : insets;
@@ -975,8 +984,21 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             if (updateLayout != null && LaunchActivity.instance != null) {
                 updateLayout.updateAppUpdateViews(currentAccount, LaunchActivity.instance.getMainFragmentsStackSize() == 1);
             }
-        } else if (id == NotificationCenter.needSetDayNightTheme) {
+        } else if (id == NotificationCenter.needSetDayNightTheme || id == NotificationCenter.didSetNewTheme) {
             clearAllHiddenFragments();
+            if (tabs != null) {
+                for (org.telegram.ui.Components.glass.GlassTabView tab : tabs) {
+                    if (tab != null) {
+                        tab.updateColorsLottie();
+                    }
+                }
+            }
+            if (tabsView != null) {
+                tabsView.invalidate();
+            }
+            if (fadeView != null) {
+                fadeView.invalidate();
+            }
         } else if (id == NotificationCenter.callTabsVisibleToggled) {
             final boolean callTabsVisible = getUserConfig().showCallsTab;
             checkUi_callTabVisible(callTabsVisible, true);
@@ -1012,7 +1034,8 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
             .add(NotificationCenter.contactsPermissionBadgeCheck)
             .addGlobal(NotificationCenter.appUpdateAvailable)
             .addGlobal(NotificationCenter.appUpdateLoading)
-            .addGlobal(NotificationCenter.needSetDayNightTheme);
+            .addGlobal(NotificationCenter.needSetDayNightTheme)
+            .addGlobal(NotificationCenter.didSetNewTheme);
 
         return super.onFragmentCreate();
     }

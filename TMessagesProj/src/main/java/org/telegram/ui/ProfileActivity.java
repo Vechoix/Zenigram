@@ -6029,6 +6029,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             }
         };
 
+        fragmentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
         ViewCompat.setOnApplyWindowInsetsListener(fragmentView, this::onApplyWindowInsets);
         return fragmentView;
     }
@@ -10157,7 +10158,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 layoutParams.width = (int) ((AndroidUtilities.displaySize.x - dp(32)) / 1.38f);
                 nameTextView[1].setLayoutParams(layoutParams);
             }
-            fragmentView.setBackgroundColor(0);
+            fragmentView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
             setAvatarAnimationProgress(0);
             ArrayList<Animator> animators = new ArrayList<>();
             animators.add(ObjectAnimator.ofFloat(this, "avatarAnimationProgress", 0.0f, 1.0f));
@@ -15030,6 +15031,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     new SearchResult(402, getString(R.string.AskAQuestion), getString(R.string.SettingsHelp), R.drawable.msg2_help, () -> f.showDialog(AlertsCreator.createSupportAlert(f, null))).withLink("tg://settings/ask-question"),
                     new SearchResult(403, getString(R.string.TelegramFAQ), getString(R.string.SettingsHelp), R.drawable.msg2_help, () -> Browser.openUrl(f.getParentActivity(), getString(R.string.TelegramFaqUrl))).withLink("tg://settings/faq"),
                     new SearchResult(404, getString(R.string.PrivacyPolicy), getString(R.string.SettingsHelp), R.drawable.msg2_help, () -> Browser.openUrl(f.getParentActivity(), getString(R.string.PrivacyPolicyUrl))).withLink("tg://settings/privacy-policy"),
+
+                    // Zenigram Settings Search Integration
+                    new SearchResult(2000, "Настройки Zenigram", R.drawable.msg_fave, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.NekoSettingsActivity())),
+                    new SearchResult(2001, "Внешний вид и темы", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),
+                    new SearchResult(2002, "Шрифт (Comfortaa)", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),
+                    new SearchResult(2003, "Скругление углов сообщений", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),
+                    new SearchResult(2004, "Режим невидимки (Ghost Mode)", "Настройки Zenigram", R.drawable.msg_secret, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGhostSettingsActivity())),
+                    new SearchResult(2005, "Не читать сообщения", "Настройки Zenigram", R.drawable.msg_secret, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGhostSettingsActivity())),
+                    new SearchResult(2006, "Скрыть статус набора текста", "Настройки Zenigram", R.drawable.msg_secret, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGhostSettingsActivity())),
+                    new SearchResult(2007, "Разрешить скриншоты экрана", "Настройки Zenigram", R.drawable.msg_secret, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGhostSettingsActivity())),
+                    new SearchResult(2008, "Игнорировать ограничения каналов", "Настройки Zenigram", R.drawable.msg_secret, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGhostSettingsActivity())),
+                    new SearchResult(2009, "Обновление Zenigram", "Настройки Zenigram", R.drawable.msg_download, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramUpdatesActivity())),
+                    new SearchResult(2010, "Жесты и свайпы", "Настройки Zenigram", R.drawable.msg_discussion, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramGestureLabActivity())),
+                    new SearchResult(2011, "Оптимизация и плавность", "Настройки Zenigram", R.drawable.msg_fave, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramPerformanceActivity())),
             };
         }
 
@@ -15571,6 +15586,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         }
 
         arrayList.add(new ThemeDescription(topView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
+        arrayList.add(new ThemeDescription(fragmentView, ThemeDescription.FLAG_BACKGROUND, null, null, null, null, Theme.key_windowBackgroundGray));
         arrayList.add(new ThemeDescription(listView, ThemeDescription.FLAG_SELECTOR, null, null, null, null, Theme.key_listSelector));
         arrayList.add(new ThemeDescription(listView, 0, new Class[]{View.class}, Theme.dividerPaint, null, null, Theme.key_divider));
 

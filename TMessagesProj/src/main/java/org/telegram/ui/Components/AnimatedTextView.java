@@ -1282,11 +1282,13 @@ public class AnimatedTextView extends View {
         if (maxWidth > 0) {
             width = Math.min(width, maxWidth);
         }
-        if (lastMaxWidth != width && getLayoutParams().width != 0) {
+        if (lastMaxWidth != width && getLayoutParams().width != 0 && (!adaptWidth || MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.EXACTLY || lastMaxWidth == 0)) {
             drawable.setBounds(getPaddingLeft(), getPaddingTop(), width - getPaddingRight(), height - getPaddingBottom());
             drawable.setText(drawable.getText(), false, true);
         }
-        lastMaxWidth = width;
+        if (!adaptWidth || MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.EXACTLY) {
+            lastMaxWidth = width;
+        }
         if (adaptWidth && MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.AT_MOST) {
             width = getPaddingLeft() + (int) Math.ceil(drawable.getWidth()) + getPaddingRight();
         }

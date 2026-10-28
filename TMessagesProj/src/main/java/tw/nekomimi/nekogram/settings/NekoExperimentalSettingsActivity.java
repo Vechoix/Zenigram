@@ -37,13 +37,9 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
     private final int downloadSpeedBoostRow = rowId++;
     private final int localCustomEmojiRow = rowId++;
     private final int keepFormattingRow = rowId++;
-    private final int autoInlineBotRow = rowId++;
     private final int forceFontWeightFallbackRow = rowId++;
-    private final int mapDriftingFixRow = rowId++;
+    private final int secureScreenRow = rowId++;
     private final int contentRestrictionRow = rowId++;
-    private final int showRPCErrorRow = rowId++;
-
-    private final int checkUpdateRow = rowId++;
 
     private final int sendBugReportRow = rowId++;
     private final int deleteDataRow = rowId++;
@@ -65,27 +61,12 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
         }
         items.add(UItem.asCheck(localCustomEmojiRow, LocaleController.getString(R.string.LocalCustomEmoji)).slug("localCustomEmoji").setChecked(NekoConfig.localCustomEmoji));
         items.add(UItem.asCheck(keepFormattingRow, LocaleController.getString(R.string.TranslationKeepFormatting)).slug("keepFormatting").setChecked(NekoConfig.keepFormatting));
-        items.add(UItem.asCheck(autoInlineBotRow, LocaleController.getString(R.string.AutoInlineBot), LocaleController.getString(R.string.AutoInlineBotDesc)).slug("autoInlineBot").setChecked(NekoConfig.autoInlineBot));
         items.add(UItem.asCheck(forceFontWeightFallbackRow, LocaleController.getString(R.string.ForceFontWeightFallback)).slug("forceFontWeightFallback").setChecked(NekoConfig.forceFontWeightFallback));
-        items.add(UItem.asCheck(mapDriftingFixRow, LocaleController.getString(R.string.MapDriftingFix)).slug("mapDriftingFix").setChecked(NekoConfig.mapDriftingFix));
+        items.add(UItem.asCheck(secureScreenRow, LocaleController.getString(R.string.SecureScreen), LocaleController.getString(R.string.SecureScreenAbout)).slug("secureScreen").setChecked(NekoConfig.secureScreen));
         if (Extra.isDirectApp()) {
             items.add(UItem.asCheck(contentRestrictionRow, LocaleController.getString(R.string.IgnoreContentRestriction)).slug("contentRestriction").setChecked(NekoConfig.ignoreContentRestriction));
         }
-        items.add(UItem.asCheck(showRPCErrorRow, LocaleController.getString(R.string.ShowRPCError), LocaleController.formatString(R.string.ShowRPCErrorException, "FILE_REFERENCE_EXPIRED")).slug("showRPCError").setChecked(NekoConfig.showRPCError));
         items.add(UItem.asShadow(null));
-
-        if (getParentActivity() instanceof LaunchActivity) {
-            items.add(TextDetailSettingsCellFactory.of(checkUpdateRow, LocaleController.getString(R.string.CheckUpdate), UpdateHelper.formatDateUpdate(SharedConfig.lastUpdateCheckTime)).slug("checkUpdate"));
-            items.add(UItem.asShadow(null));
-        }
-
-        if (AnalyticsHelper.isSettingsAvailable()) {
-            items.add(UItem.asHeader(LocaleController.getString(R.string.SendAnonymousData)));
-            items.add(UItem.asCheck(sendBugReportRow, LocaleController.getString(R.string.SendBugReport), LocaleController.getString(R.string.SendBugReportDesc)).slug("sendBugReport").setChecked(!AnalyticsHelper.analyticsDisabled && AnalyticsHelper.sendBugReport).setEnabled(!AnalyticsHelper.analyticsDisabled));
-            items.add(TextDetailSettingsCellFactory.of(deleteDataRow, LocaleController.getString(R.string.AnonymousDataDelete), LocaleController.getString(R.string.AnonymousDataDeleteDesc)).slug("deleteData"));
-        }
-        items.add(TextDetailSettingsCellFactory.of(copyReportIdRow, LocaleController.getString(R.string.CopyReportId), LocaleController.getString(R.string.CopyReportIdDescription)).slug("copyReportId"));
-        items.add(UItem.asShadow(!AnalyticsHelper.isSettingsAvailable() ? null : LocaleController.formatString(R.string.SendAnonymousDataDesc, "Sentry", "Functional Software")));
 
         items.add(TextSettingsCellFactory.of(deleteAccountRow, LocaleController.getString(R.string.DeleteAccount), "").slug("deleteAccount").red());
         items.add(UItem.asShadow(null));
@@ -181,16 +162,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
                 }.start();
             });
             showDialog(dialog);
-        } else if (id == mapDriftingFixRow) {
-            NekoConfig.toggleMapDriftingFix();
-            if (view instanceof TextCheckCell) {
-                ((TextCheckCell) view).setChecked(NekoConfig.mapDriftingFix);
-            }
-        } else if (id == showRPCErrorRow) {
-            NekoConfig.toggleShowRPCError();
-            if (view instanceof TextCheckCell) {
-                ((TextCheckCell) view).setChecked(NekoConfig.showRPCError);
-            }
         } else if (id == downloadSpeedBoostRow) {
             ArrayList<String> arrayList = new ArrayList<>();
             ArrayList<Integer> types = new ArrayList<>();
@@ -230,6 +201,11 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
             AlertDialog dialog = builder.create();
             showDialog(dialog);
             dialog.redPositive();
+        } else if (id == secureScreenRow) {
+            NekoConfig.toggleSecureScreen();
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(NekoConfig.secureScreen);
+            }
         } else if (id == contentRestrictionRow) {
             NekoConfig.toggleIgnoreContentRestriction();
             if (view instanceof TextCheckCell) {
@@ -240,11 +216,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
                 return;
             }
             SettingsHelper.copyReportId();
-        } else if (id == autoInlineBotRow) {
-            NekoConfig.toggleAutoInlineBot();
-            if (view instanceof TextCheckCell) {
-                ((TextCheckCell) view).setChecked(NekoConfig.autoInlineBot);
-            }
         } else if (id == forceFontWeightFallbackRow) {
             NekoConfig.toggleForceFontWeightFallback();
             if (view instanceof TextCheckCell) {
@@ -255,18 +226,6 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
             NekoConfig.toggleKeepFormatting();
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(NekoConfig.keepFormatting);
-            }
-        } else if (id == checkUpdateRow) {
-            if (getParentActivity() instanceof LaunchActivity launchActivity) {
-                launchActivity.checkAppUpdate(true, new Browser.Progress() {
-                    @Override
-                    public void end() {
-                        item.subtext = UpdateHelper.formatDateUpdate(SharedConfig.lastUpdateCheckTime);
-                        listView.adapter.notifyItemChanged(position);
-                    }
-                });
-                item.subtext = LocaleController.getString(R.string.CheckingUpdate);
-                listView.adapter.notifyItemChanged(position);
             }
         } else if (id == localCustomEmojiRow) {
             NekoConfig.toggleLocalCustomEmoji();

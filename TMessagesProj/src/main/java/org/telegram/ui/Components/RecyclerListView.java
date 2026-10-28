@@ -3285,10 +3285,10 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     }
 
     public void setSections() {
-        setSections(dp(12), dp(16), false);
+        setSections(dp(16), dp(24), false);
     }
     public void setSections(boolean topPadding) {
-        setSections(dp(12), dp(16), topPadding);
+        setSections(dp(16), dp(24), topPadding);
     }
     public void setSections(int padding, float roundRadius, boolean topPadding) {
         setSections(
@@ -3593,7 +3593,9 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
     private final static Path sectionBackgroundPath = new Path();
     private final static float[] radii = new float[8];
     public static void drawBackgroundRect(Canvas canvas, RectF rect, float topRadius, float bottomRadius, float alpha, Theme.ResourcesProvider resourcesProvider) {
+        boolean isLight = !Theme.isCurrentThemeDark();
         if (SharedConfig.shadowsInSections) {
+            sectionBackgroundStrokePaint.setStyle(Paint.Style.FILL);
             sectionBackgroundStrokePaint.setShadowLayer(dpf2(0.33f), 0, 0, multAlpha(0x0c000000, alpha));
             sectionBackgroundStrokePaint.setColor(0);
             sectionBackgroundPaint.setShadowLayer(dpf2(2), 0, dpf2(0.33f), multAlpha(0x0a000000, alpha));
@@ -3606,6 +3608,13 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                 canvas.drawRoundRect(rect, topRadius, topRadius, sectionBackgroundStrokePaint);
             }
             canvas.drawRoundRect(rect, topRadius, topRadius, sectionBackgroundPaint);
+            if (isLight) {
+                sectionBackgroundStrokePaint.setStyle(Paint.Style.STROKE);
+                sectionBackgroundStrokePaint.setStrokeWidth(dpf2(1f));
+                sectionBackgroundStrokePaint.setShadowLayer(0, 0, 0, 0);
+                sectionBackgroundStrokePaint.setColor(multAlpha(Theme.getColor(Theme.key_divider, resourcesProvider), alpha * 0.75f));
+                canvas.drawRoundRect(rect, topRadius, topRadius, sectionBackgroundStrokePaint);
+            }
         } else {
             sectionBackgroundPath.rewind();
             radii[0] = radii[1] = radii[2] = radii[3] = topRadius;
@@ -3615,6 +3624,13 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
                 canvas.drawPath(sectionBackgroundPath, sectionBackgroundStrokePaint);
             }
             canvas.drawPath(sectionBackgroundPath, sectionBackgroundPaint);
+            if (isLight) {
+                sectionBackgroundStrokePaint.setStyle(Paint.Style.STROKE);
+                sectionBackgroundStrokePaint.setStrokeWidth(dpf2(1f));
+                sectionBackgroundStrokePaint.setShadowLayer(0, 0, 0, 0);
+                sectionBackgroundStrokePaint.setColor(multAlpha(Theme.getColor(Theme.key_divider, resourcesProvider), alpha * 0.75f));
+                canvas.drawPath(sectionBackgroundPath, sectionBackgroundStrokePaint);
+            }
         }
     }
     public void drawBackgroundRect(Canvas canvas, RectF rect, float topRadius, float bottomRadius, float alpha) {

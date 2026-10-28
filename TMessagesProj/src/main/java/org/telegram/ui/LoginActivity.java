@@ -1602,14 +1602,25 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
             AnimatorSet pagesAnimation = new AnimatorSet();
             pagesAnimation.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
+                private void onFinish() {
                     if (currentDoneType == DONE_TYPE_FLOATING && needFloatingButton) {
                         showDoneButton(true, true);
                     }
                     outView.setVisibility(View.GONE);
                     outView.onHide();
-                    outView.setX(0);
+                    outView.setTranslationX(0);
+                    newView.setVisibility(View.VISIBLE);
+                    newView.setTranslationX(0);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    onFinish();
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                    onFinish();
                 }
             });
             pagesAnimation.playTogether(
@@ -2011,6 +2022,11 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     params.putString("beginning", res.type.beginning);
                 }
                 setPage(VIEW_CODE_PHRASE, animate, params, false);
+            } else {
+                FileLog.e("Fallback: unexpected sentCode type " + (res.type == null ? "null" : res.type.getClass().getName()));
+                params.putInt("type", AUTH_TYPE_SMS);
+                params.putInt("length", res.type != null && res.type.length > 0 ? res.type.length : 5);
+                setPage(VIEW_CODE_SMS, animate, params, false);
             }
         }
     }
@@ -3139,6 +3155,12 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     if (!getConnectionsManager().isTestBackend()) {
                         getConnectionsManager().switchBackend(false);
                     }
+                } else if (!"999".equals(codeField.getText().toString()) && getConnectionsManager().isTestBackend()) {
+                    testBackend = false;
+                    if (testBackendCheckBox != null) {
+                        testBackendCheckBox.setChecked(false, true);
+                    }
+                    getConnectionsManager().switchBackend(false);
                 }
                 if (getParentActivity() instanceof LaunchActivity) {
                     for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -3325,9 +3347,22 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                             setPage(VIEW_PHONE_INPUT, true, null, true);
                             needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString("CodeExpired", R.string.CodeExpired));
                         } else if (error.text.startsWith("FLOOD_WAIT")) {
-                            needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), getString("FloodWait", R.string.FloodWait));
+                            int time = Utilities.parseInt(error.text);
+                            String timeString = LocaleController.formatCallDuration(time);
+                            needShowAlert(getString(R.string.RestorePasswordNoEmailTitle), time > 0 ? LocaleController.formatString("FloodWaitTime", R.string.FloodWaitTime, timeString) : getString("FloodWait", R.string.FloodWait));
+                        } else if (error.text.contains("API_ID_PUBLISHED_FLOOD")) {
+                            needShowAlert(getString(R.string.AppName), "API_ID_PUBLISHED_FLOOD: This API ID is restricted by Telegram. Please try logging in via QR code (top-right menu) or wait.");
+                        } else if (error.text.contains("API_ID_INVALID")) {
+                            needShowAlert(getString(R.string.AppName), "API_ID_INVALID: The API ID or API Hash is invalid.");
+                        } else if (error.text.contains("PHONE_NUMBER_APP_SIGNUP_FORBIDDEN")) {
+                            needShowAlert(getString(R.string.AppName), "Sign up is not allowed with this app.");
                         } else if (error.code != -1000) {
-                            AlertsCreator.processError(currentAccount, error, LoginActivity.this, req, phoneInputData.phoneNumber);
+                            Dialog dialog = AlertsCreator.processError(currentAccount, error, LoginActivity.this, req, phoneInputData.phoneNumber);
+                            if (dialog == null && error.text != null && !error.text.isEmpty()) {
+                                needShowAlert(getString(R.string.AppName), error.text);
+                            }
+                        } else {
+                            needShowAlert(getString(R.string.AppName), getString(R.string.WaitingForNetwork));
                         }
                     }
                 }
@@ -8833,7 +8868,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
         showDialog(builder.create());
     }
 
-    private final static class PhoneNumberConfirmView extends FrameLayout {
+    private final class PhoneNumberConfirmView extends FrameLayout {
         private IConfirmDialogCallback callback;
         private ViewGroup fragmentView;
         private View fabContainer;
@@ -9016,7 +9051,9 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                     if (getParent() instanceof ViewGroup) {
                         ((ViewGroup) getParent()).removeView(PhoneNumberConfirmView.this);
                     }
-                    fabContainer.setVisibility(VISIBLE);
+                    if (currentViewNum == VIEW_PHONE_INPUT) {
+                        fabContainer.setVisibility(VISIBLE);
+                    }
                 }
             });
             anim.addUpdateListener(animation -> {

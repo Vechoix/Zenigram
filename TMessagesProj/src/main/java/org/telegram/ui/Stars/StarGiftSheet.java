@@ -429,6 +429,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
         beforeTableTextView.setVisibility(View.GONE);
 
         tableView = new TableView(context, resourcesProvider);
+        tableView.setDrawBorder(false);
 
         infoLayout.addView(tableView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
 
@@ -1977,6 +1978,28 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
 
     }
 
+    public static int getAdaptiveBackdropCenter(int color) {
+        if (!Theme.isCurrentThemeDark()) {
+            return color | 0xFF000000;
+        }
+        float[] hsv = new float[3];
+        Color.colorToHSV(color | 0xFF000000, hsv);
+        hsv[2] = Math.min(hsv[2] * 0.42f, 0.32f);
+        hsv[1] = Math.min(1.0f, hsv[1] * 1.25f);
+        return Color.HSVToColor(0xFF, hsv);
+    }
+
+    public static int getAdaptiveBackdropEdge(int color) {
+        if (!Theme.isCurrentThemeDark()) {
+            return color | 0xFF000000;
+        }
+        float[] hsv = new float[3];
+        Color.colorToHSV(color | 0xFF000000, hsv);
+        hsv[2] = Math.min(hsv[2] * 0.25f, 0.18f);
+        hsv[1] = Math.min(1.0f, hsv[1] * 1.25f);
+        return Color.HSVToColor(0xFF, hsv);
+    }
+
     public static class TopView extends FrameLayout {
 
         private final Theme.ResourcesProvider resourcesProvider;
@@ -2766,11 +2789,13 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
 
         private void setBackdropPaint(int p, TL_stars.starGiftAttributeBackdrop backdrop) {
             if (backdrop == null) return;
-            backgroundGradient[p] = new RadialGradient(0, 0, dp(200), new int[] { backdrop.center_color | 0xFF000000, backdrop.edge_color | 0xFF000000 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+            int c1 = getAdaptiveBackdropCenter(backdrop.center_color);
+            int c2 = getAdaptiveBackdropEdge(backdrop.edge_color);
+            backgroundGradient[p] = new RadialGradient(0, 0, dp(200), new int[] { c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
             if (p == 0) {
                 profileBackgroundGradient = new RadialGradient(
                     0, 0, dp(168),
-                    new int[] { backdrop.center_color | 0xFF000000, backdrop.edge_color | 0xFF000000 },
+                    new int[] { c1, c2 },
                     new float[] { 0, 1 },
                     Shader.TileMode.CLAMP
                 );
@@ -3816,7 +3841,9 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                 if (backdrop != null) {
                     backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                     backgroundMatrix = new Matrix();
-                    backgroundGradient = new RadialGradient(0, 0, dp(200), new int[] { backdrop.center_color | 0xFF000000, backdrop.edge_color | 0xFF000000 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+                    int c1 = getAdaptiveBackdropCenter(backdrop.center_color);
+                    int c2 = getAdaptiveBackdropEdge(backdrop.edge_color);
+                    backgroundGradient = new RadialGradient(0, 0, dp(200), new int[] { c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
                     backgroundPaint.setShader(backgroundGradient);
 
                     textColor = backdrop.text_color | 0xFF000000;
@@ -4766,9 +4793,11 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             beforeTableTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray2, resourcesProvider));
         } else if (TextUtils.isEmpty(owner_address) && TextUtils.isEmpty(gift_address) && myProfile && savedStarGift.gift instanceof TL_stars.TL_starGift && savedStarGift.name_hidden) {
             beforeTableTextView.setVisibility(View.VISIBLE);
-            beforeTableTextView.setText(getString(
-                (message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2InSenderMessageHidden2 : R.string.Gift2InSenderHidden2)
-            );
+            String hiddenSenderText = getString((message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2InSenderMessageHidden2 : R.string.Gift2InSenderHidden2);
+            if (hiddenSenderText != null && hiddenSenderText.contains("только Вы")) {
+                hiddenSenderText = hiddenSenderText.replace("только Вы", "только вы");
+            }
+            beforeTableTextView.setText(hiddenSenderText);
             beforeTableTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray2, resourcesProvider));
         } else {
             beforeTableTextView.setVisibility(View.GONE);
@@ -5161,11 +5190,13 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
             beforeTableTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray2, resourcesProvider));
         } else if (TextUtils.isEmpty(owner_address) && TextUtils.isEmpty(gift_address) && name_hidden && !self) {
             beforeTableTextView.setVisibility(View.VISIBLE);
-            beforeTableTextView.setText(
-                out ?
-                    formatString((message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2OutSenderMessageHidden2 : R.string.Gift2OutSenderHidden2, DialogObject.getShortName(messageObject.getDialogId())) :
-                    getString((message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2InSenderMessageHidden2 : R.string.Gift2InSenderHidden2)
-            );
+            String hiddenSenderText = out ?
+                formatString((message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2OutSenderMessageHidden2 : R.string.Gift2OutSenderHidden2, DialogObject.getShortName(messageObject.getDialogId())) :
+                getString((message != null && !TextUtils.isEmpty(message.text)) ? R.string.Gift2InSenderMessageHidden2 : R.string.Gift2InSenderHidden2);
+            if (hiddenSenderText != null && hiddenSenderText.contains("только Вы")) {
+                hiddenSenderText = hiddenSenderText.replace("только Вы", "только вы");
+            }
+            beforeTableTextView.setText(hiddenSenderText);
             beforeTableTextView.setTextColor(Theme.getColor(Theme.key_dialogTextGray2, resourcesProvider));
         } else {
             beforeTableTextView.setVisibility(View.GONE);
@@ -6591,6 +6622,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
         ));
         topView.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP, 24, 4, 24, 4));
         final TableView tableView = new TableView(getContext(), resourcesProvider);
+        tableView.setDrawBorder(false);
         addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class));
         addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class));
         addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class));
@@ -7443,7 +7475,9 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                     this.pattern.set(pattern.document, false);
                 }
                 if (backdrop != null) {
-                    gradient = new RadialGradient(0, 0, dpf2(sizeDp) / 2, new int[]{ backdrop.center_color | 0xFF000000, backdrop.edge_color | 0xFF000000 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+                    int c1 = getAdaptiveBackdropCenter(backdrop.center_color);
+                    int c2 = getAdaptiveBackdropEdge(backdrop.edge_color);
+                    gradient = new RadialGradient(0, 0, dpf2(sizeDp) / 2, new int[]{ c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
                     this.pattern.setColor(backdrop.pattern_color | 0xFF000000);
                 }
                 if (model != null) {
@@ -7458,7 +7492,9 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
         }
 
         public void setGradient(int centerColor, int edgeColor) {
-            gradient = new RadialGradient(0, 0, dpf2(sizeDp) / 2, new int[]{ centerColor | 0xFF000000, edgeColor | 0xFF000000 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+            int c1 = getAdaptiveBackdropCenter(centerColor);
+            int c2 = getAdaptiveBackdropEdge(edgeColor);
+            gradient = new RadialGradient(0, 0, dpf2(sizeDp) / 2, new int[]{ c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
             paint.setShader(gradient);
         }
 
@@ -7914,6 +7950,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
 
             if (withTable) {
                 final TableView tableView = new TableView(context, resourcesProvider);
+                tableView.setDrawBorder(false);
                 addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributeModel.class));
                 addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributeBackdrop.class));
                 addAttributeRow(tableView, findAttribute(gift.attributes, TL_stars.starGiftAttributePattern.class));
@@ -8136,6 +8173,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
                 };
 
                 final TableView tableView = new TableView(getContext(), resourcesProvider);
+                tableView.setDrawBorder(false);
                 tableLayout.addView(tableView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
                 tableView.addRow(getString(R.string.GiftValueInitialSale), LocaleController.formatYearMonthDay(info.initial_sale_date, true));
                 tableView.addRow(getString(R.string.GiftValueInitialPrice), StarsIntroActivity.replaceStarsWithPlain("⭐️" + info.initial_sale_stars + " (~" + BillingController.getInstance().formatCurrency(info.initial_sale_price, info.currency) + ")", .8f));
@@ -8253,6 +8291,7 @@ public class StarGiftSheet extends BottomSheetWithRecyclerListView implements No
 
             final int now = ConnectionsManager.getInstance(currentAccount).getCurrentTime();
             final TableView tableView = new TableView(context, resourcesProvider);
+            tableView.setDrawBorder(false);
             boolean hadRecentPrices = false;
             for (int i = 0; i < prices.size(); ++i) {
                 final TL_stars.StarGiftUpgradePrice price = prices.get(i);

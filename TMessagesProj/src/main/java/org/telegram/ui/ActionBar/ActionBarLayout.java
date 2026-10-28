@@ -433,10 +433,17 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
 
         @Override
         protected void onDraw(@NonNull Canvas canvas) {
+            if (this == containerView && fragmentsStack.size() > 1) {
+                int color = Theme.getColor(Theme.key_windowBackgroundGray);
+                if (backgroundColor != color) {
+                    backgroundPaint.setColor(backgroundColor = color);
+                }
+                canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), backgroundPaint);
+            }
             if (fragmentPanTranslationOffset != 0) {
                 int color = Theme.getColor(Theme.key_windowBackgroundWhite);
                 if (backgroundColor != color) {
-                    backgroundPaint.setColor(backgroundColor = Theme.getColor(Theme.key_windowBackgroundWhite));
+                    backgroundPaint.setColor(backgroundColor = color);
                 }
                 canvas.drawRect(0, getMeasuredHeight() - fragmentPanTranslationOffset - 3, getMeasuredWidth(), getMeasuredHeight(), backgroundPaint);
             }

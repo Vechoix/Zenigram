@@ -1463,6 +1463,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
 
         public LastEmptyView(Context context) {
             super(context);
+            setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         }
 
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -1794,9 +1795,6 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                     itemInternals.add(new ItemInternal(VIEW_TYPE_EMPTY, dialogsEmptyType()));
                 }
             } else {
-                if ((folderId == 0 || folderId == 1) && dialogsCount > 10 && dialogsType == DialogsActivity.DIALOGS_TYPE_DEFAULT) {
-                    itemInternals.add(new ItemInternal(VIEW_TYPE_NEW_CHAT_HINT));
-                }
                 itemInternals.add(new ItemInternal(VIEW_TYPE_LAST_EMPTY));
             }
         }

@@ -156,11 +156,7 @@ public class CloudSettingsHelper {
     }
 
     public void doAutoSync() {
-        if (!autoSync) {
-            return;
-        }
-        AndroidUtilities.cancelRunOnUIThread(cloudSyncRunnable);
-        AndroidUtilities.runOnUIThread(cloudSyncRunnable, 1200);
+        // Disabled: server-dependent cloud sync removed from UI
     }
 
     private void syncToCloud(BiConsumer<Boolean, String> callback) {

@@ -211,7 +211,12 @@ public class SessionCell extends FrameLayout {
 
             StringBuilder stringBuilder = new StringBuilder();
             if (session.device_model.length() != 0) {
-                stringBuilder.append(session.device_model);
+                String model = session.device_model;
+                String[] parts = model.split(" ");
+                if (parts.length >= 2 && parts[0].equalsIgnoreCase(parts[1])) {
+                    model = model.substring(parts[0].length()).trim();
+                }
+                stringBuilder.append(model);
             }
             if (stringBuilder.length() == 0) {
                 if (session.platform.length() != 0) {
@@ -247,11 +252,7 @@ public class SessionCell extends FrameLayout {
             spannableStringBuilder.append(timeText);
             detailExTextView.setText(spannableStringBuilder);
 
-            stringBuilder = new StringBuilder();
-            stringBuilder.append(session.app_name);
-            stringBuilder.append(" ").append(session.app_version);
-
-            detailTextView.setText(stringBuilder);
+            detailTextView.setText(formatSessionAppName(session));
         } else if (object instanceof TLRPC.TL_webAuthorization) {
             TLRPC.TL_webAuthorization session = (TLRPC.TL_webAuthorization) object;
             TLRPC.User user = MessagesController.getInstance(currentAccount).getUser(session.bot_id);
@@ -308,6 +309,38 @@ public class SessionCell extends FrameLayout {
         }
     }
 
+    public static String formatSessionAppName(TLRPC.TL_authorization session) {
+        if (session == null) {
+            return "";
+        }
+        boolean isCurrent = (session.flags & 1) != 0;
+        String appName = session.app_name != null ? session.app_name.trim() : "";
+        String appVersion = session.app_version != null ? session.app_version.trim() : "";
+
+        if (isCurrent || appName.toLowerCase().contains("zenigram") || appVersion.toLowerCase().contains("zenigram")) {
+            String cleanVersion = appVersion;
+            if (cleanVersion.toLowerCase().startsWith("zenigram")) {
+                cleanVersion = cleanVersion.substring("zenigram".length()).trim();
+            }
+            if (cleanVersion.isEmpty()) {
+                cleanVersion = org.telegram.messenger.BuildConfig.VERSION_NAME;
+            }
+            return "Zenigram " + cleanVersion;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if (!TextUtils.isEmpty(appName)) {
+            sb.append(appName);
+        }
+        if (!TextUtils.isEmpty(appVersion)) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(appVersion);
+        }
+        return sb.toString();
+    }
+
     public static CombinedDrawable createDrawable(int sz, String platform) {
         TLRPC.TL_authorization auth = new TLRPC.TL_authorization();
         auth.device_model = platform;
@@ -360,8 +393,8 @@ public class SessionCell extends FrameLayout {
             iconId = R.drawable.device_desktop_osx;
             colorKey = Theme.key_avatar_backgroundCyan;
             colorKey2 = Theme.key_avatar_background2Cyan;
-        } else if (session.app_name.contains("Nekogram")) {
-            iconId = R.drawable.notification;
+        } else if (((session.flags & 1) != 0) || session.app_name.contains("Zenigram")) {
+            iconId = R.drawable.device_phone_android;
             colorKey = Theme.key_avatar_backgroundBlue;
             colorKey2 = Theme.key_avatar_background2Blue;
         } else if (platform.contains("android")) {
@@ -504,7 +537,7 @@ public class SessionCell extends FrameLayout {
         this.globalGradient = globalGradient;
         showStub = true;
 
-        Drawable iconDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.notification).mutate();
+        Drawable iconDrawable = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.device_phone_android).mutate();
         iconDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_avatar_text), PorterDuff.Mode.SRC_IN));
         CombinedDrawable combinedDrawable = new CombinedDrawable(Theme.createCircleDrawable(AndroidUtilities.dp(42), Theme.getColor(Theme.key_avatar_backgroundBlue)), iconDrawable);
         if (placeholderImageView != null) {

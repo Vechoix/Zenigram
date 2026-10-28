@@ -360,12 +360,46 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     private CommunityArrowDrawable communityArrowDrawable;
 
+    public static void shiftSpansAfterInsert(SpannableStringBuilder builder, int insertIndex, int length) {
+        if (builder == null || length <= 0) return;
+        Object[] spans = builder.getSpans(insertIndex, insertIndex + length, Object.class);
+        if (spans != null) {
+            for (Object span : spans) {
+                if (span instanceof FixedWidthSpan || span instanceof ColoredImageSpan) continue;
+                int start = builder.getSpanStart(span);
+                int end = builder.getSpanEnd(span);
+                int flags = builder.getSpanFlags(span);
+                if (start <= insertIndex) {
+                    builder.removeSpan(span);
+                    builder.setSpan(span, insertIndex + length, Math.max(insertIndex + length, end), flags);
+                }
+            }
+        }
+    }
+
     public static class FixedWidthSpan extends ReplacementSpan {
 
         private int width;
 
         public FixedWidthSpan(int w) {
             width = w;
+        }
+
+        public static void shiftSpansAfterInsert(SpannableStringBuilder builder, int insertIndex, int length) {
+            if (builder == null || length <= 0) return;
+            Object[] spans = builder.getSpans(insertIndex, insertIndex + length, Object.class);
+            if (spans != null) {
+                for (Object span : spans) {
+                    if (span instanceof FixedWidthSpan || span instanceof ColoredImageSpan) continue;
+                    int start = builder.getSpanStart(span);
+                    int end = builder.getSpanEnd(span);
+                    int flags = builder.getSpanFlags(span);
+                    if (start <= insertIndex) {
+                        builder.removeSpan(span);
+                        builder.setSpan(span, insertIndex + length, Math.max(insertIndex + length, end), flags);
+                    }
+                }
+            }
         }
 
         @Override
@@ -1852,6 +1886,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                         builder.setSpan(new FixedWidthSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), builder.length() - 1, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     } else {
                                         builder.insert(thumbInsertIndex, " ");
+                                        shiftSpansAfterInsert(builder, thumbInsertIndex, 1);
                                         builder.setSpan(new FixedWidthSpan(dp(thumbsCount * (thumbSize + 2) - 2 + 5)), thumbInsertIndex, thumbInsertIndex + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     }
                                 }
@@ -2045,6 +2080,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     checkMessage = false;
                                     SpannableStringBuilder builder = (SpannableStringBuilder) messageString;
                                     builder.insert(0, " ");
+                                    shiftSpansAfterInsert(builder, 0, 1);
                                     builder.setSpan(new FixedWidthSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                     Emoji.replaceEmoji(builder, Theme.dialogs_messagePaint[paintIndex].getFontMetricsInt(), false);
                                     if (message.hasHighlightedWords()) {
@@ -2058,6 +2094,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                                     drawForwardIcon = true;
                                     SpannableStringBuilder builder = new SpannableStringBuilder(messageString);
                                     builder.insert(0, "d ");
+                                    shiftSpansAfterInsert(builder, 0, 2);
                                     ColoredImageSpan coloredImageSpan = new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.mini_forwarded).mutate());
                                     coloredImageSpan.setAlpha(0.9f);
                                     builder.setSpan(coloredImageSpan, 0, 1, 0);
@@ -2078,6 +2115,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                 drawGiftIcon = true;
                 SpannableStringBuilder builder = new SpannableStringBuilder(messageString);
                 builder.insert(0, "d ");
+                shiftSpansAfterInsert(builder, 0, 2);
                 ColoredImageSpan coloredImageSpan = new ColoredImageSpan(ContextCompat.getDrawable(getContext(), R.drawable.mini_gift).mutate());
                 coloredImageSpan.setScale(1.25f, 1.25f);
                 coloredImageSpan.spaceScaleX = 0.9f;
@@ -3074,6 +3112,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
         if (thumbsCount > 0) {
             SpannableStringBuilder builder = SpannableStringBuilder.valueOf(string);
             builder.insert(0, " ");
+            shiftSpansAfterInsert(builder, 0, 1);
             builder.setSpan(new FixedWidthSpan(dp((thumbSize + 2) * thumbsCount - 2 + 5)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return builder;
         }

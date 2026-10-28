@@ -28,6 +28,7 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.BulletinFactory;
+import org.telegram.ui.Components.ColorPicker;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.SeekBarView;
 import org.telegram.ui.Components.UItem;
@@ -39,7 +40,7 @@ import java.util.List;
 
 import tw.nekomimi.nekogram.NekoConfig;
 
-public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
+public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implements NotificationCenter.NotificationCenterDelegate {
 
     private final int dynamicMonetRow = rowId++;
     private final int accentColorRow = rowId++;
@@ -95,36 +96,36 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
     public static String getBubbleColorName(int color) {
         String lang = LocaleController.getInstance().getCurrentLocale().getLanguage();
         boolean ru = "ru".equals(lang) || "uk".equals(lang) || "be".equals(lang);
-        if (color == 0) return ru ? "По умолчанию" : "Default";
-        if (color == 0xFF2C6BC4) return ru ? "Небесно-голубой" : "Pixel Blue";
-        if (color == 0xFF46654C) return ru ? "Шалфей" : "Pixel Sage";
+        if (color == 0) return ru ? "По умолчанию (Тема)" : "Default";
+        if (color == 0xFF2C6BC4) return ru ? "Синий" : "Pixel Blue";
+        if (color == 0xFF46654C) return ru ? "Шалфейный (Зеленый)" : "Pixel Sage";
         if (color == 0xFF2E6B5E) return ru ? "Мятный" : "Pixel Mint";
-        if (color == 0xFF61558E) return ru ? "Лаванда" : "Pixel Lavender";
-        if (color == 0xFF525E75) return ru ? "Ирис" : "Pixel Iris";
-        if (color == 0xFF8C4F3B) return ru ? "Персик" : "Pixel Peach";
-        if (color == 0xFF924443) return ru ? "Коралл" : "Pixel Coral";
+        if (color == 0xFF61558E) return ru ? "Лавандовый (Фиолетовый)" : "Pixel Lavender";
+        if (color == 0xFF525E75) return ru ? "Серо-синий" : "Pixel Iris";
+        if (color == 0xFF8C4F3B) return ru ? "Персиковый" : "Pixel Peach";
+        if (color == 0xFF924443) return ru ? "Коралловый (Красный)" : "Pixel Coral";
         if (color == 0xFF775A22) return ru ? "Песочный" : "Pixel Sand";
-        if (color == 0xFF45464F) return ru ? "Графит" : "Pixel Slate";
-        if (color == 0xFF55624C) return ru ? "Олива" : "Pixel Olive";
-        return ru ? "Пользовательский" : "Custom";
+        if (color == 0xFF45464F) return ru ? "Грифельный (Серый)" : "Pixel Slate";
+        if (color == 0xFF55624C) return ru ? "Оливковый" : "Pixel Olive";
+        return ru ? ("Свой цвет (#" + String.format("%06X", (0xFFFFFF & color)) + ")") : "Custom";
     }
 
     public static String getAccentName(int index) {
         String lang = LocaleController.getInstance().getCurrentLocale().getLanguage();
         if ("ru".equals(lang) || "uk".equals(lang) || "be".equals(lang)) {
             return switch (index) {
-                case 0 -> "По умолчанию";
-                case 1 -> "Песочный Pixel";
-                case 2 -> "Синий Pixel";
-                case 3 -> "Шалфей";
-                case 4 -> "Лаванда";
-                case 5 -> "Персик";
-                case 6 -> "Коралл";
-                case 7 -> "Янтарь";
-                case 8 -> "Мята";
-                case 9 -> "Графит";
-                case 10 -> "Терракота";
-                case 11 -> "Туманный синий";
+                case 0 -> "По умолчанию (Тема)";
+                case 1 -> "Песочный";
+                case 2 -> "Синий";
+                case 3 -> "Шалфейный (Зеленый)";
+                case 4 -> "Лавандовый (Фиолетовый)";
+                case 5 -> "Персиковый";
+                case 6 -> "Коралловый (Красный)";
+                case 7 -> "Янтарный (Желтый)";
+                case 8 -> "Мятный";
+                case 9 -> "Грифельный (Серый)";
+                case 10 -> "Терракотовый (Оранжевый)";
+                case 11 -> "Голубой (Туманный)";
                 default -> "По умолчанию";
             };
         }
@@ -246,7 +247,28 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
                 return getAccentName(i);
             }
         }
-        return getAccentName(0);
+        return "Свой цвет (#" + String.format("%06X", (0xFFFFFF & NekoConfig.customAccentColor)) + ")";
+    }
+
+    @Override
+    public boolean onFragmentCreate() {
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.didSetNewTheme);
+        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.needSetDayNightTheme);
+        return super.onFragmentCreate();
+    }
+
+    @Override
+    public void onFragmentDestroy() {
+        super.onFragmentDestroy();
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.didSetNewTheme);
+        NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.needSetDayNightTheme);
+    }
+
+    @Override
+    public void didReceivedNotification(int id, int account, Object... args) {
+        if (id == NotificationCenter.didSetNewTheme || id == NotificationCenter.needSetDayNightTheme) {
+            applyLiveThemeToCurrentScreen();
+        }
     }
 
     private void applyLiveThemeToCurrentScreen() {
@@ -262,7 +284,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
         if (listView != null) {
             listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
             if (listView.adapter != null) {
-                listView.adapter.update(true);
+                listView.adapter.notifyDataSetChanged();
             }
             listView.invalidate();
         }
@@ -273,7 +295,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
             typographySelectorCell.updateState();
         }
         if (parentLayout != null) {
-            parentLayout.rebuildAllFragmentViews(false, false);
+            parentLayout.rebuildAllFragmentViews(true, true);
         }
     }
 
@@ -415,14 +437,14 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
 
             wavePath.reset();
             wavePath.moveTo(trackLeft, centerY);
-            float waveLength = AndroidUtilities.dp(18);
-            float waveAmplitude = AndroidUtilities.dp(3.5f);
+            float waveLength = AndroidUtilities.dp(44);
+            float waveAmplitude = AndroidUtilities.dp(2.6f);
 
             if (thumbX > trackLeft) {
-                float step = AndroidUtilities.dp(2);
+                float step = AndroidUtilities.dp(1.2f);
                 for (float x = trackLeft; x <= thumbX; x += step) {
                     float phase = (x - trackLeft) / waveLength * (float) (Math.PI * 2);
-                    float taper = Math.min(1.0f, Math.min((x - trackLeft) / AndroidUtilities.dp(8), (thumbX - x) / AndroidUtilities.dp(8)));
+                    float taper = Math.min(1.0f, Math.min((x - trackLeft) / AndroidUtilities.dp(12), (thumbX - x) / AndroidUtilities.dp(12)));
                     if (taper < 0) taper = 0;
                     float y = centerY + (float) Math.sin(phase) * (waveAmplitude * taper);
                     wavePath.lineTo(x, y);
@@ -711,37 +733,55 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
             for (int i = 0; i < ACCENT_COLORS.length; i++) {
                 accents.add(getAccentName(i));
             }
-            int currentIndex = 0;
+            accents.add("Свой цвет (Палитра)...");
+
+            int currentIndex = -1;
             for (int i = 0; i < ACCENT_COLORS.length; i++) {
                 if (ACCENT_COLORS[i] == NekoConfig.customAccentColor) {
                     currentIndex = i;
                     break;
                 }
             }
+            if (currentIndex == -1) {
+                currentIndex = ACCENT_COLORS.length;
+            }
             showPopup(accents, currentIndex, item, view, index -> {
-                NekoConfig.setCustomAccentColor(ACCENT_COLORS[index]);
-                Theme.refreshThemeColors();
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-                applyLiveThemeToCurrentScreen();
+                if (index < ACCENT_COLORS.length) {
+                    NekoConfig.setCustomAccentColor(ACCENT_COLORS[index]);
+                    Theme.refreshThemeColors();
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+                    applyLiveThemeToCurrentScreen();
+                } else {
+                    showCustomColorPicker(true);
+                }
             });
         } else if (id == outBubbleColorRow) {
             List<String> bubbleColors = new ArrayList<>();
             for (int color : BUBBLE_COLORS) {
                 bubbleColors.add(getBubbleColorName(color));
             }
-            int currentIndex = 0;
+            bubbleColors.add("Свой цвет (Палитра)...");
+
+            int currentIndex = -1;
             for (int i = 0; i < BUBBLE_COLORS.length; i++) {
                 if (BUBBLE_COLORS[i] == NekoConfig.customOutBubbleColor) {
                     currentIndex = i;
                     break;
                 }
             }
+            if (currentIndex == -1) {
+                currentIndex = BUBBLE_COLORS.length;
+            }
             showPopup(bubbleColors, currentIndex, item, view, index -> {
-                NekoConfig.setCustomOutBubbleColor(BUBBLE_COLORS[index]);
-                Theme.invalidateChatOutBubble();
-                Theme.refreshThemeColors();
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-                applyLiveThemeToCurrentScreen();
+                if (index < BUBBLE_COLORS.length) {
+                    NekoConfig.setCustomOutBubbleColor(BUBBLE_COLORS[index]);
+                    Theme.invalidateChatOutBubble();
+                    Theme.refreshThemeColors();
+                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+                    applyLiveThemeToCurrentScreen();
+                } else {
+                    showCustomColorPicker(false);
+                }
             });
         } else if (id == interfaceDensityRow) {
             List<String> densities = Arrays.asList(
@@ -805,5 +845,64 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity {
             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
             showDialog(builder.create());
         }
+    }
+
+    private void showCustomColorPicker(boolean isAccent) {
+        if (getParentActivity() == null) return;
+        int currentColor = isAccent ?
+                (NekoConfig.customAccentColor != 0 ? NekoConfig.customAccentColor : 0xFFC4A98F) :
+                (NekoConfig.customOutBubbleColor != 0 ? NekoConfig.customOutBubbleColor : Theme.getColor(Theme.key_chat_outBubble));
+        if (currentColor == 0) currentColor = 0xFF2C6BC4;
+
+        final int initialColor = currentColor;
+        final int[] selectedColor = new int[]{currentColor};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), resourcesProvider);
+        builder.setTitle(isAccent ? "Акцентный цвет" : "Цвет исходящих сообщений");
+
+        ColorPicker colorPicker = new ColorPicker(getParentActivity(), false, (color, num, applyNow) -> {
+            selectedColor[0] = color;
+            if (isAccent) {
+                NekoConfig.setCustomAccentColor(color);
+            } else {
+                NekoConfig.setCustomOutBubbleColor(color);
+                Theme.invalidateChatOutBubble();
+            }
+            Theme.refreshThemeColors();
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+            applyLiveThemeToCurrentScreen();
+        }) {
+            @Override
+            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(300), MeasureSpec.EXACTLY));
+            }
+        };
+        colorPicker.setColor(initialColor, 0);
+        colorPicker.setType(-1, false, 1, 1, false, 0, false);
+        builder.setView(colorPicker);
+
+        builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
+            if (isAccent) {
+                NekoConfig.setCustomAccentColor(selectedColor[0]);
+            } else {
+                NekoConfig.setCustomOutBubbleColor(selectedColor[0]);
+                Theme.invalidateChatOutBubble();
+            }
+            Theme.refreshThemeColors();
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+            applyLiveThemeToCurrentScreen();
+        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> {
+            if (isAccent) {
+                NekoConfig.setCustomAccentColor(initialColor);
+            } else {
+                NekoConfig.setCustomOutBubbleColor(initialColor);
+                Theme.invalidateChatOutBubble();
+            }
+            Theme.refreshThemeColors();
+            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+            applyLiveThemeToCurrentScreen();
+        });
+        showDialog(builder.create());
     }
 }

@@ -61,6 +61,43 @@ public class NekoConfig {
     public static final int CAMERA_REAR = 1;
     public static final int CAMERA_ASK = 2;
 
+    public static final int THEME_MODE_SYSTEM = 0;
+    public static final int THEME_MODE_LIGHT = 1;
+    public static final int THEME_MODE_DARK = 2;
+
+    public static final int BUBBLE_RADIUS_COMPACT = 0;
+    public static final int BUBBLE_RADIUS_STANDARD = 1;
+    public static final int BUBBLE_RADIUS_ROUNDED = 2;
+
+    public static final int DENSITY_COMPACT = 0;
+    public static final int DENSITY_DEFAULT = 1;
+    public static final int DENSITY_SPACIOUS = 2;
+
+    public static final int FONT_DEFAULT = 0;
+    public static final int FONT_COMFORTAA = 1;
+    public static int customFont = FONT_DEFAULT;
+
+    public static final int FONT_SCOPE_ALL = 0;
+    public static final int FONT_SCOPE_UI_ONLY = 1;
+    public static int customFontScope = FONT_SCOPE_ALL;
+
+    // Ghost & Privacy
+    public static boolean ghostReadMessages = false;
+    public static boolean ghostSendTyping = false;
+    public static boolean ghostStories = false;
+    public static boolean ghostVoice = false;
+    public static boolean allowScreenshots = false;
+    public static boolean hqVideoMessages = true;
+    public static boolean roundVideo12SecDebug = false;
+    public static boolean message12SecDebug = false;
+    public static boolean autoCheckUpdates = true;
+    public static long lastUpdateCheckTime = 0;
+    public static boolean hasUpdateAvailable = false;
+    public static String cachedUpdateVersionName = "";
+    public static int cachedUpdateVersionCode = 0;
+    public static String cachedUpdateChangelog = "";
+    public static String cachedUpdateUrl = "";
+
     private static final Object sync = new Object();
 
     public static int cameraInVideoMessages = CAMERA_FRONT;
@@ -74,6 +111,28 @@ public class NekoConfig {
     public static int tabsTitleType = TITLE_TYPE_MIX;
     public static int transcribeProvider = TRANSCRIBE_PREMIUM;
     public static int transType = TRANS_TYPE_NEKO;
+
+    // Theme Studio
+    public static int themeMode = THEME_MODE_DARK;
+    public static boolean dynamicMonet = false;
+    public static int customAccentColor = 0;
+    public static int customOutBubbleColor = 0;
+    public static int bubbleRadiusProfile = BUBBLE_RADIUS_STANDARD;
+    public static int bubbleRadiusIn = -1;
+    public static int bubbleRadiusOut = -1;
+    public static int interfaceDensity = DENSITY_DEFAULT;
+    public static float animationSpeedScale = 1.0f;
+
+    // Gesture Lab
+    public static int chatListSwipeAction = -1;
+    public static boolean swipeToReply = true;
+    public static boolean quickForwardGesture = false;
+
+    // Adaptive Performance Mode
+    public static boolean adaptivePerformanceMode = false;
+    public static boolean disableBlurPasses = true;
+    public static boolean optimizeThumbnailCaching = true;
+    public static boolean scaleAnimationsForPerformance = true;
 
     public static float stickerSize = 14.0f;
 
@@ -118,12 +177,13 @@ public class NekoConfig {
     public static boolean preferOriginalQuality = false;
     public static boolean quickForward = false;
     public static boolean reducedColors = false;
+    public static boolean secureScreen = false;
     public static boolean shouldNOTTrustMe = false;
     public static boolean showAddToSavedMessages = true;
     public static boolean showCopyPhoto = false;
     public static boolean showDeleteDownloadedFile = false;
     public static boolean showMessageDetails = false;
-    public static boolean showNoQuoteForward = false;
+    public static boolean showNoQuoteForward = true;
     public static boolean showOpenIn = false;
     public static boolean showOriginal = true;
     public static boolean showPrPr = false;
@@ -156,8 +216,6 @@ public class NekoConfig {
         var map = new HashMap<String, String>(1);
         map.put("key", key);
         AnalyticsHelper.trackEvent("neko_config_changed", map);
-
-        CloudSettingsHelper.getInstance().doAutoSync();
     };
     private static boolean configLoaded;
 
@@ -173,6 +231,35 @@ public class NekoConfig {
             userMcc = ApplicationLoader.applicationContext.getResources().getConfiguration().mcc;
 
             cameraInVideoMessages = preferences.getInt("cameraInVideoMessages", CAMERA_FRONT);
+            customFont = preferences.getInt("customFont", FONT_DEFAULT);
+            customFontScope = preferences.getInt("customFontScope", FONT_SCOPE_ALL);
+            ghostReadMessages = preferences.getBoolean("ghostReadMessages", false);
+            ghostSendTyping = preferences.getBoolean("ghostSendTyping", false);
+            ghostStories = preferences.getBoolean("ghostStories", false);
+            ghostVoice = preferences.getBoolean("ghostVoice", false);
+            allowScreenshots = preferences.getBoolean("allowScreenshots", false);
+            hqVideoMessages = preferences.getBoolean("hqVideoMessages", true);
+            roundVideo12SecDebug = preferences.getBoolean("roundVideo12SecDebug", false);
+            message12SecDebug = preferences.getBoolean("message12SecDebug", false);
+        autoCheckUpdates = preferences.getBoolean("autoCheckUpdates", true);
+        lastUpdateCheckTime = preferences.getLong("lastUpdateCheckTime", 0);
+        hasUpdateAvailable = preferences.getBoolean("hasUpdateAvailable", false);
+        cachedUpdateVersionName = preferences.getString("cachedUpdateVersionName", "");
+        cachedUpdateVersionCode = preferences.getInt("cachedUpdateVersionCode", 0);
+        cachedUpdateChangelog = preferences.getString("cachedUpdateChangelog", "");
+        cachedUpdateUrl = preferences.getString("cachedUpdateUrl", "");
+        if (hasUpdateAvailable && !tw.nekomimi.nekogram.helpers.ZenigramUpdateHelper.isVersionGreater(cachedUpdateVersionName, org.telegram.messenger.BuildConfig.VERSION_NAME)) {
+            hasUpdateAvailable = false;
+            cachedUpdateVersionName = "";
+            cachedUpdateChangelog = "";
+            cachedUpdateUrl = "";
+            preferences.edit()
+                .putBoolean("hasUpdateAvailable", false)
+                .putString("cachedUpdateVersionName", "")
+                .putString("cachedUpdateChangelog", "")
+                .putString("cachedUpdateUrl", "")
+                .apply();
+        }
             doubleTapInAction = preferences.getInt("doubleTapAction", DOUBLE_TAP_ACTION_REACTION);
             doubleTapOutAction = preferences.getInt("doubleTapOutAction", DOUBLE_TAP_ACTION_REACTION);
             downloadSpeedBoost = preferences.getInt("downloadSpeedBoost2", BOOST_NONE);
@@ -225,12 +312,13 @@ public class NekoConfig {
             preferOriginalQuality = preferences.getBoolean("preferOriginalQuality", false);
             quickForward = preferences.getBoolean("quickForward", false);
             reducedColors = preferences.getBoolean("reducedColors", false);
+            secureScreen = preferences.getBoolean("secureScreen", false);
             shouldNOTTrustMe = preferences.getBoolean("shouldNOTTrustMe", false);
             showAddToSavedMessages = preferences.getBoolean("showAddToSavedMessages", true);
             showCopyPhoto = preferences.getBoolean("showCopyPhoto", false);
             showDeleteDownloadedFile = preferences.getBoolean("showDeleteDownloadedFile", false);
             showMessageDetails = preferences.getBoolean("showMessageDetails", false);
-            showNoQuoteForward = preferences.getBoolean("showNoQuoteForward", false);
+            showNoQuoteForward = preferences.getBoolean("showNoQuoteForward", true);
             showOpenIn = preferences.getBoolean("showOpenIn", false);
             showOriginal = preferences.getBoolean("showOriginal", true);
             showPrPr = preferences.getBoolean("showPrPr", false);
@@ -247,6 +335,27 @@ public class NekoConfig {
             unmuteVideosWithVolumeButtons = preferences.getBoolean("unmuteVideosWithVolumeButtons", true);
             useSystemEmoji = preferences.getBoolean("useSystemEmoji", false);
             voiceEnhancements = preferences.getBoolean("voiceEnhancements", false);
+
+            themeMode = preferences.getInt("themeMode", THEME_MODE_DARK);
+            dynamicMonet = preferences.getBoolean("dynamicMonet", false);
+            customAccentColor = preferences.getInt("customAccentColor", 0);
+            customOutBubbleColor = preferences.getInt("customOutBubbleColor", 0);
+            bubbleRadiusProfile = preferences.getInt("bubbleRadiusProfile", BUBBLE_RADIUS_STANDARD);
+            bubbleRadiusIn = preferences.getInt("bubbleRadiusIn", -1);
+            bubbleRadiusOut = preferences.getInt("bubbleRadiusOut", -1);
+            interfaceDensity = preferences.getInt("interfaceDensity", DENSITY_DEFAULT);
+            animationSpeedScale = preferences.getFloat("animationSpeedScale", 1.0f);
+            applyAnimationScale(animationSpeedScale);
+
+            chatListSwipeAction = preferences.getInt("chatListSwipeAction", -1);
+            swipeToReply = preferences.getBoolean("swipeToReply", true);
+            quickForwardGesture = preferences.getBoolean("quickForwardGesture", false);
+
+            adaptivePerformanceMode = preferences.getBoolean("adaptivePerformanceMode", false);
+            disableBlurPasses = preferences.getBoolean("disableBlurPasses", true);
+            optimizeThumbnailCaching = preferences.getBoolean("optimizeThumbnailCaching", true);
+            scaleAnimationsForPerformance = preferences.getBoolean("scaleAnimationsForPerformance", true);
+
             cfAccountID = preferences.getString("cfAccountID", "");
             cfApiToken = preferences.getString("cfApiToken", "");
             externalTranslationProvider = preferences.getString("externalTranslationProvider", null);
@@ -439,7 +548,7 @@ public class NekoConfig {
             object.addProperty("showMessageDetails", preferences.getBoolean("showMessageDetails", false));
         }
         if (preferences.contains("showNoQuoteForward")) {
-            object.addProperty("showNoQuoteForward", preferences.getBoolean("showNoQuoteForward", false));
+            object.addProperty("showNoQuoteForward", preferences.getBoolean("showNoQuoteForward", true));
         }
         if (preferences.contains("showOpenIn")) {
             object.addProperty("showOpenIn", preferences.getBoolean("showOpenIn", false));
@@ -503,6 +612,48 @@ public class NekoConfig {
         }
         if (preferences.contains("translationTarget")) {
             object.addProperty("translationTarget", preferences.getString("translationTarget", "app"));
+        }
+        if (preferences.contains("themeMode")) {
+            object.addProperty("themeMode", preferences.getInt("themeMode", THEME_MODE_SYSTEM));
+        }
+        if (preferences.contains("dynamicMonet")) {
+            object.addProperty("dynamicMonet", preferences.getBoolean("dynamicMonet", false));
+        }
+        if (preferences.contains("customAccentColor")) {
+            object.addProperty("customAccentColor", preferences.getInt("customAccentColor", 0));
+        }
+        if (preferences.contains("customOutBubbleColor")) {
+            object.addProperty("customOutBubbleColor", preferences.getInt("customOutBubbleColor", 0));
+        }
+        if (preferences.contains("bubbleRadiusProfile")) {
+            object.addProperty("bubbleRadiusProfile", preferences.getInt("bubbleRadiusProfile", BUBBLE_RADIUS_STANDARD));
+        }
+        if (preferences.contains("interfaceDensity")) {
+            object.addProperty("interfaceDensity", preferences.getInt("interfaceDensity", DENSITY_DEFAULT));
+        }
+        if (preferences.contains("animationSpeedScale")) {
+            object.addProperty("animationSpeedScale", preferences.getFloat("animationSpeedScale", 1.0f));
+        }
+        if (preferences.contains("chatListSwipeAction")) {
+            object.addProperty("chatListSwipeAction", preferences.getInt("chatListSwipeAction", -1));
+        }
+        if (preferences.contains("swipeToReply")) {
+            object.addProperty("swipeToReply", preferences.getBoolean("swipeToReply", true));
+        }
+        if (preferences.contains("quickForwardGesture")) {
+            object.addProperty("quickForwardGesture", preferences.getBoolean("quickForwardGesture", false));
+        }
+        if (preferences.contains("adaptivePerformanceMode")) {
+            object.addProperty("adaptivePerformanceMode", preferences.getBoolean("adaptivePerformanceMode", false));
+        }
+        if (preferences.contains("disableBlurPasses")) {
+            object.addProperty("disableBlurPasses", preferences.getBoolean("disableBlurPasses", true));
+        }
+        if (preferences.contains("optimizeThumbnailCaching")) {
+            object.addProperty("optimizeThumbnailCaching", preferences.getBoolean("optimizeThumbnailCaching", true));
+        }
+        if (preferences.contains("scaleAnimationsForPerformance")) {
+            object.addProperty("scaleAnimationsForPerformance", preferences.getBoolean("scaleAnimationsForPerformance", true));
         }
         if (preferences.contains("restrictedLanguages")) {
             var array = new JsonArray();
@@ -764,6 +915,48 @@ public class NekoConfig {
         if (object.has("translationTarget")) {
             editor.putString("translationTarget", object.get("translationTarget").getAsString());
         }
+        if (object.has("themeMode")) {
+            editor.putInt("themeMode", object.get("themeMode").getAsInt());
+        }
+        if (object.has("dynamicMonet")) {
+            editor.putBoolean("dynamicMonet", object.get("dynamicMonet").getAsBoolean());
+        }
+        if (object.has("customAccentColor")) {
+            editor.putInt("customAccentColor", object.get("customAccentColor").getAsInt());
+        }
+        if (object.has("customOutBubbleColor")) {
+            editor.putInt("customOutBubbleColor", object.get("customOutBubbleColor").getAsInt());
+        }
+        if (object.has("bubbleRadiusProfile")) {
+            editor.putInt("bubbleRadiusProfile", object.get("bubbleRadiusProfile").getAsInt());
+        }
+        if (object.has("interfaceDensity")) {
+            editor.putInt("interfaceDensity", object.get("interfaceDensity").getAsInt());
+        }
+        if (object.has("animationSpeedScale")) {
+            editor.putFloat("animationSpeedScale", object.get("animationSpeedScale").getAsFloat());
+        }
+        if (object.has("chatListSwipeAction")) {
+            editor.putInt("chatListSwipeAction", object.get("chatListSwipeAction").getAsInt());
+        }
+        if (object.has("swipeToReply")) {
+            editor.putBoolean("swipeToReply", object.get("swipeToReply").getAsBoolean());
+        }
+        if (object.has("quickForwardGesture")) {
+            editor.putBoolean("quickForwardGesture", object.get("quickForwardGesture").getAsBoolean());
+        }
+        if (object.has("adaptivePerformanceMode")) {
+            editor.putBoolean("adaptivePerformanceMode", object.get("adaptivePerformanceMode").getAsBoolean());
+        }
+        if (object.has("disableBlurPasses")) {
+            editor.putBoolean("disableBlurPasses", object.get("disableBlurPasses").getAsBoolean());
+        }
+        if (object.has("optimizeThumbnailCaching")) {
+            editor.putBoolean("optimizeThumbnailCaching", object.get("optimizeThumbnailCaching").getAsBoolean());
+        }
+        if (object.has("scaleAnimationsForPerformance")) {
+            editor.putBoolean("scaleAnimationsForPerformance", object.get("scaleAnimationsForPerformance").getAsBoolean());
+        }
         if (object.has("restrictedLanguages")) {
             var set = new HashSet<String>();
             var array = object.get("restrictedLanguages").getAsJsonArray();
@@ -912,6 +1105,78 @@ public class NekoConfig {
         preferences.edit().putBoolean("disableVoiceMessageAutoPlay", disableVoiceMessageAutoPlay).apply();
     }
 
+    public static void setCustomFont(int font) {
+        customFont = font;
+        preferences.edit().putInt("customFont", font).apply();
+    }
+
+    public static void setCustomFontScope(int scope) {
+        customFontScope = scope;
+        preferences.edit().putInt("customFontScope", scope).apply();
+    }
+
+    public static void toggleGhostReadMessages() {
+        ghostReadMessages = !ghostReadMessages;
+        preferences.edit().putBoolean("ghostReadMessages", ghostReadMessages).apply();
+    }
+
+    public static void toggleGhostSendTyping() {
+        ghostSendTyping = !ghostSendTyping;
+        preferences.edit().putBoolean("ghostSendTyping", ghostSendTyping).apply();
+    }
+
+    public static void toggleGhostStories() {
+        ghostStories = !ghostStories;
+        preferences.edit().putBoolean("ghostStories", ghostStories).apply();
+    }
+
+    public static void toggleGhostVoice() {
+        ghostVoice = !ghostVoice;
+        preferences.edit().putBoolean("ghostVoice", ghostVoice).apply();
+    }
+
+    public static void toggleAllowScreenshots() {
+        allowScreenshots = !allowScreenshots;
+        preferences.edit().putBoolean("allowScreenshots", allowScreenshots).apply();
+    }
+
+    public static void toggleHqVideoMessages() {
+        hqVideoMessages = !hqVideoMessages;
+        preferences.edit().putBoolean("hqVideoMessages", hqVideoMessages).apply();
+    }
+
+    public static void toggleRoundVideo12SecDebug() {
+        roundVideo12SecDebug = !roundVideo12SecDebug;
+        preferences.edit().putBoolean("roundVideo12SecDebug", roundVideo12SecDebug).apply();
+    }
+
+    public static void toggleMessage12SecDebug() {
+        message12SecDebug = !message12SecDebug;
+        preferences.edit().putBoolean("message12SecDebug", message12SecDebug).apply();
+    }
+
+    public static void toggleAutoCheckUpdates() {
+        autoCheckUpdates = !autoCheckUpdates;
+        preferences.edit().putBoolean("autoCheckUpdates", autoCheckUpdates).apply();
+    }
+
+    public static void saveUpdateCache(boolean hasUpdate, String verName, int verCode, String changelog, String url) {
+        hasUpdateAvailable = hasUpdate;
+        cachedUpdateVersionName = verName != null ? verName : "";
+        cachedUpdateVersionCode = verCode;
+        cachedUpdateChangelog = changelog != null ? changelog : "";
+        cachedUpdateUrl = url != null ? url : "";
+        lastUpdateCheckTime = System.currentTimeMillis();
+        preferences.edit()
+                .putBoolean("hasUpdateAvailable", hasUpdateAvailable)
+                .putString("cachedUpdateVersionName", cachedUpdateVersionName)
+                .putInt("cachedUpdateVersionCode", cachedUpdateVersionCode)
+                .putString("cachedUpdateChangelog", cachedUpdateChangelog)
+                .putString("cachedUpdateUrl", cachedUpdateUrl)
+                .putLong("lastUpdateCheckTime", lastUpdateCheckTime)
+                .apply();
+    }
+
     public static void toggleForceFontWeightFallback() {
         forceFontWeightFallback = !forceFontWeightFallback;
         preferences.edit().putBoolean("forceFontWeightFallback", forceFontWeightFallback).apply();
@@ -995,6 +1260,14 @@ public class NekoConfig {
     public static void toggleMediaPreview() {
         mediaPreview = !mediaPreview;
         preferences.edit().putBoolean("mediaPreview", mediaPreview).apply();
+    }
+
+    public static void toggleSecureScreen() {
+        secureScreen = !secureScreen;
+        preferences.edit().putBoolean("secureScreen", secureScreen).apply();
+        if (org.telegram.ui.LaunchActivity.instance != null) {
+            org.telegram.ui.LaunchActivity.instance.updateFlagSecure();
+        }
     }
 
     public static void toggleMinimizedStickerCreator() {
@@ -1199,5 +1472,132 @@ public class NekoConfig {
         } else {
             return 0xff11acfa;
         }
+    }
+
+    // Theme Studio helpers
+    public static void setThemeMode(int mode) {
+        themeMode = mode;
+        preferences.edit().putInt("themeMode", mode).apply();
+    }
+
+    public static void toggleDynamicMonet() {
+        dynamicMonet = !dynamicMonet;
+        preferences.edit().putBoolean("dynamicMonet", dynamicMonet).apply();
+    }
+
+    public static void setCustomAccentColor(int color) {
+        customAccentColor = color;
+        preferences.edit().putInt("customAccentColor", color).apply();
+    }
+
+    public static void setCustomOutBubbleColor(int color) {
+        customOutBubbleColor = color;
+        preferences.edit().putInt("customOutBubbleColor", color).apply();
+    }
+
+    public static void setBubbleRadiusProfile(int profile) {
+        bubbleRadiusProfile = profile;
+        preferences.edit().putInt("bubbleRadiusProfile", profile).apply();
+    }
+
+    public static void setBubbleRadiusIn(int radius) {
+        bubbleRadiusIn = radius;
+        preferences.edit().putInt("bubbleRadiusIn", radius).apply();
+    }
+
+    public static void setBubbleRadiusOut(int radius) {
+        bubbleRadiusOut = radius;
+        preferences.edit().putInt("bubbleRadiusOut", radius).apply();
+    }
+
+    public static void setInterfaceDensity(int density) {
+        interfaceDensity = density;
+        preferences.edit().putInt("interfaceDensity", density).apply();
+    }
+
+    
+    public static void applyAnimationScale(float scale) {
+        try {
+            java.lang.reflect.Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
+            java.lang.reflect.Method method = (java.lang.reflect.Method) getDeclaredMethod.invoke(android.animation.ValueAnimator.class, "setDurationScale", new Class<?>[]{float.class});
+            if (method != null) {
+                method.setAccessible(true);
+                method.invoke(null, scale);
+            }
+        } catch (Throwable ignore) {
+            try {
+                java.lang.reflect.Method method = android.animation.ValueAnimator.class.getMethod("setDurationScale", float.class);
+                method.invoke(null, scale);
+            } catch (Throwable ignored) {
+            }
+        }
+        if (scale == 0f) {
+            org.telegram.messenger.SharedConfig.setAnimationsEnabled(false);
+        } else {
+            org.telegram.messenger.SharedConfig.setAnimationsEnabled(true);
+        }
+    }
+
+    public static void setAnimationSpeedScale(float scale) {
+        applyAnimationScale(scale);
+        animationSpeedScale = scale;
+        preferences.edit().putFloat("animationSpeedScale", scale).apply();
+    }
+
+    public static float getEffectiveAnimationScale() {
+        if (adaptivePerformanceMode && scaleAnimationsForPerformance) {
+            return 0.5f;
+        }
+        return animationSpeedScale;
+    }
+
+    // Gesture Lab helpers
+    public static void setChatListSwipeAction(int action) {
+        chatListSwipeAction = action;
+        preferences.edit().putInt("chatListSwipeAction", action).apply();
+    }
+
+    public static void toggleSwipeToReply() {
+        swipeToReply = !swipeToReply;
+        preferences.edit().putBoolean("swipeToReply", swipeToReply).apply();
+    }
+
+    public static void toggleQuickForwardGesture() {
+        quickForwardGesture = !quickForwardGesture;
+        preferences.edit().putBoolean("quickForwardGesture", quickForwardGesture).apply();
+    }
+
+    // Adaptive Performance helpers
+    public static void toggleAdaptivePerformanceMode() {
+        adaptivePerformanceMode = !adaptivePerformanceMode;
+        preferences.edit().putBoolean("adaptivePerformanceMode", adaptivePerformanceMode).apply();
+    }
+
+    public static void toggleDisableBlurPasses() {
+        disableBlurPasses = !disableBlurPasses;
+        preferences.edit().putBoolean("disableBlurPasses", disableBlurPasses).apply();
+    }
+
+    public static void toggleOptimizeThumbnailCaching() {
+        optimizeThumbnailCaching = !optimizeThumbnailCaching;
+        preferences.edit().putBoolean("optimizeThumbnailCaching", optimizeThumbnailCaching).apply();
+    }
+
+    public static void toggleScaleAnimationsForPerformance() {
+        scaleAnimationsForPerformance = !scaleAnimationsForPerformance;
+        preferences.edit().putBoolean("scaleAnimationsForPerformance", scaleAnimationsForPerformance).apply();
+    }
+
+    public static void resetThemeStudio() {
+        setThemeMode(THEME_MODE_DARK);
+        dynamicMonet = false;
+        preferences.edit().putBoolean("dynamicMonet", false).apply();
+        setCustomAccentColor(0);
+        setCustomOutBubbleColor(0);
+        setBubbleRadiusProfile(BUBBLE_RADIUS_STANDARD);
+        setBubbleRadiusIn(-1);
+        setBubbleRadiusOut(-1);
+        setInterfaceDensity(DENSITY_DEFAULT);
+        setAnimationSpeedScale(1.0f);
     }
 }

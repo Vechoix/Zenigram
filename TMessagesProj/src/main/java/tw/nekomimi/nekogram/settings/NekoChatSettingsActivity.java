@@ -51,13 +51,10 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
     private final int reducedColorsRow = rowId++;
 
     private final int ignoreBlockedRow = rowId++;
-    private final int quickForwardRow = rowId++;
-    private final int hideKeyboardOnChatScrollRow = rowId++;
     private final int tryToOpenAllLinksInIVRow = rowId++;
     private final int disableJumpToNextRow = rowId++;
     private final int disableGreetingStickerRow = rowId++;
     private final int hideChannelBottomButtonsRow = rowId++;
-    private final int doubleTapActionRow = rowId++;
     private final int maxRecentStickersRow = rowId++;
 
     private final int transcribeProviderRow = rowId++;
@@ -79,20 +76,7 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
 
     private final int messageMenuRow = 100;
 
-    public String getDoubleTapActionText(int action) {
-        return switch (action) {
-            case NekoConfig.DOUBLE_TAP_ACTION_REACTION ->
-                    LocaleController.getString(R.string.Reactions);
-            case NekoConfig.DOUBLE_TAP_ACTION_TRANSLATE ->
-                    LocaleController.getString(R.string.TranslateMessage);
-            case NekoConfig.DOUBLE_TAP_ACTION_REPLY -> LocaleController.getString(R.string.Reply);
-            case NekoConfig.DOUBLE_TAP_ACTION_SAVE ->
-                    LocaleController.getString(R.string.AddToSavedMessages);
-            case NekoConfig.DOUBLE_TAP_ACTION_REPEAT -> LocaleController.getString(R.string.Repeat);
-            case NekoConfig.DOUBLE_TAP_ACTION_EDIT -> LocaleController.getString(R.string.Edit);
-            default -> LocaleController.getString(R.string.Disable);
-        };
-    }
+
 
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
@@ -108,15 +92,10 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
 
         items.add(UItem.asHeader(LocaleController.getString(R.string.Chat)));
         items.add(UItem.asCheck(ignoreBlockedRow, LocaleController.getString(R.string.IgnoreBlocked), LocaleController.getString(R.string.IgnoreBlockedAbout)).slug("ignoreBlocked").setChecked(NekoConfig.ignoreBlocked));
-        items.add(UItem.asCheck(quickForwardRow, LocaleController.getString(R.string.QuickForward)).slug("quickForward").setChecked(NekoConfig.quickForward));
-        items.add(UItem.asCheck(hideKeyboardOnChatScrollRow, LocaleController.getString(R.string.HideKeyboardOnChatScroll)).slug("hideKeyboardOnChatScroll").setChecked(NekoConfig.hideKeyboardOnChatScroll));
         items.add(UItem.asCheck(tryToOpenAllLinksInIVRow, LocaleController.getString(R.string.OpenAllLinksInInstantView)).slug("tryToOpenAllLinksInIV").setChecked(NekoConfig.tryToOpenAllLinksInIV));
         items.add(UItem.asCheck(disableJumpToNextRow, LocaleController.getString(R.string.DisableJumpToNextChannel)).slug("disableJumpToNext").setChecked(NekoConfig.disableJumpToNextChannel));
         items.add(UItem.asCheck(disableGreetingStickerRow, LocaleController.getString(R.string.DisableGreetingSticker)).slug("disableGreetingSticker").setChecked(NekoConfig.disableGreetingSticker));
         items.add(UItem.asCheck(hideChannelBottomButtonsRow, LocaleController.getString(R.string.HideChannelBottomButtons)).slug("hideChannelBottomButtons").setChecked(NekoConfig.hideChannelBottomButtons));
-        items.add(TextSettingsCellFactory.of(doubleTapActionRow, LocaleController.getString(R.string.DoubleTapAction), NekoConfig.doubleTapInAction == NekoConfig.doubleTapOutAction ?
-                getDoubleTapActionText(NekoConfig.doubleTapInAction) :
-                getDoubleTapActionText(NekoConfig.doubleTapInAction) + ", " + getDoubleTapActionText(NekoConfig.doubleTapOutAction)).slug("doubleTapAction"));
         items.add(TextSettingsCellFactory.of(maxRecentStickersRow, LocaleController.getString(R.string.MaxRecentStickers), String.valueOf(NekoConfig.maxRecentStickers)).slug("maxRecentStickers"));
         items.add(UItem.asShadow(null));
 
@@ -180,11 +159,7 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(NekoConfig.ignoreBlocked);
             }
-        } else if (id == hideKeyboardOnChatScrollRow) {
-            NekoConfig.toggleHideKeyboardOnChatScroll();
-            if (view instanceof TextCheckCell) {
-                ((TextCheckCell) view).setChecked(NekoConfig.hideKeyboardOnChatScroll);
-            }
+
         } else if (id == cameraInVideoMessagesRow) {
             ArrayList<String> arrayList = new ArrayList<>();
             ArrayList<Integer> types = new ArrayList<>();
@@ -239,79 +214,6 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(NekoConfig.unmuteVideosWithVolumeButtons);
             }
-        } else if (id == doubleTapActionRow) {
-            ArrayList<String> arrayList = new ArrayList<>();
-            ArrayList<Integer> types = new ArrayList<>();
-            arrayList.add(LocaleController.getString(R.string.Disable));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_NONE);
-            arrayList.add(LocaleController.getString(R.string.Reactions));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_REACTION);
-            arrayList.add(LocaleController.getString(R.string.TranslateMessage));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_TRANSLATE);
-            arrayList.add(LocaleController.getString(R.string.Reply));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_REPLY);
-            arrayList.add(LocaleController.getString(R.string.AddToSavedMessages));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_SAVE);
-            arrayList.add(LocaleController.getString(R.string.Repeat));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_REPEAT);
-            arrayList.add(LocaleController.getString(R.string.Edit));
-            types.add(NekoConfig.DOUBLE_TAP_ACTION_EDIT);
-
-            var context = getParentActivity();
-            var builder = new AlertDialog.Builder(context, resourcesProvider);
-            builder.setTitle(LocaleController.getString(R.string.DoubleTapAction));
-
-            var linearLayout = new LinearLayout(context);
-            linearLayout.setOrientation(LinearLayout.VERTICAL);
-            builder.setView(linearLayout);
-
-            var messagesCell = new ThemePreviewMessagesCell(context, parentLayout, 0);
-            messagesCell.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
-            linearLayout.addView(messagesCell, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
-
-            var hLayout = new LinearLayout(context);
-            hLayout.setOrientation(LinearLayout.HORIZONTAL);
-            hLayout.setPadding(0, AndroidUtilities.dp(8), 0, 0);
-            linearLayout.addView(hLayout);
-
-            for (int i = 0; i < 2; i++) {
-                var out = i == 1;
-                var layout = new LinearLayout(context);
-                layout.setOrientation(LinearLayout.VERTICAL);
-                hLayout.addView(layout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, .5f));
-
-                for (int a = 0; a < arrayList.size(); a++) {
-
-                    var cell = new RadioColorCell(context, resourcesProvider);
-                    cell.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
-                    cell.setTag(a);
-                    cell.setTextAndValue(arrayList.get(a), a == types.indexOf(out ? NekoConfig.doubleTapOutAction : NekoConfig.doubleTapInAction));
-                    cell.setBackground(Theme.createRadSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider), out ? AndroidUtilities.dp(6) : 0, out ? 0 : AndroidUtilities.dp(6), out ? 0 : AndroidUtilities.dp(6), out ? AndroidUtilities.dp(6) : 0));
-                    layout.addView(cell);
-                    cell.setOnClickListener(v -> {
-                        var which = (Integer) v.getTag();
-                        var old = out ? NekoConfig.doubleTapOutAction : NekoConfig.doubleTapInAction;
-                        if (types.get(which) == old) {
-                            return;
-                        }
-                        if (out) {
-                            NekoConfig.setDoubleTapOutAction(types.get(which));
-                        } else {
-                            NekoConfig.setDoubleTapInAction(types.get(which));
-                        }
-                        ((RadioColorCell) layout.getChildAt(types.indexOf(old))).setChecked(false, true);
-                        cell.setChecked(true, true);
-                        item.textValue = NekoConfig.doubleTapInAction == NekoConfig.doubleTapOutAction ?
-                                getDoubleTapActionText(NekoConfig.doubleTapInAction) :
-                                getDoubleTapActionText(NekoConfig.doubleTapInAction) + ", " + getDoubleTapActionText(NekoConfig.doubleTapOutAction);
-                        listView.adapter.notifyItemChanged(position, PARTIAL);
-                    });
-                }
-            }
-
-            builder.setOnPreDismissListener(dialog -> listView.adapter.notifyItemChanged(position, PARTIAL));
-            builder.setNegativeButton(LocaleController.getString(R.string.OK), null);
-            builder.show();
         } else if (id == markdownEnableRow) {
             NekoConfig.toggleDisableMarkdownByDefault();
             if (view instanceof TextCheckCell) {
@@ -405,11 +307,6 @@ public class NekoChatSettingsActivity extends BaseNekoSettingsActivity {
                 ((TextCheckCell) view).setChecked(NekoConfig.markdownParseLinks);
             }
             notifyItemChanged(markdown2Row);
-        } else if (id == quickForwardRow) {
-            NekoConfig.toggleQuickForward();
-            if (view instanceof TextCheckCell) {
-                ((TextCheckCell) view).setChecked(NekoConfig.quickForward);
-            }
         } else if (id == reducedColorsRow) {
             NekoConfig.toggleReducedColors();
             if (view instanceof TextCheckCell) {

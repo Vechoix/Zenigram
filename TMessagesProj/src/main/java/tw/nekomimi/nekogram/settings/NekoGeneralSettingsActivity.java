@@ -195,6 +195,7 @@ public class NekoGeneralSettingsActivity extends BaseNekoSettingsActivity {
                     ConnectionsManager.getInstance(a).checkConnection();
                 }
             }
+            showRestartBulletin();
         } else if (id == disabledInstantCameraRow) {
             NekoConfig.toggleDisableInstantCamera();
             if (view instanceof TextCheckCell) {

@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -17,6 +18,9 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RawRes;
+import androidx.core.graphics.ColorUtils;
+
+import org.telegram.messenger.AndroidUtilities;
 
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.utils.ViewOutlineProviderImpl;
@@ -70,8 +74,9 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
 
         ScaleStateListAnimator.apply(this);
         if (!isSubButton) {
-            setOutlineProvider(ViewOutlineProviderImpl.BOUNDS_OVAL);
-            setTranslationZ(dpf2(0.5f));
+            setOutlineProvider(ViewOutlineProviderImpl.boundsWithPaddingRoundRect(0, dp(16)));
+            setElevation(dpf2(4f));
+            setTranslationZ(dpf2(2f));
         }
 
         if (isSubButton) {
@@ -149,24 +154,29 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
 
     public void updateColors() {
         if (isSubButton) {
-            imageView.setColorFilter(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider), PorterDuff.Mode.SRC_IN);
-            progressView.setProgressColor(Theme.getColor(Theme.key_actionBarDefaultIcon, resourcesProvider));
+            int subBgColor = Theme.getColor(Theme.key_windowBackgroundWhite, resourcesProvider);
+            int subIconColor = Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider);
+            imageView.setColorFilter(new PorterDuffColorFilter(subIconColor, PorterDuff.Mode.SRC_IN));
+            progressView.setProgressColor(subIconColor);
 
-            iBlur3SourceColor.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            iBlur3SourceColor.setColor(subBgColor);
             iBlur3ColorProviderTabs.updateColors();
             iBlur3Background.updateColors();
             invalidate();
 
-            int rad = dp(18);
+            int rad = dp(14);
             int pressedColor = Theme.getColor(Theme.key_listSelector, resourcesProvider);
-            setBackground(Theme.createInsetRoundRectDrawable(pressedColor, rad, dp(6)));
+            setBackground(Theme.createSimpleSelectorRoundRectDrawable(rad, subBgColor, pressedColor));
         } else {
-            imageView.setColorFilter(Theme.getColor(Theme.key_chats_actionIcon, resourcesProvider), PorterDuff.Mode.SRC_IN);
-            progressView.setProgressColor(Theme.getColor(Theme.key_chats_actionIcon, resourcesProvider));
-            setBackground(Theme.createSimpleSelectorCircleDrawable(dp(48),
-                Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider),
-                Theme.getColor(Theme.key_featuredStickers_addButtonPressed, resourcesProvider)
-            ));
+            int bgColor = Theme.getColor(Theme.key_chats_actionBackground, resourcesProvider);
+            int pressedColor = Theme.getColor(Theme.key_chats_actionPressedBackground, resourcesProvider);
+            int iconColor = Theme.getColor(Theme.key_chats_actionIcon, resourcesProvider);
+            if (ColorUtils.calculateContrast(iconColor, bgColor) < 4.0f) {
+                iconColor = AndroidUtilities.computePerceivedBrightness(bgColor) > 0.55f ? 0xFF1A1C1E : 0xFFFFFFFF;
+            }
+            imageView.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
+            progressView.setProgressColor(iconColor);
+            setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(16), bgColor, pressedColor));
         }
     }
 
@@ -212,12 +222,22 @@ public class FragmentFloatingButton extends FrameLayout implements FactorAnimato
         }
     }
 
+    private final android.graphics.Paint borderPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
     @Override
     public void draw(@NonNull Canvas canvas) {
         if (iBlur3Background != null) {
             iBlur3Background.draw(canvas);
         }
         super.draw(canvas);
+        if (!isSubButton) {
+            borderPaint.setStyle(android.graphics.Paint.Style.STROKE);
+            borderPaint.setStrokeWidth(dpf2(1f));
+            borderPaint.setColor(Theme.isCurrentThemeDark() ? 0x22FFFFFF : 0x14000000);
+            android.graphics.RectF rect = AndroidUtilities.rectTmp;
+            rect.set(dpf2(0.5f), dpf2(0.5f), getWidth() - dpf2(0.5f), getHeight() - dpf2(0.5f));
+            canvas.drawRoundRect(rect, dp(16), dp(16), borderPaint);
+        }
     }
 
     @Override

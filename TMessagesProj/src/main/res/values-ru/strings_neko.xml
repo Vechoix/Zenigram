@@ -225,7 +225,10 @@
     <string name="AppIconSpace">Космос</string>
     <string name="AppIconCloud">Облако</string>
     <string name="AppIconNeon">Неон</string>
-    <string name="AppIconMaterial">Material</string>
+    <string name="AppIconDefault">Крафт</string>
+    <string name="AppIconDark">Тёмный</string>
+    <string name="AppIconMaterial">Монохром</string>
+    <string name="AppIconChanged">Иконка приложения обновлена</string>
     <string name="RecentChats">Недавно просмотренные</string>
     <string name="ClearRecentChats">Очистить недавно просмотренные</string>
     <string name="ClearRecentChatAlert">Вы хотите очистить список недавно просмотренных?</string>

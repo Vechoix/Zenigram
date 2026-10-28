@@ -62,6 +62,7 @@ public class TableView extends TableLayout {
     private final float[] radii = new float[8];
     private final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private boolean drawBorder = true;
 
     private final float w = Math.max(1, dp(.66f));
     private final float hw = w / 2f;
@@ -71,6 +72,18 @@ public class TableView extends TableLayout {
         this.resourcesProvider = resourcesProvider;
         setClipToPadding(false);
         setColumnStretchable(1, true);
+    }
+
+    public void setDrawBorder(boolean drawBorder) {
+        this.drawBorder = drawBorder;
+        if (!drawBorder) {
+            borderPaint.setColor(0);
+        }
+        invalidate();
+    }
+
+    public boolean isDrawBorder() {
+        return drawBorder;
     }
 
     public void clear() {
@@ -530,10 +543,14 @@ public class TableView extends TableLayout {
                 AndroidUtilities.rectTmp.set(table.hw, table.hw, getWidth() + table.hw, getHeight() + table.hw * (last ? -1 : +1));
                 table.path.addRoundRect(AndroidUtilities.rectTmp, table.radii, Path.Direction.CW);
                 canvas.drawPath(table.path, table.backgroundPaint);
-                canvas.drawPath(table.path, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawPath(table.path, table.borderPaint);
+                }
             } else {
                 canvas.drawRect(table.hw, table.hw, getWidth() + table.hw, getHeight() + table.hw, table.backgroundPaint);
-                canvas.drawRect(table.hw, table.hw, getWidth() + table.hw, getHeight() + table.hw, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawRect(table.hw, table.hw, getWidth() + table.hw, getHeight() + table.hw, table.borderPaint);
+                }
             }
             super.onDraw(canvas);
         }
@@ -587,10 +604,14 @@ public class TableView extends TableLayout {
                 AndroidUtilities.rectTmp.set(table.hw, table.hw, getWidth() - table.hw, getHeight() + table.hw * (last ? -1f : +1f));
                 table.path.addRoundRect(AndroidUtilities.rectTmp, table.radii, Path.Direction.CW);
                 if (filled) canvas.drawPath(table.path, table.backgroundPaint);
-                canvas.drawPath(table.path, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawPath(table.path, table.borderPaint);
+                }
             } else {
                 if (filled) canvas.drawRect(table.hw, table.hw, getWidth() + table.hw, getHeight() + table.hw, table.backgroundPaint);
-                canvas.drawRect(table.hw, table.hw, getWidth() - table.hw, getHeight() + table.hw, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawRect(table.hw, table.hw, getWidth() - table.hw, getHeight() + table.hw, table.borderPaint);
+                }
             }
             super.onDraw(canvas);
         }
@@ -650,9 +671,13 @@ public class TableView extends TableLayout {
                     AndroidUtilities.rectTmp.right += table.w;
                 }
                 table.path.addRoundRect(AndroidUtilities.rectTmp, table.radii, Path.Direction.CW);
-                canvas.drawPath(table.path, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawPath(table.path, table.borderPaint);
+                }
             } else {
-                canvas.drawRect(table.hw, table.hw, getWidth() - table.hw, getHeight() + table.hw, table.borderPaint);
+                if (table.drawBorder) {
+                    canvas.drawRect(table.hw, table.hw, getWidth() - table.hw, getHeight() + table.hw, table.borderPaint);
+                }
             }
             super.onDraw(canvas);
         }
@@ -664,7 +689,7 @@ public class TableView extends TableLayout {
 
         borderPaint.setStyle(Paint.Style.STROKE);
         borderPaint.setStrokeWidth(w);
-        borderPaint.setColor(Theme.getColor(Theme.key_table_border, resourcesProvider));
+        borderPaint.setColor(drawBorder ? Theme.getColor(Theme.key_table_border, resourcesProvider) : 0);
         backgroundPaint.setStyle(Paint.Style.FILL);
         backgroundPaint.setColor(Theme.getColor(Theme.key_table_background, resourcesProvider));
 

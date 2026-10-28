@@ -112,14 +112,20 @@ public class TlBinaryReader {
 
         for (var i = 0; i < count; i++) {
             var value = reader.apply(this);
-            switch (value) {
-                case null -> result.add(JsonNull.INSTANCE);
-                case JsonElement element -> result.add(element);
-                case Boolean b -> result.add(b);
-                case Number n -> result.add(n);
-                case String s -> result.add(s);
-                case byte[] bytes -> result.add(Base64.encodeToString(bytes, Base64.NO_WRAP));
-                default -> throw new IllegalStateException("Unexpected value: " + value);
+            if (value == null) {
+                result.add(JsonNull.INSTANCE);
+            } else if (value instanceof JsonElement element) {
+                result.add(element);
+            } else if (value instanceof Boolean b) {
+                result.add(b);
+            } else if (value instanceof Number n) {
+                result.add(n);
+            } else if (value instanceof String s) {
+                result.add(s);
+            } else if (value instanceof byte[] bytes) {
+                result.add(Base64.encodeToString(bytes, Base64.NO_WRAP));
+            } else {
+                throw new IllegalStateException("Unexpected value: " + value);
             }
         }
 

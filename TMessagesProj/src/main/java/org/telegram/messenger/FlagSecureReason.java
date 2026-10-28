@@ -64,6 +64,12 @@ public class FlagSecureReason {
             return;
         }
 
+        if (tw.nekomimi.nekogram.NekoConfig.allowScreenshots) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            AndroidUtilities.logFlagSecure();
+            return;
+        }
+
         if (isSecuredNow(window)) {
             window.addFlags(WindowManager.LayoutParams.FLAG_SECURE);
             AndroidUtilities.logFlagSecure();

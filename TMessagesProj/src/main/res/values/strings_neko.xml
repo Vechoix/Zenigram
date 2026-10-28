@@ -227,7 +227,9 @@
     <string name="AppIconSpace">Space</string>
     <string name="AppIconCloud">Cloud</string>
     <string name="AppIconNeon">Neon</string>
-    <string name="AppIconMaterial">Material</string>
+    <string name="AppIconDark">Dark</string>
+    <string name="AppIconMaterial">Monochrome</string>
+    <string name="AppIconChanged">App icon updated</string>
     <string name="RecentChats">Recent chats</string>
     <string name="ClearRecentChats">Clear recent chats</string>
     <string name="ClearRecentChatAlert">Do you want to clear your recent chats?</string>

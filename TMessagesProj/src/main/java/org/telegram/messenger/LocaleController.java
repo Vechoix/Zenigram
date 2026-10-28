@@ -4481,7 +4481,7 @@ public class LocaleController {
         if (R.string.AppName == stringRes) {
             return getStringV2("Nekogram", R.string.Nekogram, null);
         } else if (R.string.AppNameBeta == stringRes) {
-            return getStringV2("NekogramBeta", R.string.NekogramBeta, null);
+            return getStringV2("Nekogram", R.string.Nekogram, null);
         }
         final Context context = ApplicationLoader.applicationContext;
         String value;

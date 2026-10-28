@@ -103,12 +103,11 @@ public class TextCheckCell extends FrameLayout {
         textView = new TextView(context);
         textView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogTextBlack : Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        textView.setLines(1);
-        textView.setMaxLines(1);
-        textView.setSingleLine(true);
+        textView.setMaxLines(2);
+        textView.setSingleLine(false);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         textView.setEllipsize(TextUtils.TruncateAt.END);
-        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 70 : padding, 0, LocaleController.isRTL ? padding : 70, 0));
+        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL, LocaleController.isRTL ? 70 : padding, 8, LocaleController.isRTL ? padding : 70, 8));
 
         valueTextView = new TextView(context);
         valueTextView.setTextColor(Theme.getColor(dialog ? Theme.key_dialogIcon : Theme.key_windowBackgroundWhiteGrayText2, resourcesProvider));
@@ -148,8 +147,34 @@ public class TextCheckCell extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (isMultiline) {
             super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            if (valueTextView.getVisibility() == VISIBLE) {
+                int contentH = AndroidUtilities.dp(10) + textView.getMeasuredHeight() + AndroidUtilities.dp(3) + valueTextView.getMeasuredHeight() + AndroidUtilities.dp(10);
+                int measuredH = Math.max(AndroidUtilities.dp(64), contentH);
+                setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), measuredH + (needDivider ? 1 : 0));
+            }
         } else {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(valueTextView.getVisibility() == VISIBLE ? 64 : height) + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
+            int minHeight = AndroidUtilities.dp(valueTextView.getVisibility() == VISIBLE ? 64 : height);
+            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            int measuredH = Math.max(minHeight, getMeasuredHeight());
+            if (valueTextView.getVisibility() == VISIBLE) {
+                int contentH = AndroidUtilities.dp(10) + textView.getMeasuredHeight() + AndroidUtilities.dp(3) + valueTextView.getMeasuredHeight() + AndroidUtilities.dp(10);
+                measuredH = Math.max(measuredH, contentH);
+            }
+            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(measuredH + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
+        }
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (valueTextView != null && valueTextView.getVisibility() == VISIBLE && textView != null) {
+            int textBottom = textView.getBottom();
+            int currentValTop = valueTextView.getTop();
+            int desiredValTop = textBottom + AndroidUtilities.dp(3);
+            if (currentValTop != desiredValTop) {
+                int shift = desiredValTop - currentValTop;
+                valueTextView.offsetTopAndBottom(shift);
+            }
         }
     }
 
@@ -173,8 +198,10 @@ public class TextCheckCell extends FrameLayout {
         needDivider = divider;
         valueTextView.setVisibility(GONE);
         LayoutParams layoutParams = (LayoutParams) textView.getLayoutParams();
-        layoutParams.height = LayoutParams.MATCH_PARENT;
-        layoutParams.topMargin = 0;
+        layoutParams.height = LayoutParams.WRAP_CONTENT;
+        layoutParams.topMargin = AndroidUtilities.dp(8);
+        layoutParams.bottomMargin = AndroidUtilities.dp(8);
+        layoutParams.gravity = (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL;
         textView.setLayoutParams(layoutParams);
         setWillNotDraw(!divider);
     }
@@ -187,7 +214,7 @@ public class TextCheckCell extends FrameLayout {
 
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         removeView(textView);
-        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, LocaleController.isRTL ? 70 : padding, 0, LocaleController.isRTL ? padding : 70, 0));
+        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL, LocaleController.isRTL ? 70 : padding, 8, LocaleController.isRTL ? padding : 70, 8));
 
         valueTextView.setGravity(LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT);
         removeView(valueTextView);
@@ -248,6 +275,7 @@ public class TextCheckCell extends FrameLayout {
         LayoutParams layoutParams = (LayoutParams) textView.getLayoutParams();
         layoutParams.height = LayoutParams.WRAP_CONTENT;
         layoutParams.topMargin = AndroidUtilities.dp(10);
+        layoutParams.gravity = (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP;
         textView.setLayoutParams(layoutParams);
         setWillNotDraw(!divider);
     }
@@ -276,6 +304,7 @@ public class TextCheckCell extends FrameLayout {
         LayoutParams layoutParams = (LayoutParams) textView.getLayoutParams();
         layoutParams.height = LayoutParams.WRAP_CONTENT;
         layoutParams.topMargin = AndroidUtilities.dp(10);
+        layoutParams.gravity = (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP;
         textView.setLayoutParams(layoutParams);
         setWillNotDraw(!divider);
     }

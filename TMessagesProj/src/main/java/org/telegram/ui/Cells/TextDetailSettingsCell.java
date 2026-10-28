@@ -47,9 +47,8 @@ public class TextDetailSettingsCell extends FrameLayout {
         textView = new TextView(context);
         textView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider));
         textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-        textView.setLines(1);
-        textView.setMaxLines(1);
-        textView.setSingleLine(true);
+        textView.setMaxLines(2);
+        textView.setSingleLine(false);
         textView.setEllipsize(TextUtils.TruncateAt.END);
         textView.setGravity((LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.CENTER_VERTICAL);
         addView(textView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, (LocaleController.isRTL ? Gravity.RIGHT : Gravity.LEFT) | Gravity.TOP, 21, 10, 21, 0));
@@ -73,10 +72,23 @@ public class TextDetailSettingsCell extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (!multiline) {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(64) + (needDivider ? 1 : 0), MeasureSpec.EXACTLY));
-        } else {
-            super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+        int minHeight = AndroidUtilities.dp(multiline ? 71 : 64);
+        int contentH = AndroidUtilities.dp(10) + textView.getMeasuredHeight() + AndroidUtilities.dp(3) + valueTextView.getMeasuredHeight() + AndroidUtilities.dp(10);
+        int measuredH = Math.max(minHeight, contentH);
+        setMeasuredDimension(width, measuredH + (needDivider ? 1 : 0));
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (valueTextView != null && valueTextView.getVisibility() == VISIBLE && textView != null) {
+            int desiredValTop = textView.getBottom() + AndroidUtilities.dp(3);
+            int currentValTop = valueTextView.getTop();
+            if (currentValTop != desiredValTop) {
+                valueTextView.offsetTopAndBottom(desiredValTop - currentValTop);
+            }
         }
     }
 

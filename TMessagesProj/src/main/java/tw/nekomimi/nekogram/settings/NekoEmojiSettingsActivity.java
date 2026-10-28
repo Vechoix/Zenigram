@@ -136,6 +136,7 @@ public class NekoEmojiSettingsActivity extends BaseNekoSettingsActivity implemen
             }
             EmojiHelper.reloadEmoji();
             updateEmojiSets();
+            showRestartBulletin();
         } else if (id == emojiAddRow) {
             chatAttachAlert = new ChatAttachAlert(getParentActivity(), this, false, false);
             chatAttachAlert.setEmojiPicker();
@@ -152,6 +153,7 @@ public class NekoEmojiSettingsActivity extends BaseNekoSettingsActivity implemen
                 updateEmojiSets();
                 EmojiHelper.reloadEmoji();
                 notifyItemChanged(useSystemEmojiRow, PARTIAL);
+                showRestartBulletin();
             }
         }
     }

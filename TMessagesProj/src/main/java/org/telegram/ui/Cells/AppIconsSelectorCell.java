@@ -114,7 +114,11 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
                 return;
             }
 
+            // Always re-apply on tap to force Android launcher to refresh icon cache
             if (LauncherIconController.isEnabled(icon)) {
+                LauncherIconController.setIcon(icon);
+                holderView.setSelected(true, true);
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.showBulletin, Bulletin.TYPE_APP_ICON, icon);
                 return;
             }
 

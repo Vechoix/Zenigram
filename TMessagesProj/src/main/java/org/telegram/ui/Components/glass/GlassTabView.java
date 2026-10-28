@@ -85,7 +85,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         imageView.setColorFilter(new PorterDuffColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN));
 
         textView = new TextView(context);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12f);
+        float tabTextSize = tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA ? 11f : 12f;
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tabTextSize);
+        textView.setPadding(AndroidUtilities.dp(3), 0, AndroidUtilities.dp(3), 0);
         textView.setSingleLine();
         textView.setLines(1);
         textView.setEllipsize(TextUtils.TruncateAt.END);
@@ -93,7 +95,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         textView.setGravity(Gravity.CENTER);
 
         defaultTextPaint = new TextPaint(textView.getPaint());
-        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 28.33f, 0, 0));
+        addView(textView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, 0, 32.5f, 0, 0));
 
         counter = new AnimatedTextView.AnimatedTextDrawable();
         counter.setTypeface(AndroidUtilities.bold());
@@ -125,6 +127,9 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
             final float offset = (visualWidth - getMeasuredWidth()) / 2f;
             imageView.setTranslationX(offset);
             textView.setTranslationX(offset);
+            if (backupImageView != null) {
+                backupImageView.setTranslationX(offset);
+            }
         }
     }
 
@@ -154,9 +159,13 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         if (selectedFactor > 0 && !skipDrawSelector) {
             final float alpha = AnimatorUtils.DECELERATE_INTERPOLATOR.getInterpolation(selectedFactor);
 
-            paintCounterBackground.setColor(Theme.multAlpha(colorSelected, 0.09f * alpha));
-            tmpRectF.set(0, 0, viewWidth, getHeight());
-            final float r = Math.min(tmpRectF.width(), tmpRectF.height()) / 2f;
+            paintCounterBackground.setColor(Theme.multAlpha(colorSelected, 0.22f * alpha));
+            final float pillWidth = Math.min(dp(56), viewWidth - dp(8));
+            final float pillHeight = dpf2(28);
+            final float pillTop = dpf2(2);
+            final float pillLeft = (viewWidth - pillWidth) / 2f;
+            tmpRectF.set(pillLeft, pillTop, pillLeft + pillWidth, pillTop + pillHeight);
+            final float r = pillHeight / 2f;
             final float s = lerp(0.6f, 1, selectedFactor) * MathUtils.clamp(attachScale, 0, 1);
             canvas.save();
             canvas.scale(s, s, tmpRectF.centerX(), tmpRectF.centerY());
@@ -176,8 +185,8 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
             canvas.save();
 
             final float gap = dpf2(1.33f);
-            final float cx = viewWidth / 2f + dpf2(11);
-            final float cy = dpf2(10);
+            final float cx = viewWidth / 2f + dpf2(13);
+            final float cy = dpf2(7);
             final float height = dpf2(16);
             final float width = Math.max(height, counter.getCurrentWidth() + dp(8));
             final float rOuter = dpf2(9.333f);
@@ -268,6 +277,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
         colorDefault = Theme.getColor(Theme.key_glass_tabUnselected, resourcesProvider);
         colorSelected = Theme.getColor(Theme.key_glass_tabSelected, resourcesProvider);
         colorSelectedText = Theme.getColor(Theme.key_glass_tabSelectedText, resourcesProvider);
+        if (textView != null) {
+            textView.setTypeface(AndroidUtilities.bold());
+            float tabTextSize = tw.nekomimi.nekogram.NekoConfig.customFont == tw.nekomimi.nekogram.NekoConfig.FONT_COMFORTAA ? 10.5f : 12f;
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, tabTextSize);
+        }
         updateColors();
         invalidate();
     }

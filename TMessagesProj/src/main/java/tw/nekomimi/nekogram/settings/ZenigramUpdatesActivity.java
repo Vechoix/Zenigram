@@ -60,6 +60,10 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
             latestChangelog = NekoConfig.cachedUpdateChangelog;
             latestDownloadUrl = NekoConfig.cachedUpdateUrl;
         }
+        if (NekoConfig.hasUpdateAvailable && !ZenigramUpdateHelper.isVersionGreater(NekoConfig.cachedUpdateVersionName, ZenigramUpdateHelper.CURRENT_VERSION_NAME)) {
+            NekoConfig.hasUpdateAvailable = false;
+            NekoConfig.saveUpdateCache(false, "", 0, "", "");
+        }
 
         File cacheDir = getParentActivity() != null ? getParentActivity().getExternalCacheDir() : null;
         if (cacheDir != null) {
@@ -105,7 +109,7 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
 
     private void updateHeroCardState() {
         if (heroCardView == null) return;
-        boolean hasUpdate = NekoConfig.hasUpdateAvailable;
+        boolean hasUpdate = NekoConfig.hasUpdateAvailable && ZenigramUpdateHelper.isVersionGreater(latestVersionName, ZenigramUpdateHelper.CURRENT_VERSION_NAME);
 
         String title = "Zenigram v" + ZenigramUpdateHelper.CURRENT_VERSION_NAME;
         String badge;

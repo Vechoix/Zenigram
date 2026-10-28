@@ -71,6 +71,7 @@ public class ApplicationLoader extends Application {
     private static int lastKnownNetworkType = -1;
 
     public static long startTime;
+    public static long coldStartTimeDuration = 0;
 
     public static volatile boolean isScreenOn = false;
     public static volatile boolean mainInterfacePaused = true;
@@ -254,20 +255,24 @@ public class ApplicationLoader extends Application {
 
         SharedConfig.loadConfig();
         SharedPrefsHelper.init(applicationContext);
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
-            UserConfig.getInstance(a).loadConfig();
-            if (!UserConfig.getInstance(a).isClientActivated()) continue;
-            MessagesController.getInstance(a);
-            if (a == 0) {
-                SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
+        UserConfig.getInstance(0).loadConfig();
+        final int activeAccount = UserConfig.selectedAccount;
+        if (activeAccount != 0) {
+            UserConfig.getInstance(activeAccount).loadConfig();
+        }
+        if (UserConfig.getInstance(activeAccount).isClientActivated()) {
+            MessagesController.getInstance(activeAccount);
+            if (activeAccount == 0) {
+                SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(activeAccount).getCurrentTime() + "__";
             } else {
-                ConnectionsManager.getInstance(a);
+                ConnectionsManager.getInstance(activeAccount);
             }
-            TLRPC.User user = UserConfig.getInstance(a).getCurrentUser();
+            TLRPC.User user = UserConfig.getInstance(activeAccount).getCurrentUser();
             if (user != null) {
-                MessagesController.getInstance(a).putUser(user, true);
-                SendMessagesHelper.getInstance(a).checkUnsentMessages();
+                MessagesController.getInstance(activeAccount).putUser(user, true);
+                SendMessagesHelper.getInstance(activeAccount).checkUnsentMessages();
             }
+            DownloadController.getInstance(activeAccount);
         }
 
         ApplicationLoader app = (ApplicationLoader) ApplicationLoader.applicationContext;
@@ -277,12 +282,29 @@ public class ApplicationLoader extends Application {
         }
 
         MediaController.getInstance();
-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) { //TODO improve account
-            if (!UserConfig.getInstance(a).isClientActivated()) continue;
-            ContactsController.getInstance(a).checkAppAccount();
-            DownloadController.getInstance(a);
-        }
-        BillingController.getInstance().startConnection();
+        Utilities.stageQueue.postRunnable(() -> {
+            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                if (a != activeAccount) {
+                    UserConfig.getInstance(a).loadConfig();
+                    if (!UserConfig.getInstance(a).isClientActivated()) continue;
+                    MessagesController.getInstance(a);
+                    if (a == 0) {
+                        SharedConfig.pushStringStatus = "__FIREBASE_GENERATING_SINCE_" + ConnectionsManager.getInstance(a).getCurrentTime() + "__";
+                    } else {
+                        ConnectionsManager.getInstance(a);
+                    }
+                    TLRPC.User user = UserConfig.getInstance(a).getCurrentUser();
+                    if (user != null) {
+                        MessagesController.getInstance(a).putUser(user, true);
+                        SendMessagesHelper.getInstance(a).checkUnsentMessages();
+                    }
+                    DownloadController.getInstance(a);
+                }
+                if (!UserConfig.getInstance(a).isClientActivated()) continue;
+                ContactsController.getInstance(a).checkAppAccount();
+            }
+            BillingController.getInstance().startConnection();
+        });
     }
 
     public ApplicationLoader() {
@@ -299,11 +321,15 @@ public class ApplicationLoader extends Application {
         }
 
         super.onCreate();
+        tw.nekomimi.nekogram.NekoConfig.loadConfig(false);
+        tw.nekomimi.nekogram.NekoConfig.applyAnimationScale(tw.nekomimi.nekogram.NekoConfig.animationSpeedScale);
 
         // AndroidUtilities must be initialized before FileLog
         final String helloWorld = AndroidUtilities.getHelloWorld();
-        AnalyticsHelper.start(this);
-        CronetHelper.init(this);
+        Utilities.globalQueue.postRunnable(() -> {
+            AnalyticsHelper.start(this);
+            CronetHelper.init(this);
+        });
 
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d(helloWorld);
@@ -365,8 +391,8 @@ public class ApplicationLoader extends Application {
         AndroidUtilities.runOnUIThread(ApplicationLoader::startPushService);
         countDownLatch.countDown();
 
-        LauncherIconController.tryFixLauncherIconIfNeeded();
-        ProxyRotationController.init();
+        Utilities.globalQueue.postRunnable(LauncherIconController::tryFixLauncherIconIfNeeded);
+        Utilities.globalQueue.postRunnable(ProxyRotationController::init);
 
         //if (BuildConfig.DEBUG_PRIVATE_VERSION) {
         //    Choreographer60FpsContent.getInstance().addFrameCallback(debugEverySecondChecks, 1);

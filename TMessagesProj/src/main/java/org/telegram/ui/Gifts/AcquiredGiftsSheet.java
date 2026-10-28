@@ -154,6 +154,7 @@ public class AcquiredGiftsSheet extends BottomSheetWithRecyclerListView {
             String top = formatString(R.string.Gift2AuctionsAcquiredTop, gift.pos);
 
             TableView tableView = new TableView(getContext(), resourcesProvider);
+            tableView.setDrawBorder(false);
             tableView.addFullRow(ssb).setFilled(true);
             tableView.addRowUser(getString(R.string.Gift2AuctionsAcquiredRecipient), currentAccount, DialogObject.getPeerDialogId(gift.peer), () -> listener.onClick(this));
             tableView.addRowDateTime(getString(R.string.Gift2AuctionsAcquiredDate), gift.date);

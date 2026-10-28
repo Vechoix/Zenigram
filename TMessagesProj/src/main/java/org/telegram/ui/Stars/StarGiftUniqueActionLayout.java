@@ -497,7 +497,9 @@ public class StarGiftUniqueActionLayout {
         backgroundRect.set(0, 0, getWidth(), getHeight());
         final int gradientRadius = (int) (backgroundRect.width() + backgroundRect.height()) / 2;
         if (backdrop != null && (gradient == null || this.gradientRadius != gradientRadius)) {
-            gradient = new RadialGradient(0, 0, this.gradientRadius = gradientRadius, new int[] { backdrop.center_color | 0xFF000000, backdrop.edge_color | 0xFF000000 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
+            int c1 = StarGiftSheet.getAdaptiveBackdropCenter(backdrop.center_color);
+            int c2 = StarGiftSheet.getAdaptiveBackdropEdge(backdrop.edge_color);
+            gradient = new RadialGradient(0, 0, this.gradientRadius = gradientRadius, new int[] { c1, c2 }, new float[] { 0, 1 }, Shader.TileMode.CLAMP);
         }
         if (gradient != null) {
             matrix.reset();

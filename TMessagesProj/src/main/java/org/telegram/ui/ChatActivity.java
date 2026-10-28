@@ -3101,7 +3101,8 @@ public class ChatActivity extends BaseFragment implements
                 .add(NotificationCenter.didUpdateMessagesViews)
                 .add(NotificationCenter.didUpdatePollResults)
                 .add(NotificationCenter.availableEffectsUpdate)
-                .add(NotificationCenter.starReactionAnonymousUpdate);
+                .add(NotificationCenter.starReactionAnonymousUpdate)
+                .addGlobal(NotificationCenter.didSetNewTheme);
             if (currentEncryptedChat != null) {
                 observersGroup.add(NotificationCenter.didVerifyMessagesStickers);
             }
@@ -10688,7 +10689,7 @@ public class ChatActivity extends BaseFragment implements
             actionModeViews.add(actionMode.addItemWithWidth(delete, R.drawable.msg_delete, dp(48), LocaleController.getString(R.string.Delete)));
         }
         actionMode.setItemVisibility(edit, canEditMessagesCount == 1 && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() == 1 ? View.VISIBLE : View.GONE);
-        actionMode.setItemVisibility(copy, !isPeerNoForwards() && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
+        actionMode.setItemVisibility(copy, (!isPeerNoForwards() || NekoConfig.ignoreContentRestriction || NekoConfig.shouldNOTTrustMe) && selectedMessagesCanCopyIds[0].size() + selectedMessagesCanCopyIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         actionMode.setItemVisibility(star, selectedMessagesCanStarIds[0].size() + selectedMessagesCanStarIds[1].size() != 0 ? View.VISIBLE : View.GONE);
         actionMode.setItemVisibility(delete, cantDeleteMessagesCount == 0 ? View.VISIBLE : View.GONE);
         actionMode.setItemVisibility(tag_message, getUserConfig().isPremium() ? View.VISIBLE : View.GONE);
@@ -12668,6 +12669,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private boolean hasSelectedNoforwardsMessage() {
+        if (NekoConfig.ignoreContentRestriction || NekoConfig.shouldNOTTrustMe) return false;
         try {
             for (int i = 0; i < selectedMessagesIds.length; ++i) {
                 for (int j = 0; j < selectedMessagesIds[i].size(); ++j) {
@@ -12728,7 +12730,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     private void openForward(boolean fromActionBar) {
-        if (isPeerNoForwards() || hasSelectedNoforwardsMessage()) {
+        if ((!NekoConfig.ignoreContentRestriction && !NekoConfig.shouldNOTTrustMe) && (isPeerNoForwards() || hasSelectedNoforwardsMessage())) {
             // We should update text if user changed locale without re-opening chat activity
             String str;
             if (isPeerNoForwards()) {
@@ -14932,7 +14934,11 @@ public class ChatActivity extends BaseFragment implements
         openImport = true;
     }
 
-    private void checkBotKeyboard() {
+    public void updateBotKeyboard() {
+        checkBotKeyboard();
+    }
+
+    public void checkBotKeyboard() {
         if (chatActivityEnterView == null || botButtons == null || userBlocked) {
             return;
         }
@@ -21111,6 +21117,18 @@ public class ChatActivity extends BaseFragment implements
 
     @Override
     public void didReceivedNotification(int id, int account, final Object... args) {
+        if (id == NotificationCenter.didSetNewTheme) {
+            if (chatListView != null) {
+                chatListView.invalidateViews();
+            }
+            if (chatActivityEnterView != null) {
+                chatActivityEnterView.checkSendButton(true);
+            }
+            if (actionBar != null) {
+                actionBar.updateColors();
+            }
+            return;
+        }
         if (id == NotificationCenter.messagesDidLoad) {
             didReceivedNotification_messagesDidLoad(id, account, args);
         } else {
@@ -48283,6 +48301,7 @@ public class ChatActivity extends BaseFragment implements
     }
 
     public boolean isPeerNoForwards() {
+        if (NekoConfig.ignoreContentRestriction || NekoConfig.shouldNOTTrustMe) return false;
         return currentChat != null ?
             getMessagesController().isChatNoForwards(currentChat) :
             getMessagesController().isUserNoForwards(userInfo);

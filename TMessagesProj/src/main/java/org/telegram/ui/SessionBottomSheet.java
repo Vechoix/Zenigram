@@ -42,6 +42,7 @@ public class SessionBottomSheet extends BottomSheet {
     TLRPC.TL_authorization session;
     BaseFragment parentFragment;
     RLottieImageView imageView;
+    private final boolean isCurrentSession;
 
     public SessionBottomSheet(BaseFragment fragment, TLRPC.TL_authorization session, boolean isCurrentSession, Callback callback) {
         super(fragment.getParentActivity(), false);
@@ -49,6 +50,7 @@ public class SessionBottomSheet extends BottomSheet {
         Context context = fragment.getParentActivity();
         this.session = session;
         this.parentFragment = fragment;
+        this.isCurrentSession = isCurrentSession;
         fixNavigationBar();
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -93,7 +95,12 @@ public class SessionBottomSheet extends BottomSheet {
 
         StringBuilder stringBuilder = new StringBuilder();
         if (session.device_model.length() != 0) {
-            stringBuilder.append(session.device_model);
+            String model = session.device_model;
+            String[] parts = model.split(" ");
+            if (parts.length >= 2 && parts[0].equalsIgnoreCase(parts[1])) {
+                model = model.substring(parts[0].length()).trim();
+            }
+            stringBuilder.append(model);
         }
         if (stringBuilder.length() == 0) {
             if (session.platform.length() != 0) {
@@ -110,10 +117,7 @@ public class SessionBottomSheet extends BottomSheet {
         setAnimation(session, imageView);
 
         ItemView applicationItemView = new ItemView(context, false);
-        stringBuilder = new StringBuilder();
-        stringBuilder.append(session.app_name);
-        stringBuilder.append(" ").append(session.app_version);
-        applicationItemView.valueText.setText(stringBuilder);
+        applicationItemView.valueText.setText(org.telegram.ui.Cells.SessionCell.formatSessionAppName(session));
         Drawable drawable = ContextCompat.getDrawable(context, R.drawable.menu_devices).mutate();
         drawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayIcon), PorterDuff.Mode.SRC_IN));
         applicationItemView.iconView.setImageDrawable(drawable);
@@ -366,9 +370,9 @@ public class SessionBottomSheet extends BottomSheet {
             iconId = R.raw.mac_30;
             colorKey = Theme.key_avatar_backgroundCyan;
             colorKey2 = Theme.key_avatar_background2Cyan;
-        } else if (session.app_name.contains("Nekogram")) {
+        } else if (isCurrentSession || (session.flags & 1) != 0 || (session.app_name != null && session.app_name.contains("Zenigram"))) {
             animation = false;
-            iconId = R.drawable.notification;
+            iconId = R.drawable.device_phone_android;
             colorKey = Theme.key_avatar_backgroundBlue;
             colorKey2 = Theme.key_avatar_background2Blue;
         } else if (platform.contains("android")) {

@@ -26,6 +26,8 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -45,10 +47,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -99,6 +103,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
 
     private final int currentAccount = UserConfig.selectedAccount;
 
+private ImageView zeniIntroLogoView;
     private ViewPager viewPager;
     private BottomPagesView bottomPages;
     private TextView switchLanguageTextView;
@@ -133,7 +138,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         MessagesController.getGlobalMainSettings().edit().putLong("intro_crashed_time", System.currentTimeMillis()).apply();
 
         titles = new CharSequence[]{
-                LocaleController.getString(R.string.Nekogram),
+                "Zenigram",
                 LocaleController.getString(R.string.Page2Title),
                 LocaleController.getString(R.string.Page3Title),
                 LocaleController.getString(R.string.Page5Title),
@@ -141,7 +146,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
                 LocaleController.getString(R.string.Page6Title)
         };
         messages = new String[]{
-                LocaleController.getString(R.string.Page1Message2),
+                "Telegram, который можно сделать своим.\nЦвета, шрифты, бейджи и многое другое.",
                 LocaleController.getString(R.string.Page2Message),
                 LocaleController.getString(R.string.Page3Message),
                 LocaleController.getString(R.string.Page5Message),
@@ -247,8 +252,18 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         frameLayout2 = new FrameLayout(context);
         frameContainerView.addView(frameLayout2, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 0, 78, 0, 0));
 
+
+
+
+
         TextureView textureView = new TextureView(context);
+        textureView.setAlpha(0.0f);
         frameLayout2.addView(textureView, LayoutHelper.createFrame(ICON_WIDTH_DP, ICON_HEIGHT_DP, Gravity.CENTER));
+
+        zeniIntroLogoView = new ImageView(context);
+        zeniIntroLogoView.setImageResource(R.drawable.zenigram_intro_logo);
+        zeniIntroLogoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        frameLayout2.addView(zeniIntroLogoView, LayoutHelper.createFrame(130, 130, Gravity.CENTER));
         textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
@@ -301,6 +316,15 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 bottomPages.setPageOffset(position, positionOffset);
+                if (zeniIntroLogoView != null) {
+                    if (position == 0) {
+                        zeniIntroLogoView.setAlpha(1.0f - positionOffset);
+                        textureView.setAlpha(positionOffset);
+                    } else {
+                        zeniIntroLogoView.setAlpha(0.0f);
+                        textureView.setAlpha(1.0f);
+                    }
+                }
 
                 float width = viewPager.getMeasuredWidth();
                 if (width == 0) {
@@ -308,6 +332,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
                 }
                 float offset = (position * width + positionOffsetPixels - currentViewPagerPage * width) / width;
                 Intro.setScrollOffset(offset);
+
             }
 
             @Override
@@ -593,7 +618,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             headerTextView.setGravity(Gravity.CENTER);
             frameLayout.addView(headerTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 18, 244, 18, 0));
 
-            messageTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+            messageTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText6));
             messageTextView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             messageTextView.setLineSpacing(dpf2(2.33f), 1f);
             messageTextView.setGravity(Gravity.CENTER);
@@ -657,11 +682,44 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
         private float maxRefreshRate;
         private long lastDrawFrame;
 
+        private final GenericProvider<Void, Bitmap> telegramSphereProvider = v -> {
+            int size = dp(ICON_HEIGHT_DP);
+            Bitmap bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(bm);
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            LinearGradient gradient = new LinearGradient(
+                    size * 0.2f, 0,
+                    size * 0.8f, size,
+                    new int[]{0xFF2AABEE, 0xFF229ED9},
+                    null,
+                    Shader.TileMode.CLAMP
+            );
+            paint.setShader(gradient);
+            c.drawCircle(size / 2f, size / 2f, size / 2f, paint);
+            return bm;
+        };
+
+        private final GenericProvider<Void, Bitmap> telegramPlaneProvider = v -> {
+            int size = dp(ICON_HEIGHT_DP);
+            Bitmap bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas c = new Canvas(bm);
+            Drawable plane = ContextCompat.getDrawable(ApplicationLoader.applicationContext, R.drawable.intro_tg_plane);
+            if (plane != null) {
+                int planeW = (int) (size * 0.55f);
+                int planeH = (int) (planeW * (222f / 246f));
+                int left = (size - planeW) / 2 - (int) (size * 0.035f);
+                int top = (size - planeH) / 2 + (int) (size * 0.02f);
+                plane.setBounds(left, top, left + planeW, top + planeH);
+                plane.draw(c);
+            }
+            return bm;
+        };
+
         private final GenericProvider<Void, Bitmap> telegramMaskProvider = v -> {
             int size = dp(ICON_HEIGHT_DP);
             Bitmap bm = Bitmap.createBitmap(dp(ICON_WIDTH_DP), size, Bitmap.Config.ARGB_8888);
             Canvas c = new Canvas(bm);
-            c.drawColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+            c.drawColor(0xFF141210);
             Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
             c.drawCircle(bm.getWidth() / 2f, bm.getHeight() / 2f, size / 2f, paint);
@@ -768,7 +826,7 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
                 return false;
             }
 
-            GLES20.glGenTextures(23, textures, 0);
+            GLES20.glGenTextures(textures.length, textures, 0);
             loadTexture(R.drawable.intro_fast_arrow_shadow, 0);
             loadTexture(R.drawable.intro_fast_arrow, 1);
             loadTexture(R.drawable.intro_fast_body, 2);
@@ -790,16 +848,8 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
             loadTexture(R.drawable.intro_powerful_star, 18);
             loadTexture(R.drawable.intro_private_door, 19);
             loadTexture(R.drawable.intro_private_screw, 20);
-            loadTexture(R.drawable.ic_launcher_intro, 21);
-            loadTexture(v -> {
-                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-                paint.setColor(0xFFC4DEFF); // It's logo color, it should not be colored by the theme
-                int size = dp(ICON_HEIGHT_DP);
-                Bitmap bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-                Canvas c = new Canvas(bm);
-                c.drawCircle(size / 2f, size / 2f, size / 2f, paint);
-                return bm;
-            }, 22);
+            loadTexture(telegramPlaneProvider, 21);
+            loadTexture(telegramSphereProvider, 22);
             loadTexture(telegramMaskProvider, 23);
 
             updateTelegramTextures();
@@ -961,34 +1011,41 @@ public class IntroActivity extends BaseFragment implements NotificationCenter.No
     }
 
     private void updateColors(boolean fromTheme) {
-        startMessagingButtonBackground.setColors(new int[]{getThemedColor(Theme.key_featuredStickers_addButton), getThemedColor(Theme.key_featuredStickers_addButton2)});
+        boolean isDark = Theme.isCurrentThemeDark();
+        int warmBg = isDark ? 0xFF141210 : Theme.getColor(Theme.key_windowBackgroundWhite);
+        int btnColor = isDark ? 0xFFC4A98F : getThemedColor(Theme.key_featuredStickers_addButton);
+        int btnTextColor = isDark ? 0xFF141210 : Theme.getColor(Theme.key_featuredStickers_buttonText);
+        int switchLangColor = isDark ? 0xFFD4C5B9 : Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4);
+        startMessagingButtonBackground.setColors(new int[]{btnColor, btnColor});
         //logoDrawable.setColorFilter(Theme.multAlpha(getThemedColor(Theme.key_actionBarDefaultTitle), 0.9f), PorterDuff.Mode.MULTIPLY);
-        fragmentView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
-        switchLanguageTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText4));
-        startMessagingButton.setTextColor(Theme.getColor(Theme.key_featuredStickers_buttonText));
+        fragmentView.setBackgroundColor(warmBg);
+        switchLanguageTextView.setTextColor(switchLangColor);
+        startMessagingButton.setTextColor(btnTextColor);
         startMessagingButton.setBackground(Theme.createSimpleSelectorRoundRectDrawable(dp(24), Color.TRANSPARENT, Theme.getColor(Theme.key_featuredStickers_addButtonPressed)));
-        darkThemeDrawable.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_featuredStickers_addButton), PorterDuff.Mode.SRC_IN));
+        darkThemeDrawable.setColorFilter(new PorterDuffColorFilter(btnColor, PorterDuff.Mode.SRC_IN));
         bottomPages.invalidate();
         if (fromTheme) {
             if (eglThread != null) {
                 eglThread.postRunnable(()->{
-                    eglThread.loadTexture(R.drawable.intro_powerful_mask, 17, Theme.getColor(Theme.key_windowBackgroundWhite), true);
+                    eglThread.loadTexture(R.drawable.intro_powerful_mask, 17, warmBg, true);
                     eglThread.updatePowerfulTextures();
 
+                    eglThread.loadTexture(eglThread.telegramSphereProvider, 22, true);
+                    eglThread.loadTexture(eglThread.telegramPlaneProvider, 21, true);
                     eglThread.loadTexture(eglThread.telegramMaskProvider, 23, true);
                     eglThread.updateTelegramTextures();
 
-                    Intro.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+                    Intro.setBackgroundColor(warmBg);
                 });
             }
             for (int i = 0; i < viewPager.getChildCount(); i++) {
                 View ch = viewPager.getChildAt(i);
                 TextView headerTextView = ch.findViewWithTag(pagerHeaderTag);
-                headerTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                if (headerTextView != null) headerTextView.setTextColor(0xFFE6E1E5);
                 TextView messageTextView = ch.findViewWithTag(pagerMessageTag);
-                messageTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+                if (messageTextView != null) messageTextView.setTextColor(0xFFCAC4D0);
             }
-        } else Intro.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
+        } else Intro.setBackgroundColor(warmBg);
     }
 
     @Override

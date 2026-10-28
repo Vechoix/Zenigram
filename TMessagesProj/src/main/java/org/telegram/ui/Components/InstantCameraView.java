@@ -142,6 +142,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
     private RectF rect;
     private final FlashViews.ImageViewInvertable switchCameraButton;
     private final FlashViews.ImageViewInvertable flashButton;
+    private TextView zoomTriggerButton;
     private final FlashViews flashViews;
     private RLottieDrawable flashOnDrawable, flashOffDrawable;
     private RLottieDrawable switchCameraDrawable;
@@ -521,7 +522,35 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         switchCameraButton.setOnTouchListener(buttonScaleListener);
         switchCameraButton.setScaleType(ImageView.ScaleType.CENTER);
         switchCameraButton.setContentDescription(LocaleController.getString(R.string.AccDescrSwitchCamera));
-        buttonsLayout.addView(switchCameraButton, LayoutHelper.createLinear(44, 44));
+        buttonsLayout.addView(switchCameraButton, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
+
+        zoomTriggerButton = new TextView(context);
+        zoomTriggerButton.setText("1x");
+        zoomTriggerButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        zoomTriggerButton.setTypeface(AndroidUtilities.bold());
+        zoomTriggerButton.setTextColor(0xFFFFFFFF);
+        zoomTriggerButton.setGravity(Gravity.CENTER);
+        zoomTriggerButton.setOnTouchListener(buttonScaleListener);
+        android.graphics.drawable.GradientDrawable ztBg = new android.graphics.drawable.GradientDrawable();
+        ztBg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        ztBg.setColor(0x55000000);
+        zoomTriggerButton.setBackground(ztBg);
+        zoomTriggerButton.setOnClickListener(v -> {
+            if (currentStaticZoom <= 1.4f) {
+                setStaticZoom(2.0f);
+            } else if (currentStaticZoom <= 3.2f) {
+                setStaticZoom(5.0f);
+            } else {
+                setStaticZoom(1.0f);
+            }
+            v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+        });
+        zoomTriggerButton.setOnLongClickListener(v -> {
+            showZoomControl(true);
+            v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
+            return true;
+        });
+        buttonsLayout.addView(zoomTriggerButton, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
         switchCameraButton.setOnClickListener(v -> {
             if (!cameraReady || !isCameraSessionInitiated() || cameraThread == null) {
                 return;
@@ -579,7 +608,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         flashButton = new FlashViews.ImageViewInvertable(context);
         flashButton.setScaleType(ImageView.ScaleType.CENTER);
         flashButton.setOnTouchListener(buttonScaleListener);
-        buttonsLayout.addView(flashButton, LayoutHelper.createLinear(44, 44));
+        buttonsLayout.addView(flashButton, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
         flashButton.setOnClickListener(v -> {
             flashing = !flashing;
             updateFlash();
@@ -678,6 +707,8 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                         }
                         return true;
                     case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        v.postDelayed(() -> showZoomControl(false), 600);
                         return true;
                 }
                 return false;
@@ -687,13 +718,47 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         updateZoomPillUI();
         if (zoomArcView != null) zoomArcView.invalidate();
         zoomPillLayout.setAlpha(0.0f);
-        addView(zoomPillLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 44, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 95));
+        zoomPillLayout.setVisibility(View.GONE);
+        addView(zoomPillLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 16));
 
         setVisibilityFromPause = false;
         setVisibility(INVISIBLE);
     }
 
-    private void updateZoomPillUI() {
+        private void showZoomControl(boolean show) {
+        if (show) {
+            if (zoomPillLayout != null) {
+                zoomPillLayout.setVisibility(View.VISIBLE);
+                zoomPillLayout.animate().alpha(1.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
+            }
+            if (buttonsLayout != null) {
+                buttonsLayout.animate().alpha(0.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).withEndAction(() -> {
+                    if (buttonsLayout != null) buttonsLayout.setVisibility(View.GONE);
+                }).start();
+            }
+        } else {
+            if (buttonsLayout != null) {
+                buttonsLayout.setVisibility(View.VISIBLE);
+                buttonsLayout.animate().alpha(1.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
+            }
+            if (zoomPillLayout != null) {
+                zoomPillLayout.animate().alpha(0.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).withEndAction(() -> {
+                    if (zoomPillLayout != null) zoomPillLayout.setVisibility(View.GONE);
+                }).start();
+            }
+        }
+    }
+
+private void updateZoomPillUI() {
+        if (zoomTriggerButton != null) {
+            if (currentStaticZoom <= 1.4f) {
+                zoomTriggerButton.setText("1x");
+            } else if (currentStaticZoom <= 3.2f) {
+                zoomTriggerButton.setText("2x");
+            } else {
+                zoomTriggerButton.setText("5x");
+            }
+        }
         if (zoomButtons == null || zoomButtons[0] == null) return;
         int activeColor = tw.nekomimi.nekogram.NekoConfig.customAccentColor != 0 ?
                 tw.nekomimi.nekogram.NekoConfig.customAccentColor : Theme.getColor(Theme.key_chats_actionBackground, resourcesProvider);
