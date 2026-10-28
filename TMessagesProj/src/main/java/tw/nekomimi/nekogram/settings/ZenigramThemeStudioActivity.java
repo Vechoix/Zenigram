@@ -50,89 +50,34 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
     private final int resetDefaultsRow = rowId++;
 
     public static final int[] ACCENT_COLORS = new int[]{
-            0,          // Default (follows theme)
-            0xFFC4A98F, // Pixel Sand / Desert (Default soft warm Pixel)
-            0xFF1B6EF3, // Pixel Blue
-            0xFF3B693A, // Pixel Sage
-            0xFF6750A4, // Pixel Lavender
-            0xFF8C4F3B, // Pixel Peach
-            0xFF924443, // Pixel Coral
-            0xFF7E5700, // Pixel Amber
-            0xFF2E6B5E, // Pixel Mint
-            0xFF45464F, // Pixel Slate
-            0xFFE28C72, // Pixel Terracotta
-            0xFFB4C5E4  // Pixel Fog Blue
+            0,          // По умолчанию
+            0xFFC4A98F, // Песочный
+            0xFF45464F  // Графит
     };
 
     public static final String[] ACCENT_NAMES = new String[]{
-            "Default",
-            "Pixel Sand",
-            "Pixel Blue",
-            "Pixel Sage",
-            "Pixel Lavender",
-            "Pixel Peach",
-            "Pixel Coral",
-            "Pixel Amber",
-            "Pixel Mint",
-            "Pixel Slate",
-            "Pixel Terracotta",
-            "Pixel Fog Blue"
+            "По умолчанию",
+            "Песочный",
+            "Графит"
     };
 
     public static final int[] BUBBLE_COLORS = new int[]{
-            0,          // Default (follows theme)
-            0xFF2C6BC4, // Pixel Blue
-            0xFF46654C, // Pixel Sage
-            0xFF2E6B5E, // Pixel Mint
-            0xFF61558E, // Pixel Lavender
-            0xFF525E75, // Pixel Iris
-            0xFF8C4F3B, // Pixel Peach
-            0xFF924443, // Pixel Coral
-            0xFF775A22, // Pixel Sand
-            0xFF45464F, // Pixel Slate
-            0xFF55624C  // Pixel Olive
+            0,          // По умолчанию
+            0xFFC4A98F, // Песочный
+            0xFF45464F  // Графит
     };
 
     public static String getBubbleColorName(int color) {
-        String lang = LocaleController.getInstance().getCurrentLocale().getLanguage();
-        boolean ru = "ru".equals(lang) || "uk".equals(lang) || "be".equals(lang);
-        if (color == 0) return ru ? "По умолчанию (Тема)" : "Default";
-        if (color == 0xFF2C6BC4) return ru ? "Синий" : "Pixel Blue";
-        if (color == 0xFF46654C) return ru ? "Шалфейный (Зеленый)" : "Pixel Sage";
-        if (color == 0xFF2E6B5E) return ru ? "Мятный" : "Pixel Mint";
-        if (color == 0xFF61558E) return ru ? "Лавандовый (Фиолетовый)" : "Pixel Lavender";
-        if (color == 0xFF525E75) return ru ? "Серо-синий" : "Pixel Iris";
-        if (color == 0xFF8C4F3B) return ru ? "Персиковый" : "Pixel Peach";
-        if (color == 0xFF924443) return ru ? "Коралловый (Красный)" : "Pixel Coral";
-        if (color == 0xFF775A22) return ru ? "Песочный" : "Pixel Sand";
-        if (color == 0xFF45464F) return ru ? "Грифельный (Серый)" : "Pixel Slate";
-        if (color == 0xFF55624C) return ru ? "Оливковый" : "Pixel Olive";
-        return ru ? ("Свой цвет (#" + String.format("%06X", (0xFFFFFF & color)) + ")") : "Custom";
+        if (color == 0xFFC4A98F) return "Песочный";
+        if (color == 0xFF45464F) return "Графит";
+        if (color == 0) return "По умолчанию";
+        return "Свой цвет (#" + String.format("%06X", (0xFFFFFF & color)) + ")";
     }
 
     public static String getAccentName(int index) {
-        String lang = LocaleController.getInstance().getCurrentLocale().getLanguage();
-        if ("ru".equals(lang) || "uk".equals(lang) || "be".equals(lang)) {
-            return switch (index) {
-                case 0 -> "По умолчанию (Тема)";
-                case 1 -> "Песочный";
-                case 2 -> "Синий";
-                case 3 -> "Шалфейный (Зеленый)";
-                case 4 -> "Лавандовый (Фиолетовый)";
-                case 5 -> "Персиковый";
-                case 6 -> "Коралловый (Красный)";
-                case 7 -> "Янтарный (Желтый)";
-                case 8 -> "Мятный";
-                case 9 -> "Грифельный (Серый)";
-                case 10 -> "Терракотовый (Оранжевый)";
-                case 11 -> "Голубой (Туманный)";
-                default -> "По умолчанию";
-            };
-        }
-        if (index >= 0 && index < ACCENT_NAMES.length) {
-            return ACCENT_NAMES[index];
-        }
-        return ACCENT_NAMES[0];
+        if (index == 1) return "Песочный";
+        if (index == 2) return "Графит";
+        return "По умолчанию";
     }
 
     public static void applyThemeMode(int mode) {
@@ -242,11 +187,9 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
     }
 
     private String getAccentColorName() {
-        for (int i = 0; i < ACCENT_COLORS.length; i++) {
-            if (ACCENT_COLORS[i] == NekoConfig.customAccentColor) {
-                return getAccentName(i);
-            }
-        }
+        if (NekoConfig.customAccentColor == 0) return "По умолчанию";
+        if (NekoConfig.customAccentColor == 0xFFC4A98F) return "Песочный";
+        if (NekoConfig.customAccentColor == 0xFF45464F) return "Графит";
         return "Свой цвет (#" + String.format("%06X", (0xFFFFFF & NekoConfig.customAccentColor)) + ")";
     }
 
@@ -294,9 +237,6 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
         if (typographySelectorCell != null) {
             typographySelectorCell.updateState();
         }
-        if (parentLayout != null) {
-            parentLayout.rebuildAllFragmentViews(true, true);
-        }
     }
 
     private BubbleRadiusSliderCell bubbleRadiusSliderCell;
@@ -341,17 +281,16 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
 
             seekBar = new PixelWavySeekBarView(context);
             seekBar.setProgress((currentRadius - minRadius) / (float) (maxRadius - minRadius));
-            seekBar.setOnProgressChangeListener(progress -> {
+            seekBar.setOnProgressChangeListener((progress, isFinal) -> {
                 int radius = Math.round(minRadius + (maxRadius - minRadius) * progress);
                 valueBadge.setText(radius + " dp");
-                NekoConfig.setBubbleRadiusIn(radius);
-                NekoConfig.setBubbleRadiusOut(radius);
-                SharedConfig.bubbleRadius = radius;
-                MessagesController.getGlobalMainSettings().edit().putInt("bubbleRadius", radius).apply();
-                Theme.invalidateChatOutBubble();
-                Theme.refreshThemeColors();
-                if (parentLayout != null) {
-                    parentLayout.rebuildAllFragmentViews(false, false);
+                if (isFinal) {
+                    NekoConfig.setBubbleRadiusIn(radius);
+                    NekoConfig.setBubbleRadiusOut(radius);
+                    SharedConfig.bubbleRadius = radius;
+                    MessagesController.getGlobalMainSettings().edit().putInt("bubbleRadius", radius).apply();
+                    Theme.invalidateChatOutBubble();
+                    Theme.refreshThemeColors();
                 }
             });
             addView(seekBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 42, Gravity.TOP, 0, 30, 0, 0));
@@ -380,7 +319,15 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
         private int lastStep = -1;
 
         public interface OnProgressChangeListener {
-            void onProgress(float progress);
+            void onProgress(float progress, boolean isFinal);
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            if (getParent() != null) {
+                getParent().requestDisallowInterceptTouchEvent(true);
+            }
+            return super.dispatchTouchEvent(event);
         }
 
         public PixelWavySeekBarView(Context context) {
@@ -470,27 +417,29 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 case MotionEvent.ACTION_DOWN:
                     isDragging = true;
                     if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
-                    updateTouchProgress(x, trackLeft, trackWidth);
+                    updateTouchProgress(x, trackLeft, trackWidth, false);
                     return true;
                 case MotionEvent.ACTION_MOVE:
                     if (isDragging) {
-                        updateTouchProgress(x, trackLeft, trackWidth);
+                        updateTouchProgress(x, trackLeft, trackWidth, false);
                         return true;
                     }
                     break;
                 case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
                     if (isDragging) {
                         isDragging = false;
-                        updateTouchProgress(x, trackLeft, trackWidth);
+                        updateTouchProgress(x, trackLeft, trackWidth, true);
                         return true;
                     }
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                    isDragging = false;
                     break;
             }
             return super.onTouchEvent(event);
         }
 
-        private void updateTouchProgress(float x, float trackLeft, float trackWidth) {
+        private void updateTouchProgress(float x, float trackLeft, float trackWidth, boolean isFinal) {
             float newProgress = Math.max(0.0f, Math.min(1.0f, (x - trackLeft) / trackWidth));
             this.progress = newProgress;
             int step = Math.round(newProgress * 28);
@@ -499,7 +448,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
             }
             if (listener != null) {
-                listener.onProgress(newProgress);
+                listener.onProgress(newProgress, isFinal);
             }
             invalidate();
         }
@@ -849,60 +798,37 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
 
     private void showCustomColorPicker(boolean isAccent) {
         if (getParentActivity() == null) return;
-        int currentColor = isAccent ?
+        final int currentColor = isAccent ?
                 (NekoConfig.customAccentColor != 0 ? NekoConfig.customAccentColor : 0xFFC4A98F) :
-                (NekoConfig.customOutBubbleColor != 0 ? NekoConfig.customOutBubbleColor : Theme.getColor(Theme.key_chat_outBubble));
-        if (currentColor == 0) currentColor = 0xFF2C6BC4;
+                (NekoConfig.customOutBubbleColor != 0 ? NekoConfig.customOutBubbleColor : 0xFFC4A98F);
 
-        final int initialColor = currentColor;
         final int[] selectedColor = new int[]{currentColor};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), resourcesProvider);
-        builder.setTitle(isAccent ? "Акцентный цвет" : "Цвет исходящих сообщений");
+        builder.setTitle(isAccent ? "Акцентный цвет" : "Цвет сообщений");
 
+        FrameLayout container = new FrameLayout(getParentActivity());
         ColorPicker colorPicker = new ColorPicker(getParentActivity(), false, (color, num, applyNow) -> {
             selectedColor[0] = color;
-            if (isAccent) {
-                NekoConfig.setCustomAccentColor(color);
-            } else {
-                NekoConfig.setCustomOutBubbleColor(color);
-                Theme.invalidateChatOutBubble();
-            }
-            Theme.refreshThemeColors();
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
-            applyLiveThemeToCurrentScreen();
-        }) {
-            @Override
-            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(300), MeasureSpec.EXACTLY));
-            }
-        };
-        colorPicker.setColor(initialColor, 0);
+        });
+        colorPicker.setColor(currentColor, 0);
         colorPicker.setType(-1, false, 1, 1, false, 0, false);
-        builder.setView(colorPicker);
+        container.addView(colorPicker, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 270, Gravity.CENTER, 8, 4, 8, 4));
+        builder.setView(container);
 
         builder.setPositiveButton(LocaleController.getString(R.string.OK), (dialog, which) -> {
+            int newColor = selectedColor[0];
             if (isAccent) {
-                NekoConfig.setCustomAccentColor(selectedColor[0]);
+                NekoConfig.setCustomAccentColor(newColor);
             } else {
-                NekoConfig.setCustomOutBubbleColor(selectedColor[0]);
+                NekoConfig.setCustomOutBubbleColor(newColor);
                 Theme.invalidateChatOutBubble();
             }
             Theme.refreshThemeColors();
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
             applyLiveThemeToCurrentScreen();
         });
-        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> {
-            if (isAccent) {
-                NekoConfig.setCustomAccentColor(initialColor);
-            } else {
-                NekoConfig.setCustomOutBubbleColor(initialColor);
-                Theme.invalidateChatOutBubble();
-            }
-            Theme.refreshThemeColors();
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
-            applyLiveThemeToCurrentScreen();
-        });
+        builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
     }
 }

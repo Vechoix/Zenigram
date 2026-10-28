@@ -538,17 +538,18 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         zoomTriggerButton.setOnClickListener(v -> {
             if (currentStaticZoom <= 1.4f) {
                 setStaticZoom(2.0f);
+                zoomTriggerButton.setText("2x");
             } else if (currentStaticZoom <= 3.2f) {
                 setStaticZoom(5.0f);
+                zoomTriggerButton.setText("5x");
+            } else if (currentStaticZoom <= 7.5f) {
+                setStaticZoom(10.0f);
+                zoomTriggerButton.setText("10x");
             } else {
                 setStaticZoom(1.0f);
+                zoomTriggerButton.setText("1x");
             }
             v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
-        });
-        zoomTriggerButton.setOnLongClickListener(v -> {
-            showZoomControl(true);
-            v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
-            return true;
         });
         buttonsLayout.addView(zoomTriggerButton, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
         switchCameraButton.setOnClickListener(v -> {
@@ -717,9 +718,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
         updateZoomPillUI();
         if (zoomArcView != null) zoomArcView.invalidate();
-        zoomPillLayout.setAlpha(0.0f);
         zoomPillLayout.setVisibility(View.GONE);
-        addView(zoomPillLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 56, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 16));
 
         setVisibilityFromPause = false;
         setVisibility(INVISIBLE);
@@ -755,8 +754,10 @@ private void updateZoomPillUI() {
                 zoomTriggerButton.setText("1x");
             } else if (currentStaticZoom <= 3.2f) {
                 zoomTriggerButton.setText("2x");
-            } else {
+            } else if (currentStaticZoom <= 7.5f) {
                 zoomTriggerButton.setText("5x");
+            } else {
+                zoomTriggerButton.setText("10x");
             }
         }
         if (zoomButtons == null || zoomButtons[0] == null) return;

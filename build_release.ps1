@@ -7,7 +7,7 @@ $env:GRADLE_USER_HOME = "H:\GradleCache"
 $env:TEMP = "F:\Temp"
 $env:TMP = "F:\Temp"
 
-Write-Host "Compiling Zenigram arm64-v8a Release APK (v1.0.4)..."
+Write-Host "Compiling Zenigram arm64-v8a Release APK (v1.0.5)..."
 & .\gradlew.bat :TMessagesProj_App:assembleRelease -x lint -x test --daemon
 
 if ($LASTEXITCODE -ne 0) {
@@ -33,7 +33,7 @@ if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 }
 
-$targetName = "Zenigram-1.0.4-arm64-v8a.apk"
+$targetName = "Zenigram-1.0.5-arm64-v8a.apk"
 $destPath = Join-Path $destDir $targetName
 Copy-Item -Path $releaseApk.FullName -Destination $destPath -Force
 
