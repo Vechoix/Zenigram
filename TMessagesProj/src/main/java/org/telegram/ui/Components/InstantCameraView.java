@@ -424,7 +424,6 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                     int currentInt = (int) rounded;
                     if (currentInt != lastHapticInt && Math.abs(rounded - currentInt) < 0.05f) {
                         lastHapticInt = currentInt;
-                        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
                     }
                     invalidate();
                     getParent().requestDisallowInterceptTouchEvent(true);
@@ -440,7 +439,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         }
     }
 
-    private TextView[] zoomButtons = new TextView[3];
+    private TextView[] zoomButtons = new TextView[4];
     private float currentStaticZoom = 1.0f;
     private float pinchStartZoom = 1.0f;
 
@@ -545,7 +544,6 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
             } else {
                 setStaticZoom(1.0f);
             }
-            v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
         });
         buttonsLayout.addView(zoomTriggerButton, LayoutHelper.createLinear(44, 44, Gravity.CENTER, 6, 0, 6, 0));
         switchCameraButton.setOnClickListener(v -> {
@@ -659,19 +657,19 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         zoomPillLayout.setBackground(pillBg);
         zoomPillLayout.setPadding(dp(5), dp(4), dp(5), dp(4));
 
-        float[] zoomFactors = new float[]{1.0f, 2.0f, 5.0f};
-        String[] zoomLabels = new String[]{"1x", "2x", "5x"};
+        float[] zoomFactors = new float[]{1.0f, 2.0f, 5.0f, 10.0f};
+        String[] zoomLabels = new String[]{"1x", "2x", "5x", "10x"};
 
         zoomArcView = null;
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             final int index = i;
             TextView btn = new TextView(context);
             btn.setText(zoomLabels[i]);
-            btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
             btn.setTypeface(AndroidUtilities.bold());
             btn.setGravity(Gravity.CENTER);
-            btn.setPadding(dp(16), dp(8), dp(16), dp(8));
+            btn.setPadding(dp(12), dp(6), dp(12), dp(6));
             zoomButtons[i] = btn;
             zoomPillLayout.addView(btn, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, 36, Gravity.CENTER, 2, 0, 2, 0));
         }
@@ -685,7 +683,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 int width = v.getWidth();
                 if (width <= 0) return false;
 
-                int targetIndex = (int) Utilities.clamp((x / (float) width) * 3f, 2f, 0f);
+                int targetIndex = (int) Utilities.clamp((x / (float) width) * 4f, 3f, 0f);
 
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
@@ -693,13 +691,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                         downY = y;
                         v.getParent().requestDisallowInterceptTouchEvent(true);
                         setStaticZoom(zoomFactors[targetIndex]);
-                        v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
                         return true;
                     case MotionEvent.ACTION_MOVE:
-                        if (targetIndex >= 0 && targetIndex < 3) {
+                        if (targetIndex >= 0 && targetIndex < 4) {
                             if (Math.abs(zoomFactors[targetIndex] - currentStaticZoom) > 0.4f) {
                                 setStaticZoom(zoomFactors[targetIndex]);
-                                v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
                             }
                         }
                         return true;
@@ -760,12 +756,13 @@ private void updateZoomPillUI() {
         int activeColor = tw.nekomimi.nekogram.NekoConfig.customAccentColor != 0 ?
                 tw.nekomimi.nekogram.NekoConfig.customAccentColor : Theme.getColor(Theme.key_chats_actionBackground, resourcesProvider);
         if (activeColor == 0) activeColor = 0xFF1B6EF3;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             TextView btn = zoomButtons[i];
             if (btn == null) continue;
             boolean selected = (i == 0 && currentStaticZoom <= 1.4f) ||
                                (i == 1 && currentStaticZoom > 1.4f && currentStaticZoom <= 3.2f) ||
-                               (i == 2 && currentStaticZoom > 3.2f);
+                               (i == 2 && currentStaticZoom > 3.2f && currentStaticZoom <= 7.5f) ||
+                               (i == 3 && currentStaticZoom > 7.5f);
             if (selected) {
                 android.graphics.drawable.GradientDrawable activeBg = new android.graphics.drawable.GradientDrawable();
                 activeBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
@@ -784,10 +781,8 @@ private void updateZoomPillUI() {
         currentStaticZoom = targetFactor;
         if (useCamera2) {
             if (camera2SessionCurrent != null) {
-                float min = camera2SessionCurrent.getMinZoom();
                 float max = camera2SessionCurrent.getMaxZoom();
-                float factorRatio = Math.max(0f, Math.min(1f, (targetFactor - 1.0f) / 9.0f));
-                float zoom = AndroidUtilities.lerp(min, max, factorRatio);
+                float zoom = Utilities.clamp(targetFactor, max, 1.0f);
                 camera2SessionCurrent.setZoom(zoom);
             }
         } else {

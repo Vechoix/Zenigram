@@ -445,7 +445,6 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             int step = Math.round(newProgress * 28);
             if (step != lastStep) {
                 lastStep = step;
-                performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
             }
             if (listener != null) {
                 listener.onProgress(newProgress, isFinal);
@@ -834,6 +833,9 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 Theme.refreshThemeColors();
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
                 applyLiveThemeToCurrentScreen();
+                if (listView != null && listView.adapter != null) {
+                    listView.adapter.notifyDataSetChanged();
+                }
             }, 100);
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
