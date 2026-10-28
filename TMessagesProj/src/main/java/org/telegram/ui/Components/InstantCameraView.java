@@ -538,16 +538,12 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         zoomTriggerButton.setOnClickListener(v -> {
             if (currentStaticZoom <= 1.4f) {
                 setStaticZoom(2.0f);
-                zoomTriggerButton.setText("2x");
             } else if (currentStaticZoom <= 3.2f) {
                 setStaticZoom(5.0f);
-                zoomTriggerButton.setText("5x");
             } else if (currentStaticZoom <= 7.5f) {
                 setStaticZoom(10.0f);
-                zoomTriggerButton.setText("10x");
             } else {
                 setStaticZoom(1.0f);
-                zoomTriggerButton.setText("1x");
             }
             v.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP, android.view.HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING);
         });
@@ -790,12 +786,13 @@ private void updateZoomPillUI() {
             if (camera2SessionCurrent != null) {
                 float min = camera2SessionCurrent.getMinZoom();
                 float max = camera2SessionCurrent.getMaxZoom();
-                float zoom = Utilities.clamp(targetFactor, max, min);
+                float factorRatio = Math.max(0f, Math.min(1f, (targetFactor - 1.0f) / 9.0f));
+                float zoom = AndroidUtilities.lerp(min, max, factorRatio);
                 camera2SessionCurrent.setZoom(zoom);
             }
         } else {
             if (cameraSession != null) {
-                float zoom = Math.min(1.0f, Math.max(0.0f, (targetFactor - 1.0f) / 4.0f));
+                float zoom = Math.min(1.0f, Math.max(0.0f, (targetFactor - 1.0f) / 9.0f));
                 cameraSession.setZoom(zoom);
             }
         }
@@ -1513,6 +1510,10 @@ private void updateZoomPillUI() {
         updateTranslationY();
         MediaController.getInstance().resumeByRewind();
 
+        if (buttonsLayout != null) {
+            buttonsLayout.setVisibility(View.GONE);
+            buttonsLayout.setAlpha(0.0f);
+        }
         if (textureView != null) {
             ViewGroup parent = (ViewGroup) textureView.getParent();
             if (parent != null) {
@@ -1524,6 +1525,10 @@ private void updateZoomPillUI() {
     }
 
     private void switchCamera() {
+        currentStaticZoom = 1.0f;
+        if (zoomTriggerButton != null) {
+            zoomTriggerButton.setText("1x");
+        }
         legacyCameraSwitchStartedNs = SystemClock.elapsedRealtimeNanos();
         legacyCameraSwitchSequence++;
         legacyCameraSwitchTargetSurface = useCamera2 && bothCameras

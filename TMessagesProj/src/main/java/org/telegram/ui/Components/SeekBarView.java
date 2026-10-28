@@ -654,10 +654,58 @@ public class SeekBarView extends FrameLayout {
         });
     }
 
+    private Path seekBarWavePath;
+    private Paint seekBarWavePaint;
+
+    private void drawWavyProgressBar(Canvas canvas, RectF rect, Paint paint) {
+        if (rect.width() <= AndroidUtilities.dp(6)) {
+            float radius = AndroidUtilities.dp(2);
+            canvas.drawRoundRect(rect, radius, radius, paint);
+            return;
+        }
+        if (seekBarWavePath == null) {
+            seekBarWavePath = new Path();
+        }
+        if (seekBarWavePaint == null) {
+            seekBarWavePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            seekBarWavePaint.setStyle(Paint.Style.STROKE);
+            seekBarWavePaint.setStrokeCap(Paint.Cap.ROUND);
+            seekBarWavePaint.setStrokeJoin(Paint.Join.ROUND);
+        }
+        seekBarWavePaint.setColor(paint.getColor());
+        seekBarWavePaint.setAlpha(paint.getAlpha());
+        float strokeW = Math.max(AndroidUtilities.dp(3.5f), rect.height());
+        seekBarWavePaint.setStrokeWidth(strokeW);
+
+        seekBarWavePath.reset();
+        float centerY = (rect.top + rect.bottom) / 2f;
+        float startX = rect.left;
+        float endX = rect.right;
+        seekBarWavePath.moveTo(startX, centerY);
+
+        float waveLength = AndroidUtilities.dp(44f);
+        float waveAmplitude = AndroidUtilities.dp(2.4f);
+        float step = AndroidUtilities.dp(1.2f);
+
+        for (float x = startX; x <= endX; x += step) {
+            float phase = (x - startX) / waveLength * (float) (Math.PI * 2);
+            float taper = Math.min(1.0f, Math.min((x - startX) / AndroidUtilities.dp(12f), (endX - x) / AndroidUtilities.dp(12f)));
+            if (taper < 0) taper = 0;
+            float y = centerY + (float) Math.sin(phase) * (waveAmplitude * taper);
+            seekBarWavePath.lineTo(x, y);
+        }
+        seekBarWavePath.lineTo(endX, centerY);
+        canvas.drawPath(seekBarWavePath, seekBarWavePaint);
+    }
+
     private void drawProgressBar(Canvas canvas, RectF rect, Paint paint) {
         float radius = AndroidUtilities.dp(2);
         if (timestamps == null || timestamps.isEmpty()) {
-            canvas.drawRoundRect(rect, radius, radius, paint);
+            if (paint == outerPaint1 && !twoSided && rect.width() > AndroidUtilities.dp(4)) {
+                drawWavyProgressBar(canvas, rect, paint);
+            } else {
+                canvas.drawRoundRect(rect, radius, radius, paint);
+            }
         } else {
             float lineWidth = rect.bottom - rect.top;
             float left = selectorWidth / 2f;

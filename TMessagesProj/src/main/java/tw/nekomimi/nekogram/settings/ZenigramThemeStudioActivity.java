@@ -226,7 +226,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
         }
         if (listView != null) {
             listView.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundGray));
-            if (listView.adapter != null) {
+            if (listView.adapter != null && !listView.isComputingLayout()) {
                 listView.adapter.notifyDataSetChanged();
             }
             listView.invalidate();
@@ -697,11 +697,14 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             showPopup(accents, currentIndex, item, view, index -> {
                 if (index < ACCENT_COLORS.length) {
                     NekoConfig.setCustomAccentColor(ACCENT_COLORS[index]);
-                    Theme.refreshThemeColors();
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
-                    applyLiveThemeToCurrentScreen();
+                    listView.adapter.notifyItemChanged(position, PARTIAL);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        Theme.refreshThemeColors();
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+                        applyLiveThemeToCurrentScreen();
+                    }, 150);
                 } else {
-                    showCustomColorPicker(true);
+                    AndroidUtilities.runOnUIThread(() -> showCustomColorPicker(true), 150);
                 }
             });
         } else if (id == outBubbleColorRow) {
@@ -724,12 +727,15 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             showPopup(bubbleColors, currentIndex, item, view, index -> {
                 if (index < BUBBLE_COLORS.length) {
                     NekoConfig.setCustomOutBubbleColor(BUBBLE_COLORS[index]);
-                    Theme.invalidateChatOutBubble();
-                    Theme.refreshThemeColors();
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
-                    applyLiveThemeToCurrentScreen();
+                    listView.adapter.notifyItemChanged(position, PARTIAL);
+                    AndroidUtilities.runOnUIThread(() -> {
+                        Theme.invalidateChatOutBubble();
+                        Theme.refreshThemeColors();
+                        NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+                        applyLiveThemeToCurrentScreen();
+                    }, 150);
                 } else {
-                    showCustomColorPicker(false);
+                    AndroidUtilities.runOnUIThread(() -> showCustomColorPicker(false), 150);
                 }
             });
         } else if (id == interfaceDensityRow) {
@@ -824,9 +830,11 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 NekoConfig.setCustomOutBubbleColor(newColor);
                 Theme.invalidateChatOutBubble();
             }
-            Theme.refreshThemeColors();
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
-            applyLiveThemeToCurrentScreen();
+            AndroidUtilities.runOnUIThread(() -> {
+                Theme.refreshThemeColors();
+                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme);
+                applyLiveThemeToCurrentScreen();
+            }, 100);
         });
         builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
         showDialog(builder.create());
