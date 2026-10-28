@@ -1,29 +1,101 @@
-# 🐾 Nekogram
-[![Crowdin](https://badges.crowdin.net/e/a094217ac83905ae1625526d59bba8dc/localized.svg)](https://neko.crowdin.com/nekogram)  
-Nekogram is a third-party Telegram client with not many but useful modifications.
+<p align="center">
+  <img src="TMessagesProj/src/main/res/drawable/ic_launcher_adaptive_fg.png" width="128" height="128" alt="Zenigram Logo" />
+</p>
 
-- Website: https://nekogram.app
-- Telegram channel: https://t.me/nekoupdates
-- Downloads: https://nekogram.app/download
-- Feedback: https://github.com/Nekogram/Nekogram/issues
+<h1 align="center">✈️ Zenigram</h1>
 
-## API, Protocol documentation
+<p align="center">
+  <b>Эстетичный, быстрый и продуманный Telegram-клиент для Android с акцентом на крафтовый дизайн, плавность Material 3 и свободу кастомизации.</b>
+</p>
 
-Telegram API manuals: https://core.telegram.org/api
+<p align="center">
+  <a href="https://github.com/Vechoix/Zenigram/releases/latest"><img src="https://img.shields.io/github/v/release/Vechoix/Zenigram?style=for-the-badge&color=C4A98F&label=Релиз" alt="Latest Release"></a>
+  <a href="https://github.com/Vechoix/Zenigram/releases"><img src="https://img.shields.io/github/downloads/Vechoix/Zenigram/total?style=for-the-badge&color=8F6E54&label=Скачиваний" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/Android-7.0%2B-blue?style=for-the-badge&color=2C6BC4" alt="Android Version">
+  <img src="https://img.shields.io/badge/Лицензия-GPLv2%20%2F%20v3-green?style=for-the-badge" alt="License">
+</p>
 
-MTProto protocol manuals: https://core.telegram.org/mtproto
+---
 
-## Compilation Guide
+## 🌟 О проекте
 
-1. Download the Nekogram source code ( `git clone --recursive --shallow-submodules https://github.com/Nekogram/Nekogram.git` )
-1. Fill out storeFile, storePassword, keyAlias, keyPassword in local.properties to access your release.keystore
-1. Go to https://console.firebase.google.com/, create two android apps with application IDs tw.nekomimi.nekogram and tw.nekomimi.nekogram.beta, turn on firebase messaging and download `google-services.json`, which should be copied into `TMessagesProj` folder.
-1. Open the project in the Studio (note that it should be opened, NOT imported).
-1. Fill out values in `TMessagesProj/src/main/java/tw/nekomimi/nekogram/Extra.java` – there’s a link for each of the variables showing where and which data to obtain.
-1. You are ready to compile Nekogram.
+**Zenigram** — это открытый форк Telegram для Android, созданный для тех, кто ценит визуальную гармонию, чистоту интерфейса и внимание к деталям. Мы объединили стабильность официального клиента с эстетикой крафтовой бумаги, японского минимализма и современными возможностями Material You.
 
-## Localization
+---
 
-Nekogram is forked from Telegram, thus most locales follows the translations of Telegram for Android, checkout https://translations.telegram.org/en/android/.
+## ✨ Ключевые возможности
 
-As for the Nekogram specialized strings, we use Crowdin to translate Nekogram. Join project at https://neko.crowdin.com/nekogram. Help us bring Nekogram to the world!
+### 🎨 Zeni Theme Studio (Студия тем)
+- **Мягкий волновой слайдер**: плавная длинная волна регулировки скругления углов сообщений в стиле Material 3 / Google Play (без резких зубцов).
+- **Природная цветовая палитра**: понятные и гармоничные пресеты (Песочный, Шалфейный, Лавандовый, Мятный, Коралловый, Графит, Оливковый и др.).
+- **Полноценный Color Picker**: пункт *«Свой цвет (Палитра)...»* позволяет выбрать любой оттенок HEX/RGB для акцента приложения и пузырьков чата.
+- **Мгновенное применение темы**: интерфейс и все экраны обновляются в ту же секунду без перезахода.
+- **Dynamic Monet**: полноценная интеграция с палитрой обоев на Android 12+.
+
+### 🖋️ Типографика и шрифты
+- Фирменный мягкий шрифт **Comfortaa** с аккуратными скруглениями.
+- Гибкая область применения: возможность применить шрифт ко всему приложению или только к системным элементам (оставив чаты со стандартным шрифтом).
+- Интерактивная карточка мгновенного предпросмотра заголовков и навигации.
+
+### ⭕ Видеосообщения (Кружочки)
+- **Симметричное центрирование**: кнопки переключения камеры, быстрого зума и вспышки идеально выровнены.
+- **Тактильный отклик и анимации**: плавные scale-анимации на каждое касание.
+- **Умная полоска зума**: открывается прямо на месте кнопок управления, а сами кнопки плавно скрываются, освобождая полный обзор.
+- **Быстрый зум**: быстрое переключение 1x / 2x / 5x в один тап.
+
+### 👻 Приватность и режим «Призрак»
+- Чтение входящих сообщений и историй без отметки о прочтении.
+- Скрытие статуса набора текста («печатает...»).
+- Снятие запрета на скриншоты в защищённых каналах и секретных чатах.
+- Полное отключение аналитики и внешних трекеров.
+
+### 📱 Фирменные адаптивные иконки
+- Настоящие текстурированные иконки на крафтовой бумаге с мягкими тенями без белых артефактов на любых лаунчерах (Samsung One UI, Pixel Launcher, MIUI, Nova и др.).
+- Стили: **Крафт** (фирменный), **Тёмный** и **Монохром**.
+- Мгновенная синхронизация и сброс кэша Android Launcher при выборе стиля.
+
+### 🔄 Встроенный OTA-апдейтер
+- Проверка и установка новых версий прямо из приложения в один клик напрямую из GitHub Releases.
+
+---
+
+## 📲 Скачать
+
+Последняя стабильная версия с официальной подписью ключом всегда доступна в разделе релизов:
+
+👉 **[Скачать Zenigram (GitHub Releases)](https://github.com/Vechoix/Zenigram/releases/latest)**
+
+---
+
+## 🛠️ Сборка из исходного кода
+
+### Требования
+- JDK 17 или 21
+- Android SDK (API 35, Build-Tools 35.0.0, NDK r27+)
+- PowerShell (Windows) или Bash (Linux/macOS)
+
+### Инструкция по сборке
+
+1. Клонируйте репозиторий:
+   ```bash
+   git clone --recursive https://github.com/Vechoix/Zenigram.git
+   cd Zenigram
+   ```
+
+2. Соберите релизный APK:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\build_release.ps1
+   ```
+   *Собранный и подписанный APK появится в папке `APKs/Zenigram-1.0.4-arm64-v8a.apk`.*
+
+---
+
+## 🛡️ Безопасность и открытость
+
+Zenigram распространяется под свободной лицензией **GNU GPL v2/v3**. Приложение не содержит рекламы, скрытых подписок, сторонних трекеров и вредоносных модулей. Каждый билд подписывается официальным релизным ключом и проходит проверки Google Play Protect.
+
+---
+
+<p align="center">
+  <b>Zenigram. Спокойствие и эстетика в каждом пикселе.</b>
+</p>
