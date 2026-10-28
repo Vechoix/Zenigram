@@ -233,6 +233,7 @@ public class MessageObject {
     public int dateKeyInt;
     public String monthKey;
     public boolean deleted;
+    public boolean isDeletedLocally;
     public boolean deletedByThanos;
     public float audioProgress;
     public float forceSeekTo = -1;
@@ -1936,6 +1937,10 @@ public class MessageObject {
 
         currentAccount = accountNum;
         messageOwner = message;
+        if (message != null && message.ttl < 0) {
+            deleted = true;
+            isDeletedLocally = true;
+        }
         replyMessageObject = replyToMessage;
         eventId = eid;
         wasUnread = !messageOwner.out && messageOwner.unread;

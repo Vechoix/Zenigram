@@ -362,16 +362,20 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     public static void shiftSpansAfterInsert(SpannableStringBuilder builder, int insertIndex, int length) {
         if (builder == null || length <= 0) return;
-        Object[] spans = builder.getSpans(insertIndex, insertIndex + length, Object.class);
+        int queryEnd = Math.min(builder.length(), insertIndex + length + 8);
+        Object[] spans = builder.getSpans(insertIndex, queryEnd, Object.class);
         if (spans != null) {
             for (Object span : spans) {
                 if (span instanceof FixedWidthSpan || span instanceof ColoredImageSpan) continue;
                 int start = builder.getSpanStart(span);
                 int end = builder.getSpanEnd(span);
                 int flags = builder.getSpanFlags(span);
-                if (start <= insertIndex) {
+                if (start < insertIndex + length) {
+                    int spanLen = Math.max(1, end - start);
                     builder.removeSpan(span);
-                    builder.setSpan(span, insertIndex + length, Math.max(insertIndex + length, end), flags);
+                    int newStart = insertIndex + length;
+                    int newEnd = Math.min(builder.length(), newStart + spanLen);
+                    builder.setSpan(span, newStart, newEnd, flags);
                 }
             }
         }
@@ -387,16 +391,20 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
         public static void shiftSpansAfterInsert(SpannableStringBuilder builder, int insertIndex, int length) {
             if (builder == null || length <= 0) return;
-            Object[] spans = builder.getSpans(insertIndex, insertIndex + length, Object.class);
+            int queryEnd = Math.min(builder.length(), insertIndex + length + 8);
+            Object[] spans = builder.getSpans(insertIndex, queryEnd, Object.class);
             if (spans != null) {
                 for (Object span : spans) {
                     if (span instanceof FixedWidthSpan || span instanceof ColoredImageSpan) continue;
                     int start = builder.getSpanStart(span);
                     int end = builder.getSpanEnd(span);
                     int flags = builder.getSpanFlags(span);
-                    if (start <= insertIndex) {
+                    if (start < insertIndex + length) {
+                        int spanLen = Math.max(1, end - start);
                         builder.removeSpan(span);
-                        builder.setSpan(span, insertIndex + length, Math.max(insertIndex + length, end), flags);
+                        int newStart = insertIndex + length;
+                        int newEnd = Math.min(builder.length(), newStart + spanLen);
+                        builder.setSpan(span, newStart, newEnd, flags);
                     }
                 }
             }

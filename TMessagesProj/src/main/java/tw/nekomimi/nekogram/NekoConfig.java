@@ -182,6 +182,7 @@ public class NekoConfig {
     public static boolean showAddToSavedMessages = true;
     public static boolean showCopyPhoto = false;
     public static boolean showDeleteDownloadedFile = false;
+    public static boolean antiRevoke = true;
     public static boolean showMessageDetails = false;
     public static boolean showNoQuoteForward = true;
     public static boolean showOpenIn = false;
@@ -317,6 +318,7 @@ public class NekoConfig {
             showAddToSavedMessages = preferences.getBoolean("showAddToSavedMessages", true);
             showCopyPhoto = preferences.getBoolean("showCopyPhoto", false);
             showDeleteDownloadedFile = preferences.getBoolean("showDeleteDownloadedFile", false);
+            antiRevoke = preferences.getBoolean("antiRevoke", true);
             showMessageDetails = preferences.getBoolean("showMessageDetails", false);
             showNoQuoteForward = preferences.getBoolean("showNoQuoteForward", true);
             showOpenIn = preferences.getBoolean("showOpenIn", false);
@@ -1328,6 +1330,11 @@ public class NekoConfig {
     public static void toggleShowCopyPhoto() {
         showCopyPhoto = !showCopyPhoto;
         preferences.edit().putBoolean("showCopyPhoto", showCopyPhoto).apply();
+    }
+
+    public static void toggleAntiRevoke() {
+        antiRevoke = !antiRevoke;
+        preferences.edit().putBoolean("antiRevoke", antiRevoke).apply();
     }
 
     public static void toggleShowDeleteDownloadedFile() {

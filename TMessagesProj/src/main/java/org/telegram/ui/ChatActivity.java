@@ -1838,7 +1838,7 @@ public class ChatActivity extends BaseFragment implements
                         return;
                     }
                     if (messageObject.contentType == 0) {
-                        if (selected && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) {
+                        if (selected && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100000) {
                             limitReached = true;
                         } else {
                             limitReached = false;
@@ -19686,7 +19686,7 @@ public class ChatActivity extends BaseFragment implements
                     }
                 }
             } else {
-                if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) {
+                if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100000) {
                     AndroidUtilities.shakeView(selectedMessagesCountTextView);
                     Vibrator vibrator = (Vibrator) ApplicationLoader.applicationContext.getSystemService(Context.VIBRATOR_SERVICE);
                     if (vibrator != null) {
@@ -27001,6 +27001,14 @@ public class ChatActivity extends BaseFragment implements
                 }
                 int index = chatAdapter != null && chatAdapter.isFiltered && filteredMessagesDict != null ? chatAdapter.filteredMessages.indexOf(filteredMessagesDict.get(mid)) : messages.indexOf(obj);
                 if (index != -1) {
+                    if (!sent && tw.nekomimi.nekogram.NekoConfig.antiRevoke && !obj.scheduled && chatMode != MODE_SCHEDULED) {
+                        obj.deleted = true;
+                        obj.isDeletedLocally = true;
+                        if (chatAdapter != null) {
+                            chatAdapter.notifyItemChanged(chatAdapter.messagesStartRow + index);
+                        }
+                        continue;
+                    }
                     if (obj.scheduled) {
                         scheduledMessagesCount--;
                         updateScheduled = true;

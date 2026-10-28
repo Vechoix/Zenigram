@@ -4710,11 +4710,11 @@ public class NotificationsController extends BaseController implements Notificat
             }
 
             if (largeBitmap != null) {
-                mBuilder.setLargeIcon(largeBitmap);
+                mBuilder.setLargeIcon(createRoundAvatar(largeBitmap));
             } else if (photoPath != null) {
                 BitmapDrawable img = ImageLoader.getInstance().getImageFromMemory(photoPath, null, "50_50");
                 if (img != null) {
-                    mBuilder.setLargeIcon(img.getBitmap());
+                    mBuilder.setLargeIcon(createRoundAvatar(img.getBitmap()));
                 } else {
                     try {
                         File file = getFileLoader().getPathToAttach(photoPath, true);
@@ -4724,7 +4724,7 @@ public class NotificationsController extends BaseController implements Notificat
                             options.inSampleSize = scaleFactor < 1 ? 1 : (int) scaleFactor;
                             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
                             if (bitmap != null) {
-                                mBuilder.setLargeIcon(bitmap);
+                                mBuilder.setLargeIcon(createRoundAvatar(bitmap));
                             }
                         }
                     } catch (Throwable ignore) {
@@ -5203,14 +5203,14 @@ public class NotificationsController extends BaseController implements Notificat
                 if (Build.VERSION.SDK_INT < 28) {
                     BitmapDrawable img = ImageLoader.getInstance().getImageFromMemory(photoPath, null, "50_50");
                     if (img != null) {
-                        avatarBitmap = img.getBitmap();
+                        avatarBitmap = createRoundAvatar(img.getBitmap());
                     } else {
                         try {
                             if (avatarFile.exists()) {
                                 float scaleFactor = 160.0f / AndroidUtilities.dp(50);
                                 BitmapFactory.Options options = new BitmapFactory.Options();
                                 options.inSampleSize = scaleFactor < 1 ? 1 : (int) scaleFactor;
-                                avatarBitmap = BitmapFactory.decodeFile(avatarFile.getAbsolutePath(), options);
+                                avatarBitmap = createRoundAvatar(BitmapFactory.decodeFile(avatarFile.getAbsolutePath(), options));
                             }
                         } catch (Throwable ignore) {
 
@@ -5755,7 +5755,7 @@ public class NotificationsController extends BaseController implements Notificat
                 builder.setLocalOnly(true);
             }
             if (avatarBitmap != null) {
-                builder.setLargeIcon(avatarBitmap);
+                builder.setLargeIcon(createRoundAvatar(avatarBitmap));
             }
 
             if (!AndroidUtilities.needShowPasscode(false) && !SharedConfig.isWaitingForPasscodeEnter) {
@@ -5908,6 +5908,33 @@ public class NotificationsController extends BaseController implements Notificat
         return new Pair<>(storiesCount, hidden);
     }
 
+    
+    public static Bitmap createRoundAvatar(Bitmap src) {
+        if (src == null) {
+            return null;
+        }
+        try {
+            int width = src.getWidth();
+            int height = src.getHeight();
+            int size = Math.min(width, height);
+            Bitmap output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(output);
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+            BitmapShader shader = new BitmapShader(src, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            if (width != size || height != size) {
+                Matrix matrix = new Matrix();
+                matrix.setTranslate((size - width) / 2f, (size - height) / 2f);
+                shader.setLocalMatrix(matrix);
+            }
+            paint.setShader(shader);
+            float radius = size / 2f;
+            canvas.drawCircle(radius, radius, radius, paint);
+            return output;
+        } catch (Throwable e) {
+            return src;
+        }
+    }
+
     public static Person.Builder loadRoundAvatar(long dialogId, File avatar, Person.Builder personBuilder) {
         if (dialogId == UserObject.OAUTH) {
             personBuilder.setIcon(IconCompat.createWithResource(ApplicationLoader.applicationContext, R.mipmap.ic_launcher));
@@ -5919,7 +5946,7 @@ public class NotificationsController extends BaseController implements Notificat
                 if (bitmap == null) {
                     return personBuilder;
                 }
-                IconCompat icon = IconCompat.createWithAdaptiveBitmap(MediaDataController.convertBitmapToAdaptive(bitmap));
+                IconCompat icon = IconCompat.createWithAdaptiveBitmap(createRoundAvatar(MediaDataController.convertBitmapToAdaptive(bitmap)));
                 personBuilder.setIcon(icon);
             } catch (Throwable ignore) {
 

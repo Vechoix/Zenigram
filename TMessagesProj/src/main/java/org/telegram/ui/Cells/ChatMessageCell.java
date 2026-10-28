@@ -18538,6 +18538,21 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             timeString = formatString(R.string.ScheduledTimeApprox, timeString);
         }
         currentTimeString = new SpannableStringBuilder(timeString);
+        if (currentMessageObject != null && (currentMessageObject.isDeletedLocally || (currentMessageObject.deleted && !currentMessageObject.deletedByThanos))) {
+            try {
+                Drawable delDrawable = ContextCompat.getDrawable(getContext(), R.drawable.msg_delete).mutate();
+                int iconColor = Theme.getColor(currentMessageObject.isOutOwner() ? Theme.key_chat_outTimeText : Theme.key_chat_inTimeText, resourcesProvider);
+                delDrawable.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
+                delDrawable.setBounds(0, 0, AndroidUtilities.dp(11), AndroidUtilities.dp(11));
+                ColoredImageSpan delSpan = new ColoredImageSpan(delDrawable);
+                delSpan.setTranslateX(0);
+                delSpan.setTranslateY(AndroidUtilities.dp(1));
+                SpannableStringBuilder delBuilder = new SpannableStringBuilder("  ");
+                delBuilder.setSpan(delSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                currentTimeString.insert(0, delBuilder);
+            } catch (Throwable ignore) {
+            }
+        }
         if (signString != null) {
             if (messageObject.messageOwner.via_business_bot_id != 0) {
                 currentTimeString.append(", ");

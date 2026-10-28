@@ -1376,7 +1376,7 @@ private void updateZoomPillUI() {
                 long endTime = videoEditedInfo.endTime >= 0 ? videoEditedInfo.endTime : videoEditedInfo.estimatedDuration;
                 videoEditedInfo.estimatedDuration = endTime - startTime;
                 videoEditedInfo.estimatedSize = Math.max(1, (long) (size * (videoEditedInfo.estimatedDuration / totalDuration)));
-                videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500000 : 1000000;
+                videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 3000000 : 1000000;
                 if (videoEditedInfo.startTime > 0) {
                     videoEditedInfo.startTime *= 1000;
                 }
@@ -2764,7 +2764,7 @@ private void updateZoomPillUI() {
 
             started = true;
             int resolution = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 512 : MessagesController.getInstance(currentAccount).roundVideoSize;
-            int bitrate = (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500 : MessagesController.getInstance(currentAccount).roundVideoBitrate) * 1024;
+            int bitrate = (tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 3000 : MessagesController.getInstance(currentAccount).roundVideoBitrate) * 1024;
             AndroidUtilities.runOnUIThread(() -> {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.stopAllHeavyOperations, 512);
             });
@@ -3475,7 +3475,7 @@ private void updateZoomPillUI() {
                             long endTime = videoEditedInfo.endTime >= 0 ? videoEditedInfo.endTime : videoEditedInfo.estimatedDuration;
                             videoEditedInfo.estimatedDuration = endTime - startTime;
                             videoEditedInfo.estimatedSize = Math.max(1, (long) (size * (videoEditedInfo.estimatedDuration / totalDuration)));
-                            videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 2500000 : 1000000;
+                            videoEditedInfo.bitrate = tw.nekomimi.nekogram.NekoConfig.hqVideoMessages ? 3000000 : 1000000;
                             if (videoEditedInfo.startTime > 0) {
                                 videoEditedInfo.startTime *= 1000;
                             }
