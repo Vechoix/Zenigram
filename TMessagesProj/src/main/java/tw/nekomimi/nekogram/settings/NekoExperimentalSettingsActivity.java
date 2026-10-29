@@ -40,6 +40,10 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
     private final int forceFontWeightFallbackRow = rowId++;
     private final int secureScreenRow = rowId++;
     private final int contentRestrictionRow = rowId++;
+    private final int autoInlineBotRow = rowId++;
+    private final int mapDriftingFixRow = rowId++;
+    private final int showRPCErrorRow = rowId++;
+    private final int checkUpdateRow = rowId++;
 
     private final int sendBugReportRow = rowId++;
     private final int deleteDataRow = rowId++;
@@ -66,6 +70,12 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
         if (Extra.isDirectApp()) {
             items.add(UItem.asCheck(contentRestrictionRow, LocaleController.getString(R.string.IgnoreContentRestriction)).slug("contentRestriction").setChecked(NekoConfig.ignoreContentRestriction));
         }
+        items.add(UItem.asCheck(autoInlineBotRow, LocaleController.getString(R.string.AutoInlineBot), LocaleController.getString(R.string.AutoInlineBotDesc)).slug("autoInlineBot").setChecked(NekoConfig.autoInlineBot));
+        items.add(UItem.asCheck(mapDriftingFixRow, LocaleController.getString(R.string.MapDriftingFix)).slug("mapDriftingFix").setChecked(NekoConfig.mapDriftingFix));
+        items.add(UItem.asCheck(showRPCErrorRow, LocaleController.getString(R.string.ShowRPCError), LocaleController.formatString(R.string.ShowRPCErrorException, "FILE_REFERENCE_EXPIRED")).slug("showRPCError").setChecked(NekoConfig.showRPCError));
+        items.add(UItem.asShadow(null));
+
+        items.add(TextDetailSettingsCellFactory.of(checkUpdateRow, "Проверить наличие обновлений", "Zenigram v" + tw.nekomimi.nekogram.helpers.ZenigramUpdateHelper.CURRENT_VERSION_NAME).slug("checkUpdate"));
         items.add(UItem.asShadow(null));
 
         items.add(TextSettingsCellFactory.of(deleteAccountRow, LocaleController.getString(R.string.DeleteAccount), "").slug("deleteAccount").red());
@@ -88,6 +98,28 @@ public class NekoExperimentalSettingsActivity extends BaseNekoSettingsActivity {
             builder.setView(message);
             builder.setPositiveButton(LocaleController.getString(R.string.OK), null);
             showDialog(builder.create());
+        }
+        if (id == checkUpdateRow) {
+            presentFragment(new ZenigramUpdatesActivity());
+            return;
+        } else if (id == autoInlineBotRow) {
+            NekoConfig.toggleAutoInlineBot();
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(NekoConfig.autoInlineBot);
+            }
+            return;
+        } else if (id == mapDriftingFixRow) {
+            NekoConfig.toggleMapDriftingFix();
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(NekoConfig.mapDriftingFix);
+            }
+            return;
+        } else if (id == showRPCErrorRow) {
+            NekoConfig.toggleShowRPCError();
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(NekoConfig.showRPCError);
+            }
+            return;
         }
         if (id == deleteAccountRow) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity(), resourcesProvider);

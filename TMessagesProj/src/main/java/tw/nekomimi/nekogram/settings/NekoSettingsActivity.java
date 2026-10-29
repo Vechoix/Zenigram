@@ -93,6 +93,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
             actionBar.setBackButtonImage(R.drawable.ic_ab_close);
         }
         headerCell = new ZenigramHeaderCell(context, resourcesProvider);
+        headerCell.setOnVersionClickListener(() -> presentFragment(new ZenigramUpdatesActivity()));
 
         var fragmentView = super.createView(context);
 
@@ -143,6 +144,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
         items.add(UItem.asButtonSubtext(updatesRow, R.drawable.msg_download, "Обновление Zenigram", "Проверка новых версий и ченджлог").slug("updates"));
         items.add(UItem.asButtonSubtext(gestureLabRow, R.drawable.msg_discussion, "Жесты", "Свайпы и быстрые действия").slug("gestureLab"));
         items.add(UItem.asButtonSubtext(adaptivePerformanceRow, R.drawable.msg_fave, "Оптимизация", "Плавность, анимации и эффекты").slug("adaptivePerformance"));
+        items.add(UItem.asButtonSubtext(diagnosticsRow, R.drawable.msg_secret, "Диагностика", "Частота кадров, память и кэш").slug("diagnostics"));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asButton(generalRow, R.drawable.msg_media, LocaleController.getString(R.string.General)).slug("general"));

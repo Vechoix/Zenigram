@@ -125,6 +125,11 @@ public class ZenigramHeaderCell extends FrameLayout {
         versionChipView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
         versionChipView.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(6), Theme.multAlpha(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, resourcesProvider), 0.08f)));
         versionChipView.setPadding(AndroidUtilities.dp(6), AndroidUtilities.dp(2), AndroidUtilities.dp(6), AndroidUtilities.dp(2));
+        versionChipView.setOnClickListener(v -> {
+            if (onVersionClickListener != null) {
+                onVersionClickListener.run();
+            }
+        });
         textContainer.addView(versionChipView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.START, 0, 4, 0, 0));
 
         cardView.addView(textContainer, LayoutHelper.createLinear(0, LayoutHelper.WRAP_CONTENT, 1.0f, Gravity.CENTER_VERTICAL, 14, 0, 8, 0));
@@ -156,6 +161,12 @@ public class ZenigramHeaderCell extends FrameLayout {
         buttonsContainer.addView(creatorButton, LayoutHelper.createLinear(36, 36, Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
 
         cardView.addView(buttonsContainer, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+    }
+
+    private Runnable onVersionClickListener;
+
+    public void setOnVersionClickListener(Runnable listener) {
+        this.onVersionClickListener = listener;
     }
 
     public void updateColors() {

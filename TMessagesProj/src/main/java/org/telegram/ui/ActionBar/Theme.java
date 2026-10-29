@@ -6431,25 +6431,34 @@ public class Theme {
     }
 
     public static void refreshThemeColors(boolean bg, boolean messages) {
+        if (currentColorsNoAccent == null) {
+            currentColorsNoAccent = new SparseIntArray();
+        }
         currentColors = currentColorsNoAccent.clone();
         shouldDrawGradientIcons = true;
-        ThemeAccent accent = currentTheme.getAccent(false);
-        if (accent != null) {
-            shouldDrawGradientIcons = accent.fillAccentColors(currentColorsNoAccent, currentColors);
+        if (currentTheme != null) {
+            ThemeAccent accent = currentTheme.getAccent(false);
+            if (accent != null) {
+                shouldDrawGradientIcons = accent.fillAccentColors(currentColorsNoAccent, currentColors);
+            }
+            applyCalculatedTableColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
+            applyCalculatedArticleCodeColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
         }
-        applyCalculatedTableColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
-        applyCalculatedArticleCodeColors(currentColorsNoAccent, currentColors, currentTheme.isDark());
         applyZenigramCustomColors(currentColors);
-        if (!messages) {
-            boolean async = !(LaunchActivity.getLastFragment() instanceof ChatActivity);
-            reloadWallpaper(async);
+        try {
+            if (!messages) {
+                boolean async = !(LaunchActivity.getLastFragment() instanceof ChatActivity);
+                reloadWallpaper(async);
+            }
+            applyCommonTheme();
+            applyDialogsTheme();
+            applyProfileTheme();
+            applyChatTheme(false, bg);
+        } catch (Throwable e) {
+            FileLog.e(e);
         }
-        applyCommonTheme();
-        applyDialogsTheme();
-        applyProfileTheme();
-        applyChatTheme(false, bg);
         boolean checkNavigationBarColor = !hasPreviousTheme;
-        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme, false, checkNavigationBarColor, true));
+        AndroidUtilities.runOnUIThread(() -> NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme, isCurrentThemeDark(), checkNavigationBarColor, true));
     }
 
     public static boolean hasHue(int color) {

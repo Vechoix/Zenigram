@@ -35,7 +35,7 @@ if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 }
 
-$targetName = "Zenigram-1.0.9-arm64-v8a.apk"
+$targetName = "Zenigram-1.1.0-arm64-v8a.apk"
 $destPath = Join-Path $destDir $targetName
 Copy-Item -Path $releaseApk.FullName -Destination $destPath -Force
 

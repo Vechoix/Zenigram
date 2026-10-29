@@ -908,6 +908,8 @@ private void updateZoomPillUI() {
     }
 
     public void showCamera(boolean fromPaused) {
+        AndroidUtilities.hideKeyboard(this);
+        clearFocus();
         if (!fromPaused) {
             currentStaticZoom = 1.0f;
             pinchStartZoom = 1.0f;
@@ -1197,6 +1199,11 @@ private void updateZoomPillUI() {
                 videoEditedInfo = new VideoEditedInfo();
                 videoEditedInfo.startTime = -1;
                 videoEditedInfo.endTime = -1;
+            }
+            videoEditedInfo.roundVideo = true;
+            if (videoEditedInfo.resultWidth <= 0 || videoEditedInfo.resultHeight <= 0) {
+                videoEditedInfo.resultWidth = videoEditedInfo.originalWidth = 360;
+                videoEditedInfo.resultHeight = videoEditedInfo.originalHeight = 360;
             }
             if (videoEditedInfo.needConvert()) {
                 file = null;
@@ -4005,48 +4012,51 @@ private void updateZoomPillUI() {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN && ev.getY() > getMeasuredHeight() - getPaddingBottom()) {
+        if (!recording && ev.getAction() == MotionEvent.ACTION_DOWN && ev.getY() > getMeasuredHeight() - getPaddingBottom()) {
             return false;
         }
 
-        if (ev.getAction() == MotionEvent.ACTION_DOWN && delegate != null) {
-            if (videoPlayer != null) {
-                boolean mute = !videoPlayer.isMuted();
-                videoPlayer.setMute(mute);
-                if (muteAnimation != null) {
-                    muteAnimation.cancel();
-                }
-                muteAnimation = new AnimatorSet();
-                muteAnimation.playTogether(
-                        ObjectAnimator.ofFloat(muteImageView, View.ALPHA, mute ? 1.0f : 0.0f),
-                        ObjectAnimator.ofFloat(muteImageView, View.SCALE_X, mute ? 1.0f : 0.5f),
-                        ObjectAnimator.ofFloat(muteImageView, View.SCALE_Y, mute ? 1.0f : 0.5f));
-                muteAnimation.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        if (animation.equals(muteAnimation)) {
-                            muteAnimation = null;
-                        }
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            AndroidUtilities.hideKeyboard(this);
+            clearFocus();
+            if (delegate != null) {
+                if (videoPlayer != null) {
+                    boolean mute = !videoPlayer.isMuted();
+                    videoPlayer.setMute(mute);
+                    if (muteAnimation != null) {
+                        muteAnimation.cancel();
                     }
-                });
-                muteAnimation.setDuration(180);
-                muteAnimation.setInterpolator(new DecelerateInterpolator());
-                muteAnimation.start();
-            } else {
-                //baseFragment.checkRecordLocked(false);
+                    muteAnimation = new AnimatorSet();
+                    muteAnimation.playTogether(
+                            ObjectAnimator.ofFloat(muteImageView, View.ALPHA, mute ? 1.0f : 0.0f),
+                            ObjectAnimator.ofFloat(muteImageView, View.SCALE_X, mute ? 1.0f : 0.5f),
+                            ObjectAnimator.ofFloat(muteImageView, View.SCALE_Y, mute ? 1.0f : 0.5f));
+                    muteAnimation.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            if (animation.equals(muteAnimation)) {
+                                muteAnimation = null;
+                            }
+                        }
+                    });
+                    muteAnimation.setDuration(180);
+                    muteAnimation.setInterpolator(new DecelerateInterpolator());
+                    muteAnimation.start();
+                }
             }
         }
 
         if (ev.getActionMasked() == MotionEvent.ACTION_DOWN || ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
-            if (maybePinchToZoomTouchMode && !isInPinchToZoomTouchMode && ev.getPointerCount() == 2 && finishZoomTransition == null && recording) {
+            if (!isInPinchToZoomTouchMode && ev.getPointerCount() >= 2 && finishZoomTransition == null && recording) {
                 pinchStartDistance = (float) Math.hypot(ev.getX(1) - ev.getX(0), ev.getY(1) - ev.getY(0));
+                if (pinchStartDistance > AndroidUtilities.dp(8)) {
+                    pinchScale = 1f;
+                    pinchStartZoom = currentStaticZoom;
 
-                pinchScale = 1f;
-                pinchStartZoom = currentStaticZoom;
-
-                pointerId1 = ev.getPointerId(0);
-                pointerId2 = ev.getPointerId(1);
-                isInPinchToZoomTouchMode = true;
+                    pointerId1 = ev.getPointerId(0);
+                    pointerId2 = ev.getPointerId(1);
+                    isInPinchToZoomTouchMode = true;
+                }
             }
             if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
                 AndroidUtilities.rectTmp.set(cameraContainer.getX(), cameraContainer.getY(), cameraContainer.getX() + cameraContainer.getMeasuredWidth(), cameraContainer.getY() + cameraContainer.getMeasuredHeight());
@@ -4066,25 +4076,29 @@ private void updateZoomPillUI() {
             }
             if (index1 == -1 || index2 == -1) {
                 isInPinchToZoomTouchMode = false;
-
                 finishZoom();
-                return false;
+                return true;
             }
-            pinchScale = pinchStartZoom * ((float) Math.hypot(ev.getX(index2) - ev.getX(index1), ev.getY(index2) - ev.getY(index1)) / pinchStartDistance);
-            if (useCamera2) {
-                if (camera2SessionCurrent != null) {
-                    float zoom = Utilities.clamp(pinchScale, camera2SessionCurrent.getMaxZoom(), camera2SessionCurrent.getMinZoom());
-                    camera2SessionCurrent.setZoom(zoom);
-                    currentStaticZoom = zoom;
+            float currentDist = (float) Math.hypot(ev.getX(index2) - ev.getX(index1), ev.getY(index2) - ev.getY(index1));
+            if (pinchStartDistance > 0) {
+                pinchScale = pinchStartZoom * (currentDist / pinchStartDistance);
+                if (useCamera2) {
+                    if (camera2SessionCurrent != null) {
+                        float minZ = Math.max(1.0f, camera2SessionCurrent.getMinZoom());
+                        float maxZ = Math.max(minZ, camera2SessionCurrent.getMaxZoom());
+                        float zoom = Utilities.clamp(pinchScale, maxZ, minZ);
+                        camera2SessionCurrent.setZoom(zoom);
+                        currentStaticZoom = zoom;
+                        updateZoomPillUI();
+                    }
+                } else {
+                    float zoom = Math.min(1.0f, Math.max(0.0f, (pinchScale - 1.0f) / 9.0f));
+                    if (cameraSession != null) {
+                        cameraSession.setZoom(zoom);
+                    }
+                    currentStaticZoom = 1.0f + zoom * 9.0f;
                     updateZoomPillUI();
                 }
-            } else {
-                float zoom = Math.min(1f, Math.max(0, pinchScale - 1f));
-                if (cameraSession != null) {
-                    cameraSession.setZoom(zoom);
-                }
-                currentStaticZoom = 1.0f + zoom * 4.0f;
-                updateZoomPillUI();
             }
         } else if ((ev.getActionMasked() == MotionEvent.ACTION_UP || (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && checkPointerIds(ev)) || ev.getActionMasked() == MotionEvent.ACTION_CANCEL) && isInPinchToZoomTouchMode) {
             isInPinchToZoomTouchMode = false;
