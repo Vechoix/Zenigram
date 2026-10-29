@@ -8,7 +8,6 @@
         android:pivotY="54"
         android:scaleX="1.2"
         android:scaleY="1.2">
-        <!-- exteraGram style modern rounded delta airplane -->
         <path
             android:fillColor="#FFFFFFFF"
             android:pathData="M76,32 L28,48 C25,49 24.5,52.5 27,54 L40,61 L64,44 L46,65 L48,78 C48.5,81 52,82 54,79 L61,72 L72,78 C75,79.5 78.5,78 79,74.5 L84,36 C84.5,33 80,30.5 76,32 Z" />

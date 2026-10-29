@@ -710,7 +710,6 @@ public class MessageDrawable extends Drawable {
             int radTopRight = isTopNear ? nearRad : rad;
             int radTopLeft = rad;
 
-            // Bottom edge: from bottom-right corner to bottom-left corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullBottom) {
                 path.moveTo(rightEdge - radBottomRight, bounds.bottom - padding);
                 path.lineTo(bounds.left + padding + radBottomLeft, bounds.bottom - padding);
@@ -721,7 +720,6 @@ public class MessageDrawable extends Drawable {
                 path.lineTo(bounds.left + padding, top - topY + currentBackgroundHeight);
             }
 
-            // Left edge up to top-left corner and across to top-right corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullTop) {
                 path.lineTo(bounds.left + padding, bounds.top + padding + radTopLeft);
                 rect.set(bounds.left + padding, bounds.top + padding, bounds.left + padding + radTopLeft * 2, bounds.top + padding + radTopLeft * 2);
@@ -735,7 +733,6 @@ public class MessageDrawable extends Drawable {
                 path.lineTo(rightEdge, top - topY - dp(2));
             }
 
-            // Right edge down to bottom-right corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullBottom) {
                 path.lineTo(rightEdge, bounds.bottom - padding - radBottomRight);
                 rect.set(rightEdge - radBottomRight * 2, bounds.bottom - padding - radBottomRight * 2, rightEdge, bounds.bottom - padding);
@@ -751,7 +748,6 @@ public class MessageDrawable extends Drawable {
             int radTopLeft = isTopNear ? nearRad : rad;
             int radTopRight = rad;
 
-            // Bottom edge: from bottom-left corner to bottom-right corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullBottom) {
                 path.moveTo(leftEdge + radBottomLeft, bounds.bottom - padding);
                 path.lineTo(rightEdge - radBottomRight, bounds.bottom - padding);
@@ -762,7 +758,6 @@ public class MessageDrawable extends Drawable {
                 path.lineTo(rightEdge, top - topY + currentBackgroundHeight);
             }
 
-            // Right edge up to top-right corner and across to top-left corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullTop) {
                 path.lineTo(rightEdge, bounds.top + padding + radTopRight);
                 rect.set(rightEdge - radTopRight * 2, bounds.top + padding, rightEdge, bounds.top + padding + radTopRight * 2);
@@ -776,7 +771,6 @@ public class MessageDrawable extends Drawable {
                 path.lineTo(leftEdge, top - topY - dp(2));
             }
 
-            // Left edge down to bottom-left corner
             if (drawFullBubble || currentType == TYPE_PREVIEW || customPaint || drawFullBottom) {
                 path.lineTo(leftEdge, bounds.bottom - padding - radBottomLeft);
                 rect.set(leftEdge, bounds.bottom - padding - radBottomLeft * 2, leftEdge + radBottomLeft * 2, bounds.bottom - padding);

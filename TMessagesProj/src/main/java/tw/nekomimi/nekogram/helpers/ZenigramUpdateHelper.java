@@ -118,7 +118,6 @@ public class ZenigramUpdateHelper {
             String error = null;
 
             try {
-                // 1. Try reading updater.json from GitHub raw
                 HttpURLConnection conn = (HttpURLConnection) new URL(UPDATER_JSON_URL).openConnection();
                 conn.setConnectTimeout(8000);
                 conn.setReadTimeout(8000);
@@ -142,7 +141,6 @@ public class ZenigramUpdateHelper {
                     info.downloadUrl = json.optString("downloadUrl", "");
                     info.changelog = json.optString("changelog", "");
                 } else {
-                    // 2. Fallback to GitHub Releases API if updater.json returned non-200
                     HttpURLConnection gitConn = (HttpURLConnection) new URL(GITHUB_RELEASES_API).openConnection();
                     gitConn.setConnectTimeout(8000);
                     gitConn.setReadTimeout(8000);
@@ -182,7 +180,6 @@ public class ZenigramUpdateHelper {
                     }
                 }
 
-                // Determine if remote version is newer
                 boolean isNew = false;
                 if (info.versionCode > CURRENT_VERSION_CODE && info.versionCode < 1000) {
                     isNew = true;
@@ -236,7 +233,6 @@ public class ZenigramUpdateHelper {
                 String currentUrl = downloadUrl;
                 HttpURLConnection conn = null;
 
-                // Follow redirects manually to handle GitHub -> AWS S3 redirect
                 for (int redirectCount = 0; redirectCount < 6; redirectCount++) {
                     conn = (HttpURLConnection) new URL(currentUrl).openConnection();
                     conn.setConnectTimeout(15000);
@@ -290,6 +286,7 @@ public class ZenigramUpdateHelper {
                         if (outFile.exists()) {
                             outFile.delete();
                         }
+                        outFile = null;
                         isDownloading = false;
                         AndroidUtilities.runOnUIThread(() -> {
                             if (callback != null) {

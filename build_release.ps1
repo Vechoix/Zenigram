@@ -1,13 +1,20 @@
 $ErrorActionPreference = "Stop"
-$env:JAVA_HOME = "F:\jdk-21\jdk-21.0.12.1+1"
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
-$env:ANDROID_HOME = "H:\Android\Sdk"
-$env:ANDROID_SDK_ROOT = "H:\Android\Sdk"
-$env:GRADLE_USER_HOME = "H:\GradleCache"
-$env:TEMP = "F:\Temp"
-$env:TMP = "F:\Temp"
+$projectRoot = $PSScriptRoot
 
-Write-Host "Compiling Zenigram arm64-v8a Release APK (v1.0.8)..."
+if (-not $env:JAVA_HOME) {
+    if (Test-Path "F:\jdk-21\jdk-21.0.12.1+1") {
+        $env:JAVA_HOME = "F:\jdk-21\jdk-21.0.12.1+1"
+        $env:Path = "$env:JAVA_HOME\bin;$env:Path"
+    }
+}
+if (-not $env:ANDROID_HOME) {
+    if (Test-Path "H:\Android\Sdk") {
+        $env:ANDROID_HOME = "H:\Android\Sdk"
+        $env:ANDROID_SDK_ROOT = "H:\Android\Sdk"
+    }
+}
+
+Write-Host "Compiling Zenigram arm64-v8a Release APK..."
 & .\gradlew.bat :TMessagesProj_App:assembleRelease -x lint -x test --daemon
 
 if ($LASTEXITCODE -ne 0) {
@@ -15,9 +22,9 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-$apkDir = "F:\Nekogram-main\TMessagesProj_App\build\outputs\apk\release"
+$apkDir = Join-Path $projectRoot "TMessagesProj_App\build\outputs\apk\release"
 if (-not (Test-Path $apkDir)) {
-    $apkDir = "F:\Nekogram-main\TMessagesProj_App\build\outputs\apk"
+    $apkDir = Join-Path $projectRoot "TMessagesProj_App\build\outputs\apk"
 }
 
 Write-Host "Locating output release APK in $apkDir..."
@@ -28,21 +35,27 @@ if (-not $releaseApk) {
     exit 1
 }
 
-$destDir = "F:\Nekogram-main\APKs"
+$destDir = Join-Path $projectRoot "APKs"
 if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 }
 
-$targetName = "Zenigram-1.0.8-arm64-v8a.apk"
+$targetName = "Zenigram-arm64-v8a.apk"
 $destPath = Join-Path $destDir $targetName
 Copy-Item -Path $releaseApk.FullName -Destination $destPath -Force
 
-$keystore = "F:\Nekogram-main\zenigram-release.jks"
-$apksigner = "H:\Android\Sdk\build-tools\35.0.0\apksigner.bat"
-if (Test-Path $keystore) {
-    Write-Host "Signing APK with zenigram-release.jks (v1 + v2 schemes)..."
-    & $apksigner sign --ks $keystore --ks-key-alias zenigram --ks-pass pass:$env:KEYSTORE_PASS --key-pass pass:$env:KEYSTORE_PASS $destPath
-    & $apksigner verify --verbose $destPath
+$keystore = Join-Path $projectRoot "zenigram-release.jks"
+$apksigner = if ($env:ANDROID_HOME) { Get-ChildItem -Path (Join-Path $env:ANDROID_HOME "build-tools") -Recurse -Filter "apksigner.bat" | Select-Object -ExpandProperty FullName -First 1 } else { $null }
+
+if ((Test-Path $keystore) -and $apksigner) {
+    if (-not $env:KEYSTORE_PASS) {
+        Write-Warning "KEYSTORE_PASS is not set in environment. Skipping signing."
+    } else {
+        $ksPass = $env:KEYSTORE_PASS
+        Write-Host "Signing APK with release keystore..."
+        & $apksigner sign --ks $keystore --ks-key-alias zenigram --ks-pass "pass:$ksPass" --key-pass "pass:$ksPass" $destPath
+        & $apksigner verify --verbose $destPath
+    }
 }
 
 $hash = (Get-FileHash -Path $destPath -Algorithm SHA256).Hash
@@ -50,7 +63,7 @@ $sizeMb = [math]::Round((Get-Item $destPath).Length / 1MB, 2)
 $bytes = (Get-Item $destPath).Length
 
 Write-Host "=========================================="
-Write-Host "SUCCESSFULLY BUILT & SIGNED RELEASE APK:"
+Write-Host "SUCCESSFULLY BUILT RELEASE APK:"
 Write-Host "File:   $destPath"
 Write-Host "Size:   $sizeMb MB ($bytes bytes)"
 Write-Host "SHA256: $hash"

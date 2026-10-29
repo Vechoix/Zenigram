@@ -34,22 +34,19 @@ public class ZenigramIntroLogoView extends View {
         float radius = Math.min(cx, cy) - AndroidUtilities.dp(6);
 
         int accent = Theme.getColor(Theme.key_chats_actionBackground);
-        if (accent == 0) accent = 0xFFC4A98F; // Soft Pixel Sand
+        if (accent == 0) accent = 0xFFC4A98F;
 
         basePaint.setColor(Theme.blendOver(accent, 0x33000000));
         planePaint.setColor(0xFFFFFFFF);
         shadePaint.setColor(0xCCFFFFFF);
 
-        // Soft outer glowing ring
         canvas.drawCircle(cx, cy, radius, basePaint);
 
-        // Modern exteraGram styled rounded delta airplane
         canvas.save();
         canvas.translate(cx - AndroidUtilities.dp(2), cy);
         float scale = radius / AndroidUtilities.dp(34);
         canvas.scale(scale, scale);
 
-        // Plane main body
         planePath.reset();
         planePath.moveTo(AndroidUtilities.dp(16), -AndroidUtilities.dp(14));
         planePath.lineTo(-AndroidUtilities.dp(15), -AndroidUtilities.dp(2));
@@ -58,7 +55,6 @@ public class ZenigramIntroLogoView extends View {
         planePath.close();
         canvas.drawPath(planePath, planePaint);
 
-        // Plane folded wing / bottom fin
         shadePath.reset();
         shadePath.moveTo(AndroidUtilities.dp(16), -AndroidUtilities.dp(14));
         shadePath.lineTo(-AndroidUtilities.dp(4), AndroidUtilities.dp(4));

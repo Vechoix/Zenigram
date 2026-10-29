@@ -5,7 +5,6 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Subtle inner check / highlight for delta shape -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"

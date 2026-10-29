@@ -50,9 +50,9 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
     private final int resetDefaultsRow = rowId++;
 
     public static final int[] ACCENT_COLORS = new int[]{
-            0,          // По умолчанию
-            0xFFC4A98F, // Песочный
-            0xFF45464F  // Графит
+            0,
+            0xFFC4A98F,
+            0xFF45464F
     };
 
     public static final String[] ACCENT_NAMES = new String[]{
@@ -62,9 +62,9 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
     };
 
     public static final int[] BUBBLE_COLORS = new int[]{
-            0,          // По умолчанию
-            0xFFC4A98F, // Песочный
-            0xFF45464F  // Графит
+            0,
+            0xFFC4A98F,
+            0xFF45464F
     };
 
     public static String getBubbleColorName(int color) {
@@ -111,7 +111,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 Theme.applyTheme(lightTheme, false);
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, lightTheme, false, null, -1);
             }
-        } else { // THEME_MODE_DARK
+        } else {
             Theme.selectedAutoNightType = Theme.AUTO_NIGHT_TYPE_NONE;
             preferences.edit().putInt("selectedAutoNightType", Theme.AUTO_NIGHT_TYPE_NONE).apply();
 
@@ -479,7 +479,6 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
             addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 10));
 
-            // Font Live Preview Card
             fontPreviewCard = new LinearLayout(context);
             fontPreviewCard.setOrientation(VERTICAL);
             fontPreviewCard.setPadding(AndroidUtilities.dp(16), AndroidUtilities.dp(14), AndroidUtilities.dp(16), AndroidUtilities.dp(14));
@@ -502,7 +501,6 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
 
             addView(fontPreviewCard, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 0, 0, 12));
 
-            // Row 1: Font Selection Buttons side-by-side
             fontButtonsLayout = new LinearLayout(context);
             fontButtonsLayout.setOrientation(HORIZONTAL);
 
@@ -527,7 +525,6 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 }
             });
 
-            // Scope Layout in 2 stacked rows (No overlap!)
             scopeLayout = new LinearLayout(context);
             scopeLayout.setOrientation(VERTICAL);
 
@@ -537,11 +534,9 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             scopeTitleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
             scopeLayout.addView(scopeTitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 6, 0, 8));
 
-            // Row 2: All interface + messages
             scopeAllBtn = createPillButton(context, "Весь интерфейс и сообщения");
             scopeLayout.addView(scopeAllBtn, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 0, 0, 0, 8));
 
-            // Row 3: UI elements only
             scopeUiOnlyBtn = createPillButton(context, "Только элементы интерфейса (без чата)");
             scopeLayout.addView(scopeUiOnlyBtn, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 42, 0, 0, 0, 0));
 

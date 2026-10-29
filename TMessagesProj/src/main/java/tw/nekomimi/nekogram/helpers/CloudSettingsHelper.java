@@ -156,7 +156,6 @@ public class CloudSettingsHelper {
     }
 
     public void doAutoSync() {
-        // Disabled: server-dependent cloud sync removed from UI
     }
 
     private void syncToCloud(BiConsumer<Boolean, String> callback) {

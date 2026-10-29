@@ -273,171 +273,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
     private LinearLayout zoomPillLayout;
 
-    private ZoomArcView zoomArcView;
 
-    private class ZoomArcView extends View {
-        private final Paint trackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint tickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint minorTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint thumbBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint thumbTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final RectF thumbRect = new RectF();
-        private final RectF bgRect = new RectF();
-        private final Paint bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-        private boolean isDragging = false;
-        private int lastHapticInt = -1;
-
-        public ZoomArcView(Context context) {
-            super(context);
-            bgPaint.setColor(0xDD18181C);
-            borderPaint.setStyle(Paint.Style.STROKE);
-            borderPaint.setStrokeWidth(AndroidUtilities.dp(1));
-            borderPaint.setColor(0x33FFFFFF);
-
-            trackPaint.setStyle(Paint.Style.STROKE);
-            trackPaint.setStrokeWidth(AndroidUtilities.dp(2));
-            trackPaint.setColor(0x44FFFFFF);
-            trackPaint.setStrokeCap(Paint.Cap.ROUND);
-
-            tickPaint.setStyle(Paint.Style.STROKE);
-            tickPaint.setStrokeWidth(AndroidUtilities.dp(2));
-            tickPaint.setColor(0xCCFFFFFF);
-            tickPaint.setStrokeCap(Paint.Cap.ROUND);
-
-            minorTickPaint.setStyle(Paint.Style.STROKE);
-            minorTickPaint.setStrokeWidth(AndroidUtilities.dp(1));
-            minorTickPaint.setColor(0x66FFFFFF);
-            minorTickPaint.setStrokeCap(Paint.Cap.ROUND);
-
-            textPaint.setTextSize(AndroidUtilities.dp(11));
-            textPaint.setTypeface(AndroidUtilities.bold());
-            textPaint.setColor(0xAAFFFFFF);
-            textPaint.setTextAlign(Paint.Align.CENTER);
-
-            thumbBgPaint.setStyle(Paint.Style.FILL);
-
-            thumbTextPaint.setTextSize(AndroidUtilities.dp(12));
-            thumbTextPaint.setTypeface(AndroidUtilities.bold());
-            thumbTextPaint.setColor(0xFFFFFFFF);
-            thumbTextPaint.setTextAlign(Paint.Align.CENTER);
-        }
-
-        private float zoomToProgress(float zoom) {
-            if (zoom <= 2.0f) {
-                return (zoom - 1.0f) * 0.333f;
-            } else if (zoom <= 5.0f) {
-                return 0.333f + ((zoom - 2.0f) / 3.0f) * 0.333f;
-            } else {
-                return 0.666f + ((zoom - 5.0f) / 5.0f) * 0.334f;
-            }
-        }
-
-        private float progressToZoom(float p) {
-            p = Utilities.clamp(p, 1.0f, 0.0f);
-            if (p <= 0.333f) {
-                return 1.0f + (p / 0.333f) * 1.0f;
-            } else if (p <= 0.666f) {
-                return 2.0f + ((p - 0.333f) / 0.333f) * 3.0f;
-            } else {
-                return 5.0f + ((p - 0.666f) / 0.334f) * 5.0f;
-            }
-        }
-
-        @Override
-        protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            int w = getWidth();
-            int h = getHeight();
-            if (w <= 0 || h <= 0) return;
-
-            // Rounded background pill
-            bgRect.set(0, 0, w, h);
-            canvas.drawRoundRect(bgRect, AndroidUtilities.dp(26), AndroidUtilities.dp(26), bgPaint);
-            canvas.drawRoundRect(bgRect, AndroidUtilities.dp(26), AndroidUtilities.dp(26), borderPaint);
-
-            float padding = AndroidUtilities.dp(36);
-            float trackWidth = w - padding * 2;
-            float lineY = h / 2f + AndroidUtilities.dp(2);
-
-            // Draw track line
-            canvas.drawLine(padding, lineY, w - padding, lineY, trackPaint);
-
-            // Major values: 1x, 2x, 5x, 10x
-            float[] majorZooms = {1.0f, 2.0f, 5.0f, 10.0f};
-            String[] majorLabels = {"1", "2", "5", "10"};
-
-            for (int i = 0; i < majorZooms.length; i++) {
-                float p = zoomToProgress(majorZooms[i]);
-                float tx = padding + p * trackWidth;
-                // Major tick
-                canvas.drawLine(tx, lineY - AndroidUtilities.dp(8), tx, lineY + AndroidUtilities.dp(8), tickPaint);
-                // Label below tick
-                canvas.drawText(majorLabels[i], tx, lineY + AndroidUtilities.dp(19), textPaint);
-            }
-
-            // Minor ticks
-            float[] minorZooms = {1.25f, 1.5f, 1.75f, 2.75f, 3.5f, 4.25f, 6.25f, 7.5f, 8.75f};
-            for (float mz : minorZooms) {
-                float p = zoomToProgress(mz);
-                float mx = padding + p * trackWidth;
-                canvas.drawLine(mx, lineY - AndroidUtilities.dp(4), mx, lineY + AndroidUtilities.dp(4), minorTickPaint);
-            }
-
-            // Draw Active Thumb Pill [ 3.3x ]
-            float currentProg = zoomToProgress(currentStaticZoom);
-            float thumbX = padding + currentProg * trackWidth;
-            float thumbWidth = AndroidUtilities.dp(48);
-            float thumbHeight = AndroidUtilities.dp(24);
-            float thumbY = lineY - AndroidUtilities.dp(4);
-
-            thumbRect.set(thumbX - thumbWidth / 2f, thumbY - thumbHeight / 2f, thumbX + thumbWidth / 2f, thumbY + thumbHeight / 2f);
-
-            int accent = tw.nekomimi.nekogram.NekoConfig.customAccentColor != 0 ?
-                    tw.nekomimi.nekogram.NekoConfig.customAccentColor : Theme.getColor(Theme.key_chats_actionBackground);
-            if (accent == 0) accent = 0xFFC4A98F;
-            thumbBgPaint.setColor(accent);
-
-            canvas.drawRoundRect(thumbRect, AndroidUtilities.dp(12), AndroidUtilities.dp(12), thumbBgPaint);
-
-            String label = String.format(java.util.Locale.US, "%.1fx", currentStaticZoom);
-            canvas.drawText(label, thumbX, thumbY + AndroidUtilities.dp(4.5f), thumbTextPaint);
-        }
-
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            float padding = AndroidUtilities.dp(36);
-            float trackWidth = getWidth() - padding * 2;
-            if (trackWidth <= 0) return false;
-
-            float x = event.getX();
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
-                    isDragging = true;
-                    float progress = Utilities.clamp((x - padding) / trackWidth, 1.0f, 0.0f);
-                    float targetZoom = progressToZoom(progress);
-                    float rounded = Math.round(targetZoom * 10f) / 10f;
-                    setStaticZoom(rounded);
-                    int currentInt = (int) rounded;
-                    if (currentInt != lastHapticInt && Math.abs(rounded - currentInt) < 0.05f) {
-                        lastHapticInt = currentInt;
-                    }
-                    invalidate();
-                    getParent().requestDisallowInterceptTouchEvent(true);
-                    return true;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    isDragging = false;
-                    lastHapticInt = -1;
-                    invalidate();
-                    return true;
-            }
-            return super.onTouchEvent(event);
-        }
-    }
 
     private TextView[] zoomButtons = new TextView[4];
     private float currentStaticZoom = 1.0f;
@@ -660,7 +496,6 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         float[] zoomFactors = new float[]{1.0f, 2.0f, 5.0f, 10.0f};
         String[] zoomLabels = new String[]{"1x", "2x", "5x", "10x"};
 
-        zoomArcView = null;
 
         for (int i = 0; i < 4; i++) {
             final int index = i;
@@ -709,7 +544,6 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
         });
 
         updateZoomPillUI();
-        if (zoomArcView != null) zoomArcView.invalidate();
         zoomPillLayout.setVisibility(View.GONE);
 
         setVisibilityFromPause = false;
@@ -792,7 +626,6 @@ private void updateZoomPillUI() {
             }
         }
         updateZoomPillUI();
-        if (zoomArcView != null) zoomArcView.invalidate();
     }
 
     public void setButtonsBackground(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
@@ -1079,7 +912,6 @@ private void updateZoomPillUI() {
             currentStaticZoom = 1.0f;
             pinchStartZoom = 1.0f;
             updateZoomPillUI();
-        if (zoomArcView != null) zoomArcView.invalidate();
         }
         if (textureView != null) {
             return;
@@ -4245,7 +4077,6 @@ private void updateZoomPillUI() {
                     camera2SessionCurrent.setZoom(zoom);
                     currentStaticZoom = zoom;
                     updateZoomPillUI();
-        if (zoomArcView != null) zoomArcView.invalidate();
                 }
             } else {
                 float zoom = Math.min(1f, Math.max(0, pinchScale - 1f));
@@ -4254,7 +4085,6 @@ private void updateZoomPillUI() {
                 }
                 currentStaticZoom = 1.0f + zoom * 4.0f;
                 updateZoomPillUI();
-        if (zoomArcView != null) zoomArcView.invalidate();
             }
         } else if ((ev.getActionMasked() == MotionEvent.ACTION_UP || (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && checkPointerIds(ev)) || ev.getActionMasked() == MotionEvent.ACTION_CANCEL) && isInPinchToZoomTouchMode) {
             isInPinchToZoomTouchMode = false;
@@ -4266,7 +4096,6 @@ private void updateZoomPillUI() {
     ValueAnimator finishZoomTransition;
 
     public void finishZoom() {
-        // Retain static zoom level during recording
     }
 
     public interface Delegate {

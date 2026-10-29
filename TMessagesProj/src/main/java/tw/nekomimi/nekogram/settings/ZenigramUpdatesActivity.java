@@ -73,7 +73,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
             }
         }
 
-        // Always check GitHub on entry so changelog & updates are 100% live
         performCheck(false);
 
         return super.onFragmentCreate();
@@ -82,12 +81,13 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
     @Override
     protected void fillItems(ArrayList<UItem> items, UniversalAdapter adapter) {
         if (heroCardView == null) {
-            heroCardView = new HeroCardView(getParentActivity());
+            Context context = getContext();
+            if (context == null) context = org.telegram.messenger.ApplicationLoader.applicationContext;
+            heroCardView = new HeroCardView(context);
         }
         updateHeroCardState();
         items.add(UItem.asCustom(heroCardView));
 
-        // Changelog: strictly taken from GitHub
         if (!TextUtils.isEmpty(latestChangelog)) {
             items.add(UItem.asHeader("Что нового в версии " + latestVersionName));
             items.add(UItem.asShadow(latestChangelog));
@@ -140,7 +140,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
 
         heroCardView.updateData(title, badge, badgeColor, "Последняя проверка: " + lastCheck);
 
-        // Update button inside hero card
         if (isChecking) {
             heroCardView.setButtonState("Проверка...", false, false);
             heroCardView.setProgressVisible(false);
@@ -250,7 +249,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
         }
     }
 
-    // Unified MD3 Hero Card View containing the Status & Action Button
     private class HeroCardView extends FrameLayout {
         private final TextView titleView;
         private final TextView badgeView;
@@ -276,7 +274,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
             cardBg.setCornerRadius(AndroidUtilities.dp(24));
             container.setBackground(cardBg);
 
-            // Circular Icon with theme tint
             FrameLayout iconCircle = new FrameLayout(context);
             GradientDrawable circleBg = new GradientDrawable();
             circleBg.setShape(GradientDrawable.OVAL);
@@ -292,7 +289,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
 
             container.addView(iconCircle, LayoutHelper.createLinear(64, 64, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 12));
 
-            // App title
             titleView = new TextView(context);
             titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             titleView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
@@ -300,7 +296,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
             titleView.setGravity(Gravity.CENTER_HORIZONTAL);
             container.addView(titleView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 8));
 
-            // Status Badge
             badgeView = new TextView(context);
             badgeView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
             badgeView.setTextColor(Color.WHITE);
@@ -309,14 +304,12 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
             badgeView.setPadding(AndroidUtilities.dp(14), AndroidUtilities.dp(6), AndroidUtilities.dp(14), AndroidUtilities.dp(6));
             container.addView(badgeView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 10));
 
-            // Last check time
             checkTimeView = new TextView(context);
             checkTimeView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             checkTimeView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText2));
             checkTimeView.setGravity(Gravity.CENTER_HORIZONTAL);
             container.addView(checkTimeView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 0, 0, 18));
 
-            // Progress container (hidden by default)
             progressContainer = new LinearLayout(context);
             progressContainer.setOrientation(LinearLayout.VERTICAL);
             progressContainer.setVisibility(GONE);
@@ -349,7 +342,6 @@ public class ZenigramUpdatesActivity extends BaseNekoSettingsActivity {
 
             container.addView(progressContainer, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
 
-            // MD3 Action Button directly in Hero Card (seamless, no extra borders)
             actionButton = new TextView(context);
             actionButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             actionButton.setTypeface(AndroidUtilities.bold());

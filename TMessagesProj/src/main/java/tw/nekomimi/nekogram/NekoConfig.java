@@ -81,15 +81,12 @@ public class NekoConfig {
     public static final int FONT_SCOPE_UI_ONLY = 1;
     public static int customFontScope = FONT_SCOPE_ALL;
 
-    // Ghost & Privacy
     public static boolean ghostReadMessages = false;
     public static boolean ghostSendTyping = false;
     public static boolean ghostStories = false;
     public static boolean ghostVoice = false;
     public static boolean allowScreenshots = false;
     public static boolean hqVideoMessages = true;
-    public static boolean roundVideo12SecDebug = false;
-    public static boolean message12SecDebug = false;
     public static boolean autoCheckUpdates = true;
     public static long lastUpdateCheckTime = 0;
     public static boolean hasUpdateAvailable = false;
@@ -112,7 +109,6 @@ public class NekoConfig {
     public static int transcribeProvider = TRANSCRIBE_PREMIUM;
     public static int transType = TRANS_TYPE_NEKO;
 
-    // Theme Studio
     public static int themeMode = THEME_MODE_DARK;
     public static boolean dynamicMonet = false;
     public static int customAccentColor = 0;
@@ -123,12 +119,10 @@ public class NekoConfig {
     public static int interfaceDensity = DENSITY_DEFAULT;
     public static float animationSpeedScale = 1.0f;
 
-    // Gesture Lab
     public static int chatListSwipeAction = -1;
     public static boolean swipeToReply = true;
     public static boolean quickForwardGesture = false;
 
-    // Adaptive Performance Mode
     public static boolean adaptivePerformanceMode = false;
     public static boolean disableBlurPasses = true;
     public static boolean optimizeThumbnailCaching = true;
@@ -240,8 +234,6 @@ public class NekoConfig {
             ghostVoice = preferences.getBoolean("ghostVoice", false);
             allowScreenshots = preferences.getBoolean("allowScreenshots", false);
             hqVideoMessages = preferences.getBoolean("hqVideoMessages", true);
-            roundVideo12SecDebug = preferences.getBoolean("roundVideo12SecDebug", false);
-            message12SecDebug = preferences.getBoolean("message12SecDebug", false);
         autoCheckUpdates = preferences.getBoolean("autoCheckUpdates", true);
         lastUpdateCheckTime = preferences.getLong("lastUpdateCheckTime", 0);
         hasUpdateAvailable = preferences.getBoolean("hasUpdateAvailable", false);
@@ -1147,15 +1139,7 @@ public class NekoConfig {
         preferences.edit().putBoolean("hqVideoMessages", hqVideoMessages).apply();
     }
 
-    public static void toggleRoundVideo12SecDebug() {
-        roundVideo12SecDebug = !roundVideo12SecDebug;
-        preferences.edit().putBoolean("roundVideo12SecDebug", roundVideo12SecDebug).apply();
-    }
 
-    public static void toggleMessage12SecDebug() {
-        message12SecDebug = !message12SecDebug;
-        preferences.edit().putBoolean("message12SecDebug", message12SecDebug).apply();
-    }
 
     public static void toggleAutoCheckUpdates() {
         autoCheckUpdates = !autoCheckUpdates;
@@ -1481,7 +1465,6 @@ public class NekoConfig {
         }
     }
 
-    // Theme Studio helpers
     public static void setThemeMode(int mode) {
         themeMode = mode;
         preferences.edit().putInt("themeMode", mode).apply();
@@ -1558,7 +1541,6 @@ public class NekoConfig {
         return animationSpeedScale;
     }
 
-    // Gesture Lab helpers
     public static void setChatListSwipeAction(int action) {
         chatListSwipeAction = action;
         preferences.edit().putInt("chatListSwipeAction", action).apply();
@@ -1574,7 +1556,6 @@ public class NekoConfig {
         preferences.edit().putBoolean("quickForwardGesture", quickForwardGesture).apply();
     }
 
-    // Adaptive Performance helpers
     public static void toggleAdaptivePerformanceMode() {
         adaptivePerformanceMode = !adaptivePerformanceMode;
         preferences.edit().putBoolean("adaptivePerformanceMode", adaptivePerformanceMode).apply();

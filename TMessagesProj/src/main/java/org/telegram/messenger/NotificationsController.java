@@ -3366,7 +3366,6 @@ public class NotificationsController extends BaseController implements Notificat
 
     public void processDismissNotification(long dialogId, int date) {
         notificationsQueue.postRunnable(() -> {
-            FileLog.d("NotificationsController processDismissNotification dialogId=" + dialogId + " date=" + date);
             if (dialogId == 0) {
                 dismissNotification();
             } else {

@@ -4459,9 +4459,6 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         HashMap<String, String> params = sendMessageParams.params;
         boolean notify = sendMessageParams.notify;
         int scheduleDate = sendMessageParams.scheduleDate;
-        if (scheduleDate == 0 && tw.nekomimi.nekogram.NekoConfig.message12SecDebug) {
-            scheduleDate = getConnectionsManager().getCurrentTime() + 12;
-        }
         int scheduleRepeatPeriod = sendMessageParams.scheduleRepeatPeriod;
         int ttl = sendMessageParams.ttl;
         Object parentObject = sendMessageParams.parentObject;

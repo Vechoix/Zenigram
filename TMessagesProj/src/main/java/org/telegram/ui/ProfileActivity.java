@@ -15032,8 +15032,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     new SearchResult(403, getString(R.string.TelegramFAQ), getString(R.string.SettingsHelp), R.drawable.msg2_help, () -> Browser.openUrl(f.getParentActivity(), getString(R.string.TelegramFaqUrl))).withLink("tg://settings/faq"),
                     new SearchResult(404, getString(R.string.PrivacyPolicy), getString(R.string.SettingsHelp), R.drawable.msg2_help, () -> Browser.openUrl(f.getParentActivity(), getString(R.string.PrivacyPolicyUrl))).withLink("tg://settings/privacy-policy"),
 
-                    // Zenigram Settings Search Integration
-                    new SearchResult(2000, "Настройки Zenigram", R.drawable.msg_fave, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.NekoSettingsActivity())),
+                        new SearchResult(2000, "Настройки Zenigram", R.drawable.msg_fave, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.NekoSettingsActivity())),
                     new SearchResult(2001, "Внешний вид и темы", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),
                     new SearchResult(2002, "Шрифт (Comfortaa)", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),
                     new SearchResult(2003, "Скругление углов сообщений", "Настройки Zenigram", R.drawable.msg_theme, () -> f.presentFragment(new tw.nekomimi.nekogram.settings.ZenigramThemeStudioActivity())),

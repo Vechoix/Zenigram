@@ -389,26 +389,6 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
             width = w;
         }
 
-        public static void shiftSpansAfterInsert(SpannableStringBuilder builder, int insertIndex, int length) {
-            if (builder == null || length <= 0) return;
-            int queryEnd = Math.min(builder.length(), insertIndex + length + 8);
-            Object[] spans = builder.getSpans(insertIndex, queryEnd, Object.class);
-            if (spans != null) {
-                for (Object span : spans) {
-                    if (span instanceof FixedWidthSpan || span instanceof ColoredImageSpan) continue;
-                    int start = builder.getSpanStart(span);
-                    int end = builder.getSpanEnd(span);
-                    int flags = builder.getSpanFlags(span);
-                    if (start < insertIndex + length) {
-                        int spanLen = Math.max(1, end - start);
-                        builder.removeSpan(span);
-                        int newStart = insertIndex + length;
-                        int newEnd = Math.min(builder.length(), newStart + spanLen);
-                        builder.setSpan(span, newStart, newEnd, flags);
-                    }
-                }
-            }
-        }
 
         @Override
         public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
