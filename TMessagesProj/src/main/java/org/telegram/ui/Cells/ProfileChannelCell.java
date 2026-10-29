@@ -128,7 +128,7 @@ public class ProfileChannelCell extends FrameLayout implements Theme.Colorable {
         });
         dialogCell.avatarStart = 15;
         dialogCell.messagePaddingStart = 83;
-        addView(dialogCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 14));
+        addView(dialogCell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.FILL_HORIZONTAL | Gravity.BOTTOM));
 
         updateColors();
 
@@ -229,12 +229,7 @@ public class ProfileChannelCell extends FrameLayout implements Theme.Colorable {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(
-            MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY),
-            MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-        );
-        int minHeight = dp(102 + 14);
-        setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), Math.max(minHeight, getMeasuredHeight()));
+        super.onMeasure(MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(102), MeasureSpec.EXACTLY));
     }
 
 
