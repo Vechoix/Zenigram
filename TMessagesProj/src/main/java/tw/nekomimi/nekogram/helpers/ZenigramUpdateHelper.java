@@ -35,7 +35,7 @@ public class ZenigramUpdateHelper {
     public static final String GITHUB_RELEASES_API = "https://api.github.com/repos/Vechoix/Zenigram/releases/latest";
 
     public static final String CURRENT_VERSION_NAME = org.telegram.messenger.BuildConfig.VERSION_NAME;
-    public static final int CURRENT_VERSION_CODE = 9;
+    public static final int CURRENT_VERSION_CODE = 10;
 
     private static volatile ZenigramUpdateHelper instance;
     private volatile boolean isChecking = false;

@@ -1,18 +1,13 @@
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
 
-if (-not $env:JAVA_HOME) {
-    if (Test-Path "F:\jdk-21\jdk-21.0.12.1+1") {
-        $env:JAVA_HOME = "F:\jdk-21\jdk-21.0.12.1+1"
-        $env:Path = "$env:JAVA_HOME\bin;$env:Path"
-    }
-}
-if (-not $env:ANDROID_HOME) {
-    if (Test-Path "H:\Android\Sdk") {
-        $env:ANDROID_HOME = "H:\Android\Sdk"
-        $env:ANDROID_SDK_ROOT = "H:\Android\Sdk"
-    }
-}
+$env:JAVA_HOME = "F:\jdk-21\jdk-21.0.12.1+1"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+$env:ANDROID_HOME = "H:\Android\Sdk"
+$env:ANDROID_SDK_ROOT = "H:\Android\Sdk"
+$env:GRADLE_USER_HOME = "H:\GradleCache"
+$env:TEMP = "F:\Temp"
+$env:TMP = "F:\Temp"
 
 Write-Host "Compiling Zenigram arm64-v8a Release APK..."
 & .\gradlew.bat :TMessagesProj_App:assembleRelease -x lint -x test --daemon
@@ -40,7 +35,7 @@ if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
 }
 
-$targetName = "Zenigram-arm64-v8a.apk"
+$targetName = "Zenigram-1.0.9-arm64-v8a.apk"
 $destPath = Join-Path $destDir $targetName
 Copy-Item -Path $releaseApk.FullName -Destination $destPath -Force
 
@@ -49,13 +44,12 @@ $apksigner = if ($env:ANDROID_HOME) { Get-ChildItem -Path (Join-Path $env:ANDROI
 
 if ((Test-Path $keystore) -and $apksigner) {
     if (-not $env:KEYSTORE_PASS) {
-        Write-Warning "KEYSTORE_PASS is not set in environment. Skipping signing."
-    } else {
-        $ksPass = $env:KEYSTORE_PASS
-        Write-Host "Signing APK with release keystore..."
-        & $apksigner sign --ks $keystore --ks-key-alias zenigram --ks-pass "pass:$ksPass" --key-pass "pass:$ksPass" $destPath
-        & $apksigner verify --verbose $destPath
+        $env:KEYSTORE_PASS = "zenigram2026"
     }
+    $ksPass = $env:KEYSTORE_PASS
+    Write-Host "Signing APK with release keystore..."
+    & $apksigner sign --ks $keystore --ks-key-alias zenigram --ks-pass "pass:$ksPass" --key-pass "pass:$ksPass" $destPath
+    & $apksigner verify --verbose $destPath
 }
 
 $hash = (Get-FileHash -Path $destPath -Algorithm SHA256).Hash
