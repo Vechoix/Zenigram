@@ -181,6 +181,33 @@ public class MessagesController extends BaseController implements NotificationCe
     public LongSparseArray<MessageObject> dialogMessagesByRandomIds = new LongSparseArray<>();
     public LongSparseIntArray deletedHistory = new LongSparseIntArray();
     public SparseArray<MessageObject> dialogMessagesByIds = new SparseArray<>();
+    public static final java.util.Map<Integer, Long> userDeletedMessages = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static void addUserDeletedMessages(java.util.Collection<Integer> mids) {
+        if (mids == null || mids.isEmpty()) return;
+        long now = System.currentTimeMillis();
+        for (Integer mid : mids) {
+            if (mid != null) {
+                userDeletedMessages.put(mid, now);
+            }
+        }
+        if (userDeletedMessages.size() > 500) {
+            long cutoff = now - 60_000L;
+            userDeletedMessages.entrySet().removeIf(entry -> entry.getValue() < cutoff);
+        }
+    }
+
+    public static boolean isUserDeleted(int mid) {
+        Long time = userDeletedMessages.get(mid);
+        if (time != null) {
+            if (System.currentTimeMillis() - time < 60_000L) {
+                return true;
+            } else {
+                userDeletedMessages.remove(mid);
+            }
+        }
+        return false;
+    }
     public ConcurrentHashMap<Long, ConcurrentHashMap<Integer, ArrayList<PrintingUser>>> printingUsers = new ConcurrentHashMap<>(20, 1.0f, 2);
     public LongSparseArray<LongSparseArray<CharSequence>> printingStrings = new LongSparseArray<>();
     public LongSparseArray<LongSparseArray<Integer>> printingStringsTypes = new LongSparseArray<>();
@@ -9312,6 +9339,9 @@ public class MessagesController extends BaseController implements NotificationCe
         final boolean welcomeMessages = mode == ChatActivity.MODE_WELCOME_MESSAGES;
         if ((messages == null || messages.isEmpty()) && taskId == 0) {
             return;
+        }
+        if (messages != null) {
+            addUserDeletedMessages(messages);
         }
         ArrayList<Integer> toSend = null;
         long channelId;

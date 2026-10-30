@@ -10618,6 +10618,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                     ViewPage page = viewPages[a];
                     if (page != null && page.listView != null) {
                         page.listView.invalidateViews();
+                        for (int i = 0; i < page.listView.getChildCount(); i++) {
+                            android.view.View child = page.listView.getChildAt(i);
+                            if (child instanceof org.telegram.ui.Cells.DialogCell) {
+                                ((org.telegram.ui.Cells.DialogCell) child).updateColors();
+                            }
+                        }
                     }
                 }
             }

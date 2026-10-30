@@ -2,14 +2,17 @@ package tw.nekomimi.nekogram.settings;
 
 import android.view.View;
 
+import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.R;
 import org.telegram.ui.Cells.TextCheckCell;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
 
 import java.util.ArrayList;
 
 import tw.nekomimi.nekogram.NekoConfig;
+import tw.nekomimi.nekogram.helpers.ZenigramCacheHelper;
 
 public class ZenigramPerformanceActivity extends BaseNekoSettingsActivity {
 
@@ -17,6 +20,7 @@ public class ZenigramPerformanceActivity extends BaseNekoSettingsActivity {
     private final int disableBlurPassesRow = rowId++;
     private final int scaleAnimationsRow = rowId++;
     private final int hqVideoMessagesRow = rowId++;
+    private final int clearCacheRow = rowId++;
 
     @Override
     protected String getActionBarTitle() {
@@ -36,6 +40,10 @@ public class ZenigramPerformanceActivity extends BaseNekoSettingsActivity {
 
         items.add(UItem.asHeader("Медиа"));
         items.add(UItem.asCheck(hqVideoMessagesRow, "Высокое качество кружков", "Повышенное разрешение и битрейт видеозаметок").setChecked(NekoConfig.hqVideoMessages).slug("hqVideoMessages"));
+        items.add(UItem.asShadow(null));
+
+        items.add(UItem.asHeader("Память"));
+        items.add(UItem.asButtonSubtext(clearCacheRow, R.drawable.msg_clearcache, "Очистить кэш", "Быстрое освобождение памяти и файлов").slug("clearCache"));
         items.add(UItem.asShadow(null));
     }
 
@@ -73,6 +81,11 @@ public class ZenigramPerformanceActivity extends BaseNekoSettingsActivity {
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(NekoConfig.hqVideoMessages);
             }
+        } else if (id == clearCacheRow) {
+            ZenigramCacheHelper.clearCacheAsync(clearedBytes -> {
+                String sizeStr = AndroidUtilities.formatFileSize(clearedBytes);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.done, "Кэш очищен (" + sizeStr + ")").show();
+            });
         }
     }
 }

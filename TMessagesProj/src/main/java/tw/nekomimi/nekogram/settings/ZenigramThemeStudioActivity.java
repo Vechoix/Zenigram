@@ -571,8 +571,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             Theme.refreshThemeColors();
             Theme.applyChatTheme(true, false);
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-            applyLiveThemeToCurrentScreen();
+                        applyLiveThemeToCurrentScreen();
             updateState();
         }
 
@@ -697,8 +696,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                     Theme.invalidateChatOutBubble();
                     Theme.refreshThemeColors();
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme, Theme.isCurrentThemeDark(), true, true);
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-                    applyLiveThemeToCurrentScreen();
+                                        applyLiveThemeToCurrentScreen();
                 } else {
                     AndroidUtilities.runOnUIThread(() -> showCustomColorPicker(true), 150);
                 }
@@ -729,8 +727,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                     Theme.invalidateChatOutBubble();
                     Theme.refreshThemeColors();
                     NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme, Theme.isCurrentThemeDark(), true, true);
-                    NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-                    applyLiveThemeToCurrentScreen();
+                                        applyLiveThemeToCurrentScreen();
                 } else {
                     AndroidUtilities.runOnUIThread(() -> showCustomColorPicker(false), 150);
                 }
@@ -790,8 +787,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
                 applyThemeMode(NekoConfig.THEME_MODE_DARK);
                 Theme.refreshThemeColors();
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.reloadInterface);
-                NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-                applyLiveThemeToCurrentScreen();
+                                applyLiveThemeToCurrentScreen();
                 BulletinFactory.of(this).createSimpleBulletin(R.raw.done, LocaleController.getString(R.string.ThemeStudioReset)).show();
             });
             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
@@ -834,8 +830,7 @@ public class ZenigramThemeStudioActivity extends BaseNekoSettingsActivity implem
             Theme.invalidateChatOutBubble();
             Theme.refreshThemeColors();
             NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.didSetNewTheme, Theme.isCurrentThemeDark(), true, true);
-            NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needSetDayNightTheme, Theme.getActiveTheme(), Theme.isCurrentThemeDark(), null, -1);
-            applyLiveThemeToCurrentScreen();
+                        applyLiveThemeToCurrentScreen();
             if (listView != null && listView.adapter != null) {
                 listView.adapter.notifyDataSetChanged();
             }

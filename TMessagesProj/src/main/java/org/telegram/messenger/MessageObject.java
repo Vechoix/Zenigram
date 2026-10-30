@@ -1938,8 +1938,10 @@ public class MessageObject {
         currentAccount = accountNum;
         messageOwner = message;
         if (message != null && message.ttl < 0) {
-            deleted = true;
-            isDeletedLocally = true;
+            if (tw.nekomimi.nekogram.NekoConfig.antiRevoke) {
+                deleted = true;
+                isDeletedLocally = true;
+            }
         }
         replyMessageObject = replyToMessage;
         eventId = eid;

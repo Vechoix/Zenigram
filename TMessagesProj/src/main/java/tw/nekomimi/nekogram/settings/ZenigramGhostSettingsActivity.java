@@ -17,6 +17,7 @@ public class ZenigramGhostSettingsActivity extends BaseNekoSettingsActivity {
     private final int ghostSendTypingRow = rowId++;
     private final int ghostVoiceRow = rowId++;
     private final int ghostStoriesRow = rowId++;
+    private final int antiRevokeRow = rowId++;
     private final int allowScreenshotsRow = rowId++;
     private final int ignoreContentRestrictionRow = rowId++;
 
@@ -32,6 +33,7 @@ public class ZenigramGhostSettingsActivity extends BaseNekoSettingsActivity {
         items.add(UItem.asCheck(ghostSendTypingRow, "Скрыть статус набора", "Не показывать «печатает...»").setChecked(NekoConfig.ghostSendTyping).slug("ghostSendTyping"));
         items.add(UItem.asCheck(ghostVoiceRow, "Не слушать аудио открыто", "Голосовые и кружки остаются непрослушанными").setChecked(NekoConfig.ghostVoice).slug("ghostVoice"));
         items.add(UItem.asCheck(ghostStoriesRow, "Анонимный просмотр историй", "Не показывать вас в списке зрителей").setChecked(NekoConfig.ghostStories).slug("ghostStories"));
+        items.add(UItem.asCheck(antiRevokeRow, "Удаленные сообщения", "Сохранять удаленные собеседником сообщения").setChecked(NekoConfig.antiRevoke).slug("antiRevoke"));
         items.add(UItem.asCheck(allowScreenshotsRow, "Разрешить скриншоты", "Снимает запрет на снимки и запись экрана").setChecked(NekoConfig.allowScreenshots).slug("allowScreenshots"));
         items.add(UItem.asCheck(ignoreContentRestrictionRow, "Запрет на копирование", "Разрешить копирование и пересылку из каналов").setChecked(NekoConfig.ignoreContentRestriction).slug("ignoreContentRestriction"));
         items.add(UItem.asShadow(null));
@@ -59,6 +61,11 @@ public class ZenigramGhostSettingsActivity extends BaseNekoSettingsActivity {
             NekoConfig.toggleGhostStories();
             if (view instanceof TextCheckCell) {
                 ((TextCheckCell) view).setChecked(NekoConfig.ghostStories);
+            }
+        } else if (id == antiRevokeRow) {
+            NekoConfig.toggleAntiRevoke();
+            if (view instanceof TextCheckCell) {
+                ((TextCheckCell) view).setChecked(NekoConfig.antiRevoke);
             }
         } else if (id == allowScreenshotsRow) {
             NekoConfig.toggleAllowScreenshots();

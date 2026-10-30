@@ -8966,8 +8966,14 @@ public class MessagesStorage extends BaseController {
                         data.reuse();
                         message.date = cursor.intValue(3);
                         message.dialog_id = dialogId;
-                        if (message.ttl == 0) {
-                            message.ttl = cursor.intValue(6);
+                        int dbTtl = cursor.intValue(6);
+                        if (!tw.nekomimi.nekogram.NekoConfig.antiRevoke && dbTtl < 0) {
+                            continue;
+                        }
+                        if (dbTtl < 0) {
+                            message.ttl = dbTtl;
+                        } else if (message.ttl == 0) {
+                            message.ttl = dbTtl;
                         }
                         res.messages.add(message);
 
@@ -9031,8 +9037,14 @@ public class MessagesStorage extends BaseController {
                         message.date = cursor.intValue(3);
                         message.dialog_id = dialogId;
                         message.ephemeralReceiverBotId = -1;
-                        if (message.ttl == 0) {
-                            message.ttl = cursor.intValue(5);
+                        int dbTtl = cursor.intValue(5);
+                        if (!tw.nekomimi.nekogram.NekoConfig.antiRevoke && dbTtl < 0) {
+                            continue;
+                        }
+                        if (dbTtl < 0) {
+                            message.ttl = dbTtl;
+                        } else if (message.ttl == 0) {
+                            message.ttl = dbTtl;
                         }
                         res.messages.add(message);
 
@@ -9084,8 +9096,14 @@ public class MessagesStorage extends BaseController {
                             data.reuse();
                             message.date = cursor.intValue(3);
                             message.dialog_id = dialogId;
-                            if (message.ttl == 0) {
-                                message.ttl = cursor.intValue(5);
+                            int dbTtl = cursor.intValue(5);
+                            if (!tw.nekomimi.nekogram.NekoConfig.antiRevoke && dbTtl < 0) {
+                                continue;
+                            }
+                            if (dbTtl < 0) {
+                                message.ttl = dbTtl;
+                            } else if (message.ttl == 0) {
+                                message.ttl = dbTtl;
                             }
                             res.messages.add(message);
 
@@ -9692,8 +9710,16 @@ public class MessagesStorage extends BaseController {
                             }
                             repliesData.reuse();
                         }
-                        if (!DialogObject.isEncryptedDialog(dialogId) && message.ttl == 0) {
-                            message.ttl = cursor.intValue(8);
+                        if (!DialogObject.isEncryptedDialog(dialogId)) {
+                            int dbTtl = cursor.intValue(8);
+                            if (!tw.nekomimi.nekogram.NekoConfig.antiRevoke && dbTtl < 0) {
+                                continue;
+                            }
+                            if (dbTtl < 0) {
+                                message.ttl = dbTtl;
+                            } else if (message.ttl == 0) {
+                                message.ttl = dbTtl;
+                            }
                         }
                         if (cursor.intValue(9) != 0) {
                             message.mentioned = true;
@@ -14654,7 +14680,7 @@ public class MessagesStorage extends BaseController {
                                 deletedMessages.add(message);
                             }
                             data.reuse();
-                            if (DialogObject.isEncryptedDialog(did) || deleteFiles) {
+                            if ((DialogObject.isEncryptedDialog(did) || deleteFiles) && (!tw.nekomimi.nekogram.NekoConfig.antiRevoke || MessagesController.isUserDeleted(mid))) {
                                 addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
                             }
 
@@ -14898,12 +14924,29 @@ public class MessagesStorage extends BaseController {
                         cursor.dispose();
                         cursor = null;
                     }
-                    if (tw.nekomimi.nekogram.NekoConfig.antiRevoke && !deleteFiles) {
-                        database.executeFast(String.format(Locale.US, "UPDATE messages_v2 SET ttl = -1 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                    if (tw.nekomimi.nekogram.NekoConfig.antiRevoke && mode != ChatActivity.MODE_SCHEDULED) {
+                        ArrayList<Integer> preserveIds = new ArrayList<>();
+                        ArrayList<Integer> deleteIds = new ArrayList<>();
+                        for (int i = 0; i < messages.size(); i++) {
+                            int pmid = messages.get(i);
+                            if (MessagesController.isUserDeleted(pmid)) {
+                                deleteIds.add(pmid);
+                            } else {
+                                preserveIds.add(pmid);
+                            }
+                        }
+                        if (!deleteIds.isEmpty()) {
+                            database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", TextUtils.join(",", deleteIds), did)).stepThis().dispose();
+                            database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", TextUtils.join(",", deleteIds), did)).stepThis().dispose();
+                        }
+                        if (!preserveIds.isEmpty()) {
+                            database.executeFast(String.format(Locale.US, "UPDATE messages_v2 SET ttl = -1 WHERE mid IN(%s) AND uid = %d", TextUtils.join(",", preserveIds), did)).stepThis().dispose();
+                            database.executeFast(String.format(Locale.US, "UPDATE messages_topics SET ttl = -1 WHERE mid IN(%s) AND uid = %d", TextUtils.join(",", preserveIds), did)).stepThis().dispose();
+                        }
                     } else {
                         database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
+                        database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     }
-                    database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM polls_v2 WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
                     database.executeFast(String.format(Locale.US, "DELETE FROM bot_keyboard_topics WHERE mid IN(%s) AND uid = %d", ids, did)).stepThis().dispose();
@@ -15381,7 +15424,9 @@ public class MessagesStorage extends BaseController {
                         TLRPC.Message message = TLRPC.Message.TLdeserialize(data, data.readInt32(false), false);
                         message.readAttachPath(data, getUserConfig().clientUserId);
                         data.reuse();
-                        addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
+                        if (!tw.nekomimi.nekogram.NekoConfig.antiRevoke || MessagesController.isUserDeleted(mid)) {
+                            addFilesToDelete(message, filesToDelete, idsToDelete, namesToDelete, false);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -15445,12 +15490,13 @@ public class MessagesStorage extends BaseController {
                 cursor = null;
             }
 
-            if (tw.nekomimi.nekogram.NekoConfig.antiRevoke && !deleteFiles) {
+            if (tw.nekomimi.nekogram.NekoConfig.antiRevoke && !MessagesController.isUserDeleted(mid)) {
                 database.executeFast(String.format(Locale.US, "UPDATE messages_v2 SET ttl = -1 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
+                database.executeFast(String.format(Locale.US, "UPDATE messages_topics SET ttl = -1 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             } else {
                 database.executeFast(String.format(Locale.US, "DELETE FROM messages_v2 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
+                database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             }
-            database.executeFast(String.format(Locale.US, "DELETE FROM messages_topics WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "DELETE FROM media_v4 WHERE uid = %d AND mid <= %d", -channelId, mid)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "UPDATE media_counts_v2 SET old = 1 WHERE uid = %d", -channelId)).stepThis().dispose();
             database.executeFast(String.format(Locale.US, "UPDATE media_counts_topics SET old = 1 WHERE uid = %d", -channelId)).stepThis().dispose();

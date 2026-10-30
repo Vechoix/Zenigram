@@ -34,6 +34,7 @@ import org.telegram.ui.Components.ItemOptions;
 import org.telegram.ui.Components.LayoutHelper;
 import org.telegram.ui.Components.UItem;
 import org.telegram.ui.Components.UniversalAdapter;
+import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.ProfileActivity.SearchAdapter.SearchResult;
 
 import java.util.ArrayList;
@@ -61,7 +62,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
     private final int updatesRow = rowId++;
     private final int gestureLabRow = rowId++;
     private final int adaptivePerformanceRow = rowId++;
-    private final int diagnosticsRow = rowId++;
+    private final int clearCacheRow = rowId++;
 
     private final int generalRow = rowId++;
     private final int appearanceRow = rowId++;
@@ -144,7 +145,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
         items.add(UItem.asButtonSubtext(updatesRow, R.drawable.msg_download, "Обновление Zenigram", "Проверка новых версий и ченджлог").slug("updates"));
         items.add(UItem.asButtonSubtext(gestureLabRow, R.drawable.msg_discussion, "Жесты", "Свайпы и быстрые действия").slug("gestureLab"));
         items.add(UItem.asButtonSubtext(adaptivePerformanceRow, R.drawable.msg_fave, "Оптимизация", "Плавность, анимации и эффекты").slug("adaptivePerformance"));
-        items.add(UItem.asButtonSubtext(diagnosticsRow, R.drawable.msg_secret, "Диагностика", "Частота кадров, память и кэш").slug("diagnostics"));
+        items.add(UItem.asButtonSubtext(clearCacheRow, R.drawable.msg_clearcache, "Очистить кэш", "Быстрое освобождение памяти и файлов").slug("clearCache"));
         items.add(UItem.asShadow(null));
 
         items.add(UItem.asButton(generalRow, R.drawable.msg_media, LocaleController.getString(R.string.General)).slug("general"));
@@ -182,8 +183,11 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
             presentFragment(new ZenigramGestureLabActivity());
         } else if (id == adaptivePerformanceRow) {
             presentFragment(new ZenigramPerformanceActivity());
-        } else if (id == diagnosticsRow) {
-            presentFragment(new ZenigramDiagnosticsActivity());
+        } else if (id == clearCacheRow) {
+            tw.nekomimi.nekogram.helpers.ZenigramCacheHelper.clearCacheAsync(clearedBytes -> {
+                String sizeStr = AndroidUtilities.formatFileSize(clearedBytes);
+                BulletinFactory.of(this).createSimpleBulletin(R.raw.done, "Кэш очищен (" + sizeStr + ")").show();
+            });
         } else if (id == chatRow) {
             presentFragment(new NekoChatSettingsActivity());
         } else if (id == generalRow) {
@@ -300,7 +304,7 @@ public class NekoSettingsActivity extends BaseNekoSettingsActivity implements Fa
         searchResultList.add(new SearchResult(8104, "Режим призрака", "Скрытый режим, чтение, скриншоты, задержка сообщений", R.drawable.msg_secret, () -> presentFragment(new ZenigramGhostSettingsActivity())));
         searchResultList.add(new SearchResult(8101, LocaleController.getString(R.string.ZenigramGestureLab), LocaleController.getString(R.string.ZenigramGestureLabDescription), R.drawable.msg_discussion, () -> presentFragment(new ZenigramGestureLabActivity())));
         searchResultList.add(new SearchResult(8102, LocaleController.getString(R.string.AdaptivePerformanceSettings), LocaleController.getString(R.string.AdaptivePerformanceDesc), R.drawable.msg_fave, () -> presentFragment(new ZenigramPerformanceActivity())));
-        searchResultList.add(new SearchResult(8103, LocaleController.getString(R.string.ZenigramDiagnostics), LocaleController.getString(R.string.ZenigramDiagnosticsDesc), R.drawable.msg_secret, () -> presentFragment(new ZenigramDiagnosticsActivity())));
+        searchResultList.add(new SearchResult(8103, "Очистить кэш", "Быстрое освобождение памяти и файлов", R.drawable.msg_clearcache, () -> tw.nekomimi.nekogram.helpers.ZenigramCacheHelper.clearCacheAsync(b -> BulletinFactory.of(this).createSimpleBulletin(R.raw.done, "Кэш очищен").show())));
 
         return searchResultList;
     }

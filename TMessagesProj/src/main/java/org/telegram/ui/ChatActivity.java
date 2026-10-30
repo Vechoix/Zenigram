@@ -27001,7 +27001,8 @@ public class ChatActivity extends BaseFragment implements
                 }
                 int index = chatAdapter != null && chatAdapter.isFiltered && filteredMessagesDict != null ? chatAdapter.filteredMessages.indexOf(filteredMessagesDict.get(mid)) : messages.indexOf(obj);
                 if (index != -1) {
-                    if (!sent && tw.nekomimi.nekogram.NekoConfig.antiRevoke && !obj.scheduled && chatMode != MODE_SCHEDULED) {
+                    boolean userDeleted = MessagesController.isUserDeleted(mid);
+                    if (!userDeleted && !sent && tw.nekomimi.nekogram.NekoConfig.antiRevoke && !obj.scheduled && chatMode != MODE_SCHEDULED) {
                         obj.deleted = true;
                         obj.isDeletedLocally = true;
                         if (chatAdapter != null) {

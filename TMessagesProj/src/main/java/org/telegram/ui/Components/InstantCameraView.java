@@ -545,16 +545,24 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
 
         updateZoomPillUI();
         zoomPillLayout.setVisibility(View.GONE);
+        addView(zoomPillLayout, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 48, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, 0, 0, 0, 16));
 
         setVisibilityFromPause = false;
         setVisibility(INVISIBLE);
     }
 
-        private void showZoomControl(boolean show) {
+        private Runnable hideZoomRunnable = () -> showZoomControl(false);
+
+    private void showZoomControl(boolean show) {
+        if (zoomPillLayout != null) {
+            zoomPillLayout.removeCallbacks(hideZoomRunnable);
+        }
         if (show) {
             if (zoomPillLayout != null) {
                 zoomPillLayout.setVisibility(View.VISIBLE);
+                zoomPillLayout.bringToFront();
                 zoomPillLayout.animate().alpha(1.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
+                zoomPillLayout.postDelayed(hideZoomRunnable, 3500);
             }
             if (buttonsLayout != null) {
                 buttonsLayout.animate().alpha(0.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).withEndAction(() -> {
@@ -562,14 +570,15 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
                 }).start();
             }
         } else {
-            if (buttonsLayout != null) {
-                buttonsLayout.setVisibility(View.VISIBLE);
-                buttonsLayout.animate().alpha(1.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
-            }
             if (zoomPillLayout != null) {
                 zoomPillLayout.animate().alpha(0.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).withEndAction(() -> {
                     if (zoomPillLayout != null) zoomPillLayout.setVisibility(View.GONE);
                 }).start();
+            }
+            if (buttonsLayout != null) {
+                buttonsLayout.setVisibility(View.VISIBLE);
+                buttonsLayout.bringToFront();
+                buttonsLayout.animate().alpha(1.0f).setDuration(160).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
             }
         }
     }
@@ -910,6 +919,15 @@ private void updateZoomPillUI() {
     public void showCamera(boolean fromPaused) {
         AndroidUtilities.hideKeyboard(this);
         clearFocus();
+        if (buttonsLayout != null) {
+            buttonsLayout.setVisibility(View.VISIBLE);
+            buttonsLayout.setAlpha(1.0f);
+            buttonsLayout.bringToFront();
+        }
+        if (zoomPillLayout != null) {
+            zoomPillLayout.setVisibility(View.GONE);
+            zoomPillLayout.setAlpha(0.0f);
+        }
         if (!fromPaused) {
             currentStaticZoom = 1.0f;
             pinchStartZoom = 1.0f;
@@ -1101,6 +1119,10 @@ private void updateZoomPillUI() {
             updateTranslationY();
         }
         opened = open;
+        if (open && buttonsLayout != null) {
+            buttonsLayout.setVisibility(View.VISIBLE);
+            buttonsLayout.bringToFront();
+        }
         if (parentView != null) {
             parentView.invalidate();
         }
@@ -4012,7 +4034,7 @@ private void updateZoomPillUI() {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (!recording && ev.getAction() == MotionEvent.ACTION_DOWN && ev.getY() > getMeasuredHeight() - getPaddingBottom()) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN && ev.getY() >= getMeasuredHeight() - getPaddingBottom() - dp(12)) {
             return false;
         }
 

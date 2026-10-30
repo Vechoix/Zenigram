@@ -356,6 +356,12 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
 
     @Override
     public void updateColors() {
+        if (user != null) {
+            avatarDrawable.setInfo(currentAccount, user);
+        } else if (chat != null) {
+            avatarDrawable.setInfo(currentAccount, chat);
+        }
+        invalidate();
     }
 
     private CommunityArrowDrawable communityArrowDrawable;
