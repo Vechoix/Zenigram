@@ -23,7 +23,7 @@ if (-not (Test-Path $apkDir)) {
 }
 
 Write-Host "Locating output release APK in $apkDir..."
-$releaseApk = Get-ChildItem -Path $apkDir -Recurse -Filter "*.apk" | Where-Object { $_.FullName -notmatch "\\debug\\" -and ($_.Name -like "*arm64*" -or $_.Name -like "*release*") } | Select-Object -First 1
+$releaseApk = Get-ChildItem -Path $apkDir -Recurse -Filter "*.apk" | Where-Object { $_.FullName -notmatch "\\debug\\" -and ($_.Name -like "*arm64*" -or $_.Name -like "*release*") } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
 if (-not $releaseApk) {
     Write-Error "Could not find release APK in $apkDir"

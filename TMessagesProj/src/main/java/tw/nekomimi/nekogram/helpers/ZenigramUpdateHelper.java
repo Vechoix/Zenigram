@@ -35,7 +35,7 @@ public class ZenigramUpdateHelper {
     public static final String GITHUB_RELEASES_API = "https://api.github.com/repos/Vechoix/Zenigram/releases/latest";
 
     public static final String CURRENT_VERSION_NAME = org.telegram.messenger.BuildConfig.VERSION_NAME;
-    public static final int CURRENT_VERSION_CODE = 11;
+    public static final int CURRENT_VERSION_CODE = 71780;
 
     private static volatile ZenigramUpdateHelper instance;
     private volatile boolean isChecking = false;
@@ -140,6 +140,7 @@ public class ZenigramUpdateHelper {
                     info.versionName = json.optString("versionName", "1.0.0");
                     info.downloadUrl = json.optString("downloadUrl", "");
                     info.changelog = json.optString("changelog", "");
+                    info.fileSize = json.optLong("size", 0);
                 } else {
                     HttpURLConnection gitConn = (HttpURLConnection) new URL(GITHUB_RELEASES_API).openConnection();
                     gitConn.setConnectTimeout(8000);
@@ -181,9 +182,9 @@ public class ZenigramUpdateHelper {
                 }
 
                 boolean isNew = false;
-                if (info.versionCode > CURRENT_VERSION_CODE && info.versionCode < 1000) {
+                if (info.versionCode > BuildConfig.VERSION_CODE) {
                     isNew = true;
-                } else if (info.versionCode > BuildConfig.VERSION_CODE) {
+                } else if (info.versionCode > CURRENT_VERSION_CODE) {
                     isNew = true;
                 } else if (isVersionGreater(info.versionName, CURRENT_VERSION_NAME)) {
                     isNew = true;
@@ -317,7 +318,11 @@ public class ZenigramUpdateHelper {
                 out.close();
                 in.close();
 
-                if (!outFile.exists() || outFile.length() < 1000000) {
+                if (totalLength > 0 && downloaded < totalLength) {
+                    throw new Exception("Файл загружен не полностью: " + (downloaded / 1024 / 1024) + " из " + (totalLength / 1024 / 1024) + " МБ");
+                }
+
+                if (!outFile.exists() || outFile.length() < 10000000) {
                     throw new Exception("Файл обновления поврежден или загружен не полностью");
                 }
 
@@ -350,6 +355,17 @@ public class ZenigramUpdateHelper {
             return;
         }
         try {
+            android.content.pm.PackageInfo pkgInfo = activity.getPackageManager().getPackageArchiveInfo(apkFile.getAbsolutePath(), 0);
+            if (pkgInfo == null) {
+                if (apkFile.exists()) {
+                    apkFile.delete();
+                }
+                AndroidUtilities.runOnUIThread(() -> {
+                    android.widget.Toast.makeText(activity, "Файл APK повреждён или не распознан системой. Загрузите снова.", android.widget.Toast.LENGTH_LONG).show();
+                });
+                return;
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 if (!activity.getPackageManager().canRequestPackageInstalls()) {
                     Intent grantIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
@@ -360,10 +376,22 @@ public class ZenigramUpdateHelper {
                 }
             }
 
+            apkFile.setReadable(true, false);
+
             Uri apkUri = FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", apkFile);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            java.util.List<android.content.pm.ResolveInfo> resolveInfos = activity.getPackageManager().queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY);
+            if (resolveInfos != null) {
+                for (android.content.pm.ResolveInfo resolveInfo : resolveInfos) {
+                    if (resolveInfo != null && resolveInfo.activityInfo != null && resolveInfo.activityInfo.packageName != null) {
+                        activity.grantUriPermission(resolveInfo.activityInfo.packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    }
+                }
+            }
+
             activity.startActivity(intent);
         } catch (Exception e) {
             FileLog.e(e);

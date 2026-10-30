@@ -124,8 +124,10 @@
         tools:replace="android:supportsRtl"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
+        android:resizeableActivity="true"
     >
         <!-- usesCleartextTraffic for browser supporting opening http:// links -->
+        <meta-data android:name="android.allow_multiple_resumed_activities" android:value="true" />
 
         <activity-alias
             android:enabled="true"
@@ -343,12 +345,20 @@
             android:theme="@style/Theme.TMessages.Start"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode|smallestScreenSize|screenLayout"
             android:supportsPictureInPicture="true"
+            android:resizeableActivity="true"
             android:hardwareAccelerated="true"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
+            <layout
+                android:defaultHeight="600dp"
+                android:defaultWidth="400dp"
+                android:gravity="top|end"
+                android:minHeight="300dp"
+                android:minWidth="300dp" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND"/>
