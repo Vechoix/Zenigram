@@ -94,6 +94,10 @@ import org.telegram.messenger.SharedConfig;
 import org.telegram.messenger.UserConfig;
 import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
+import tw.nekomimi.nekogram.helpers.ZenigramLyricsDatabase;
+import tw.nekomimi.nekogram.helpers.ZenigramLyricsHelper;
+import tw.nekomimi.nekogram.helpers.ZenigramLrcParser;
+import tw.nekomimi.nekogram.helpers.ZenigramMonetEngine;
 import org.telegram.messenger.audioinfo.AudioInfo;
 import org.telegram.messenger.chromecast.ChromecastController;
 import org.telegram.tgnet.ConnectionsManager;
@@ -182,6 +186,37 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
     private boolean blurredAnimationInProgress;
     private View[] buttons = new View[5];
     private SpringAnimation seekBarBufferSpring;
+    private ZenigramKaraokeView zenigramKaraokeView;
+    private FrameLayout zenigramSettingsContainer;
+    private boolean isSettingsSheetVisible = false;
+    private FrameLayout zenigramQueueHeader;
+    private FrameLayout zenigramLyricsContainer;
+    private FrameLayout zenigramNoLyricsLayout;
+    private TextView zenigramRequestLyricsBtn;
+    private FrameLayout zenigramMiniPreview;
+    private BackupImageView zenigramMiniCover;
+    private TextView zenigramMiniTitle;
+    private TextView zenigramMiniAuthor;
+    private ImageView zenigramMiniHeart;
+    private ImageView zenigramLyricsToggleBtn;
+    private boolean zenigramIsLyricsMode = false;
+    private boolean zenigramIsFavorite = false;
+    private ZenigramMonetEngine.MonetPalette zenigramMonetPalette;
+    private android.graphics.drawable.GradientDrawable zenigramGradientDrawable;
+    private int zenigramMonetAccentColor = 0xFF829C51;
+
+    public static final int ZENI_MODE_CARD = 0;
+    public static final int ZENI_MODE_LYRICS = 1;
+    public static final int ZENI_MODE_QUEUE = 2;
+    private int zenigramDisplayMode = ZENI_MODE_CARD;
+
+    private FrameLayout zenigramBigCardContainer;
+    private BackupImageView zenigramBigCover;
+    private ImageView zenigramHeartBtn;
+    private ZenigramHeartDrawable zenigramHeartDrawable;
+    private ZenigramHeartDrawable zenigramMiniHeartDrawable;
+    private View zenigramGlowView;
+    private ImageView zenigramQueueToggleBtn;
 
     private boolean draggingSeekBar;
 
@@ -381,6 +416,9 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
 
             @Override
             public boolean onInterceptTouchEvent(MotionEvent ev) {
+                if (zenigramDisplayMode != ZENI_MODE_QUEUE) {
+                    return false;
+                }
                 if (ev.getAction() == MotionEvent.ACTION_DOWN && scrollOffsetY != 0 && actionBar.getAlpha() == 0.0f) {
                     boolean dismiss;
                     if (listAdapter.getItemCount() > 0) {
@@ -406,69 +444,19 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
 
             @Override
             protected void onDraw(Canvas canvas) {
-                if (playlist.size() <= 1) {
-                    shadowDrawable.setBounds(0, getMeasuredHeight() - playerLayout.getMeasuredHeight() - backgroundPaddingTop, getMeasuredWidth(), getMeasuredHeight());
-                    shadowDrawable.draw(canvas);
-                    if (isProfilePlaylist) {
-                        actionBar.setVisibility(View.GONE);
-                    }
+                int top = (zenigramMonetPalette != null && tw.nekomimi.nekogram.NekoConfig.playerCoverColors) ? zenigramMonetPalette.gradientTop : 0xFF262228;
+                int bot = (zenigramMonetPalette != null && tw.nekomimi.nekogram.NekoConfig.playerCoverColors) ? zenigramMonetPalette.gradientBottom : 0xFF1B181D;
+                if (zenigramGradientDrawable == null) {
+                    zenigramGradientDrawable = new android.graphics.drawable.GradientDrawable(
+                        android.graphics.drawable.GradientDrawable.Orientation.TOP_BOTTOM,
+                        new int[]{top, bot}
+                    );
                 } else {
-                    if (listView.getVisibility() != View.VISIBLE) return;
-
-                    int offset = dp(13);
-                    int top = scrollOffsetY - backgroundPaddingTop - offset;
-                    top += listView.getTranslationY();
-                    if (isProfilePlaylist) {
-                        top -= ActionBar.getCurrentActionBarHeight();
-                        top += dp(10);
-                    }
-                    int y = top + dp(20);
-
-                    int height = getMeasuredHeight() + dp(15) + backgroundPaddingTop;
-                    float rad = 1.0f;
-
-                    float moveProgress = 0;
-                    if (!isProfilePlaylist && top + backgroundPaddingTop < ActionBar.getCurrentActionBarHeight()) {
-                        float toMove = offset + dp(11 - 7);
-                        moveProgress = Math.min(1.0f, (ActionBar.getCurrentActionBarHeight() - top - backgroundPaddingTop) / toMove);
-                        float availableToMove = ActionBar.getCurrentActionBarHeight() - toMove;
-
-                        int diff = (int) (availableToMove * moveProgress);
-                        top -= diff;
-                        y -= diff;
-                        height += diff;
-                        rad = 1.0f - moveProgress;
-                    }
-
-                    top += (int) (AndroidUtilities.statusBarHeight * (1f - moveProgress));
-                    y += (int) (AndroidUtilities.statusBarHeight * (1f - moveProgress));
-
-                    shadowDrawable.setBounds(0, top, getMeasuredWidth(), height);
-                    shadowDrawable.draw(canvas);
-
-                    if (!isProfilePlaylist && rad != 1.0f) {
-                        Theme.dialogs_onlineCirclePaint.setColor(getThemedColor(Theme.key_dialogBackground));
-                        rect.set(backgroundPaddingLeft, backgroundPaddingTop + top, getMeasuredWidth() - backgroundPaddingLeft, backgroundPaddingTop + top + dp(24));
-                        canvas.drawRoundRect(rect, dp(12) * rad, dp(12) * rad, Theme.dialogs_onlineCirclePaint);
-                    }
-
-                    if (!isProfilePlaylist && rad != 0) {
-                        float alphaProgress = 1.0f;
-                        int w = dp(36);
-                        rect.set((getMeasuredWidth() - w) / 2, y, (getMeasuredWidth() + w) / 2, y + dp(4));
-                        int color = getThemedColor(Theme.key_sheet_scrollUp);
-                        int alpha = Color.alpha(color);
-                        Theme.dialogs_onlineCirclePaint.setColor(color);
-                        Theme.dialogs_onlineCirclePaint.setAlpha((int) (alpha * alphaProgress * rad));
-                        canvas.drawRoundRect(rect, dp(2), dp(2), Theme.dialogs_onlineCirclePaint);
-                    }
-
-                    if (isProfilePlaylist) {
-                        actionBar.setVisibility(View.VISIBLE);
-                        actionBar.setTranslationY(Math.max(0, top - backgroundPaddingTop - dp(10) + dp(6) * (1.0f - actionBarSlide) - actionBar.getTop()));
-                        actionBarShadow.setTranslationY(Math.max(0, top - backgroundPaddingTop - dp(10) + dp(6) * (1.0f - actionBarSlide) - actionBar.getTop()));
-                    }
+                    zenigramGradientDrawable.setColors(new int[]{top, bot});
                 }
+                zenigramGradientDrawable.setBounds(0, 0, getMeasuredWidth(), getMeasuredHeight() + backgroundPaddingTop);
+                zenigramGradientDrawable.draw(canvas);
+                return;
             }
 
             @Override
@@ -499,7 +487,8 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             }
         };
         actionBar.setBackgroundColor(0);
-        actionBar.setBackButtonImage(R.drawable.ic_ab_back);
+        actionBar.setBackButtonImage(R.drawable.msg_expand);
+        actionBar.centerTitle();
         actionBar.setItemsColor(getThemedColor(Theme.key_player_actionBarTitle), false);
         actionBar.setItemsBackgroundColor(getThemedColor(Theme.key_player_actionBarSelector), false);
         actionBar.setTitleColor(getThemedColor(Theme.key_player_actionBarTitle));
@@ -508,6 +497,9 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
 
         final ActionBarMenu menu = actionBar.createMenu();
         menu.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
+        final ActionBarMenuItem topDotsItem = menu.addItem(1001, R.drawable.ic_ab_other);
+        topDotsItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+        topDotsItem.setOnClickListener(this::showMenuOptions);
         actionBarBackground = new View(context);
         actionBarBackground.setBackgroundColor(getThemedColor(Theme.key_dialogBackground));
         actionBar.addView(actionBarBackground, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.FILL));
@@ -573,7 +565,15 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
                 }
             }
         };
+        coverContainer.setVisibility(View.GONE);
         playerLayout.addView(coverContainer, LayoutHelper.createFrame(44, 44, Gravity.TOP | Gravity.RIGHT, 0, 20, 20, 0));
+
+        zenigramHeartBtn = new ImageView(context);
+        zenigramHeartBtn.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramHeartDrawable = new ZenigramHeartDrawable();
+        zenigramHeartBtn.setImageDrawable(zenigramHeartDrawable);
+        playerLayout.addView(zenigramHeartBtn, LayoutHelper.createFrame(24, 24, Gravity.TOP | Gravity.RIGHT, 0, 20, 20, 0));
+        zenigramHeartBtn.setOnClickListener(v -> toggleFavoriteTrack());
 
         titleTextView = new ClippingTextViewSwitcher(context) {
             @Override
@@ -587,7 +587,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
                 return textView;
             }
         };
-        playerLayout.addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 20, 20, 20, 0));
+        playerLayout.addView(titleTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 24, 14, 68, 0));
 
         authorTextView = new ClippingTextViewSwitcher(context) {
             @Override
@@ -623,7 +623,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
                 return textView;
             }
         };
-        playerLayout.addView(authorTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 14, 47, 20, 0));
+        playerLayout.addView(authorTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.LEFT, 18, 40, 68, 0));
 
         seekBarView = new SeekBarView(context, resourcesProvider) {
             @Override
@@ -722,7 +722,8 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         playbackSpeedButton.setAdditionalXOffset(dp(8));
         playbackSpeedButton.setAdditionalYOffset(-dp(400));
         playbackSpeedButton.setShowedFromBottom(true);
-        playerLayout.addView(playbackSpeedButton, LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.RIGHT, 0, 86, 20, 0));
+        playerLayout.addView(playbackSpeedButton, LayoutHelper.createFrame(48, 36, Gravity.TOP | Gravity.LEFT, 20, 186, 0, 0));
+        playbackSpeedButton.setBackground(Theme.createRoundRectDrawable(dp(18), 0x22FFFFFF));
         playbackSpeedButton.setOnClickListener(v -> {
             float currentPlaybackSpeed = MediaController.getInstance().getPlaybackSpeed(true);
             int index = -1;
@@ -752,14 +753,246 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         });
         updatePlaybackButton(false);
 
+        // Zenigram Lyrics toggle button in bottom shelf
+        zenigramLyricsToggleBtn = new ImageView(context);
+        zenigramLyricsToggleBtn.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramLyricsToggleBtn.setImageResource(R.drawable.formatting_quote);
+        zenigramLyricsToggleBtn.setBackground(Theme.createRoundRectDrawable(dp(18), 0x22FFFFFF));
+        zenigramLyricsToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+        playerLayout.addView(zenigramLyricsToggleBtn, LayoutHelper.createFrame(60, 36, Gravity.TOP | Gravity.RIGHT, 0, 186, 80, 0));
+        zenigramLyricsToggleBtn.setOnClickListener(v -> toggleLyricsMode());
+
+        // Zenigram Queue toggle button in bottom shelf
+        zenigramQueueToggleBtn = new ImageView(context);
+        zenigramQueueToggleBtn.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramQueueToggleBtn.setImageResource(R.drawable.msg_list);
+        zenigramQueueToggleBtn.setBackground(Theme.createRoundRectDrawable(dp(18), 0x22FFFFFF));
+        zenigramQueueToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+        playerLayout.addView(zenigramQueueToggleBtn, LayoutHelper.createFrame(54, 36, Gravity.TOP | Gravity.RIGHT, 0, 186, 16, 0));
+        zenigramQueueToggleBtn.setOnClickListener(v -> toggleQueueMode());
+
+        // Zenigram Mini Preview Row (shown directly above seekbar in Lyrics and Queue modes)
+        zenigramMiniPreview = new FrameLayout(context);
+        zenigramMiniPreview.setVisibility(View.GONE);
+        playerLayout.addView(zenigramMiniPreview, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 16, 12, 16, 0));
+        zenigramMiniPreview.setOnClickListener(v -> setDisplayMode(ZENI_MODE_CARD));
+
+        zenigramMiniCover = new BackupImageView(context);
+        zenigramMiniCover.setRoundRadius(dp(8));
+        zenigramMiniPreview.addView(zenigramMiniCover, LayoutHelper.createFrame(42, 42, Gravity.LEFT | Gravity.CENTER_VERTICAL));
+
+        zenigramMiniTitle = new TextView(context);
+        zenigramMiniTitle.setTextColor(0xFFFFFFFF);
+        zenigramMiniTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        zenigramMiniTitle.setTypeface(AndroidUtilities.bold());
+        zenigramMiniTitle.setSingleLine(true);
+        zenigramMiniTitle.setEllipsize(TextUtils.TruncateAt.END);
+        zenigramMiniPreview.addView(zenigramMiniTitle, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 52, 2, 48, 0));
+
+        zenigramMiniAuthor = new TextView(context);
+        zenigramMiniAuthor.setTextColor(0xAAFFFFFF);
+        zenigramMiniAuthor.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        zenigramMiniAuthor.setSingleLine(true);
+        zenigramMiniAuthor.setEllipsize(TextUtils.TruncateAt.END);
+        zenigramMiniPreview.addView(zenigramMiniAuthor, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP, 52, 24, 48, 0));
+
+        zenigramMiniHeart = new ImageView(context);
+        zenigramMiniHeart.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramMiniHeartDrawable = new ZenigramHeartDrawable();
+        zenigramMiniHeart.setImageDrawable(zenigramMiniHeartDrawable);
+        zenigramMiniPreview.addView(zenigramMiniHeart, LayoutHelper.createFrame(24, 24, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 8, 0));
+        zenigramMiniHeart.setOnClickListener(v -> toggleFavoriteTrack());
+
+        // Zenigram Big Album Art Card container (Mode: Card)
+        zenigramBigCardContainer = new FrameLayout(context);
+        zenigramBigCardContainer.setVisibility(View.VISIBLE);
+        int navBarHeight = Math.max(AndroidUtilities.dp(16), AndroidUtilities.navigationBarHeight);
+        containerView.addView(zenigramBigCardContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 0, 72, 0, 236 + navBarHeight));
+
+        int displayWidth = AndroidUtilities.displaySize.x;
+        int bigCoverSize = Math.min(dp(250), displayWidth - dp(72));
+
+        zenigramGlowView = new View(context) {
+            private final Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final RectF glowRect = new RectF();
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                if (!tw.nekomimi.nekogram.NekoConfig.playerCoverColors) return;
+                int w = getMeasuredWidth();
+                int h = getMeasuredHeight();
+                glowRect.set(0, 0, w, h);
+                int col = (zenigramMonetPalette != null && zenigramMonetPalette.vibrantColor != 0) 
+                        ? zenigramMonetPalette.vibrantColor 
+                        : zenigramMonetAccentColor;
+                glowPaint.setColor(col);
+                glowPaint.setAlpha(65);
+                canvas.drawRoundRect(glowRect, AndroidUtilities.dp(32), AndroidUtilities.dp(32), glowPaint);
+            }
+        };
+        int glowSize = bigCoverSize + AndroidUtilities.dp(24);
+        zenigramBigCardContainer.addView(zenigramGlowView, LayoutHelper.createFrame(glowSize, glowSize, Gravity.CENTER));
+
+        zenigramBigCover = new BackupImageView(context);
+        zenigramBigCover.setRoundRadius(dp(24));
+        zenigramBigCardContainer.addView(zenigramBigCover, LayoutHelper.createFrame(bigCoverSize, bigCoverSize, Gravity.CENTER));
+
+        // Add middle swipe gestures for switching track left/right
+        final android.view.GestureDetector cardSwipeDetector = new android.view.GestureDetector(context, new android.view.GestureDetector.SimpleOnGestureListener() {
+            private static final int SWIPE_DIST = 50;
+            private static final int SWIPE_VEL = 50;
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffX = e2.getX() - e1.getX();
+                float diffY = e2.getY() - e1.getY();
+                if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > AndroidUtilities.dp(SWIPE_DIST) && Math.abs(velocityX) > AndroidUtilities.dp(SWIPE_VEL)) {
+                    if (diffX > 0) {
+                        MediaController.getInstance().playPreviousMessage();
+                        zenigramBigCover.setTranslationX(AndroidUtilities.dp(36));
+                        zenigramBigCover.animate().translationX(0).setDuration(220).start();
+                    } else {
+                        MediaController.getInstance().playNextMessage();
+                        zenigramBigCover.setTranslationX(-AndroidUtilities.dp(36));
+                        zenigramBigCover.animate().translationX(0).setDuration(220).start();
+                    }
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                setDisplayMode(ZENI_MODE_LYRICS);
+                return true;
+            }
+        });
+
+        zenigramBigCardContainer.setOnTouchListener((v, event) -> {
+            cardSwipeDetector.onTouchEvent(event);
+            return true;
+        });
+
+        // Zenigram Lyrics container overlay (Mode: Lyrics)
+        zenigramLyricsContainer = new FrameLayout(context);
+        zenigramLyricsContainer.setVisibility(View.GONE);
+        containerView.addView(zenigramLyricsContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 0, 72, 0, 236 + Math.max(AndroidUtilities.dp(16), AndroidUtilities.navigationBarHeight)));
+
+        zenigramKaraokeView = new ZenigramKaraokeView(context);
+        zenigramKaraokeView.setOnLineClickListener((idx, line) -> {
+            MessageObject currentMsg = MediaController.getInstance().getPlayingMessageObject();
+            if (currentMsg != null && currentMsg.getDuration() > 0) {
+                float targetProgress = (float) line.startTimeMs / ((float) currentMsg.getDuration() * 1000f);
+                MediaController.getInstance().seekToProgress(currentMsg, Math.max(0f, Math.min(1f, targetProgress)));
+            }
+        });
+        zenigramLyricsContainer.addView(zenigramKaraokeView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+        // Zenigram Queue Search & Action Header
+        zenigramQueueHeader = new FrameLayout(context);
+        zenigramQueueHeader.setVisibility(View.GONE);
+        containerView.addView(zenigramQueueHeader, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 44, Gravity.TOP | Gravity.LEFT, 16, 56, 16, 0));
+
+        FrameLayout searchPill = new FrameLayout(context);
+        searchPill.setBackground(Theme.createRoundRectDrawable(dp(16), 0x22FFFFFF));
+        zenigramQueueHeader.addView(searchPill, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 38, Gravity.LEFT | Gravity.CENTER_VERTICAL, 0, 0, 96, 0));
+
+        ImageView searchIcon = new ImageView(context);
+        searchIcon.setScaleType(ImageView.ScaleType.CENTER);
+        searchIcon.setImageResource(R.drawable.outline_header_search);
+        searchIcon.setColorFilter(new PorterDuffColorFilter(0x88FFFFFF, PorterDuff.Mode.SRC_IN));
+        searchPill.addView(searchIcon, LayoutHelper.createFrame(20, 20, Gravity.LEFT | Gravity.CENTER_VERTICAL, 10, 0, 0, 0));
+
+        EditText searchEdit = new EditText(context);
+        searchEdit.setHint("\u041f\u043e\u0438\u0441\u043a \u043f\u043e \u043e\u0447\u0435\u0440\u0435\u0434\u0438");
+        searchEdit.setHintTextColor(0x88FFFFFF);
+        searchEdit.setTextColor(0xFFFFFFFF);
+        searchEdit.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        searchEdit.setBackground(null);
+        searchEdit.setSingleLine(true);
+        searchEdit.setPadding(dp(36), 0, dp(12), 0);
+        searchPill.addView(searchEdit, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+        searchEdit.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (listAdapter != null) {
+                    listAdapter.search(s.length() > 0 ? s.toString() : null);
+                }
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        ImageView queueAddBtn = new ImageView(context);
+        queueAddBtn.setScaleType(ImageView.ScaleType.CENTER);
+        queueAddBtn.setImageResource(R.drawable.msg_add);
+        queueAddBtn.setBackground(Theme.createRoundRectDrawable(dp(16), 0x22FFFFFF));
+        queueAddBtn.setColorFilter(new PorterDuffColorFilter(0xEEFFFFFF, PorterDuff.Mode.SRC_IN));
+        zenigramQueueHeader.addView(queueAddBtn, LayoutHelper.createFrame(38, 38, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 48, 0));
+        queueAddBtn.setOnClickListener(v -> onSubItemClick(8));
+
+        ImageView queueSortBtn = new ImageView(context);
+        queueSortBtn.setScaleType(ImageView.ScaleType.CENTER);
+        queueSortBtn.setImageResource(R.drawable.msg_reorder);
+        queueSortBtn.setBackground(Theme.createRoundRectDrawable(dp(16), 0x22FFFFFF));
+        queueSortBtn.setColorFilter(new PorterDuffColorFilter(0xEEFFFFFF, PorterDuff.Mode.SRC_IN));
+        zenigramQueueHeader.addView(queueSortBtn, LayoutHelper.createFrame(38, 38, Gravity.RIGHT | Gravity.CENTER_VERTICAL, 0, 0, 0, 0));
+        queueSortBtn.setOnClickListener(v -> {
+            MediaController.getInstance().setPlaybackOrderType(SharedConfig.playOrderReversed ? 0 : 1);
+            if (listAdapter != null) listAdapter.notifyDataSetChanged();
+            updateRepeatButton();
+        });
+
+        // No lyrics placeholder (Duck detective)
+        zenigramNoLyricsLayout = new FrameLayout(context);
+        zenigramNoLyricsLayout.setVisibility(View.GONE);
+        zenigramLyricsContainer.addView(zenigramNoLyricsLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+
+        ImageView duckView = new ImageView(context);
+        duckView.setImageResource(R.drawable.zenigram_lyrics_duck);
+        duckView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        zenigramNoLyricsLayout.addView(duckView, LayoutHelper.createFrame(130, 140, Gravity.CENTER_HORIZONTAL, 0, 48, 0, 0));
+
+        TextView noLyricsTitle = new TextView(context);
+        noLyricsTitle.setText("\u0422\u0435\u043a\u0441\u0442 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d");
+        noLyricsTitle.setTextColor(0xFFFFFFFF);
+        noLyricsTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        noLyricsTitle.setTypeface(AndroidUtilities.bold());
+        noLyricsTitle.setGravity(Gravity.CENTER);
+        zenigramNoLyricsLayout.addView(noLyricsTitle, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 200, 0, 0));
+
+        TextView noLyricsSubtitle = new TextView(context);
+        noLyricsSubtitle.setText("\u041d\u0438 \u0432 \u0442\u0435\u0433\u0430\u0445 \u0444\u0430\u0439\u043b\u0430, \u043d\u0438 \u0432 \u0441\u0435\u0442\u0438 \u0442\u0435\u043a\u0441\u0442\u0430 \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0442\u0440\u0435\u043a\u0430 \u043d\u0435\u0442.");
+        noLyricsSubtitle.setTextColor(0x99FFFFFF);
+        noLyricsSubtitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        noLyricsSubtitle.setGravity(Gravity.CENTER);
+        zenigramNoLyricsLayout.addView(noLyricsSubtitle, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 235, 32, 0));
+
+        zenigramRequestLyricsBtn = new TextView(context);
+        zenigramRequestLyricsBtn.setText("\u0417\u0430\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u0442\u0435\u043a\u0441\u0442");
+        zenigramRequestLyricsBtn.setTextColor(0xFFFFFFFF);
+        zenigramRequestLyricsBtn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        zenigramRequestLyricsBtn.setTypeface(AndroidUtilities.bold());
+        zenigramRequestLyricsBtn.setGravity(Gravity.CENTER);
+        zenigramRequestLyricsBtn.setBackground(Theme.createRoundRectDrawable(dp(18), 0x33FFFFFF));
+        zenigramRequestLyricsBtn.setPadding(dp(20), dp(8), dp(20), dp(8));
+        zenigramNoLyricsLayout.addView(zenigramRequestLyricsBtn, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 0, 280, 0, 0));
+        zenigramRequestLyricsBtn.setOnClickListener(v -> requestLyricsManual());
+        
         FrameLayout bottomView = new FrameLayout(context) {
             @Override
             protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-                int dist = ((right - left) - dp(8 + 48 * 5)) / 4;
+                int totalW = right - left;
+                int playW = dp(72);
+                int btnW = dp(48);
+                int remain = Math.max(0, totalW - playW - btnW * 4 - dp(16));
+                int spacing = remain / 4;
+                int curX = dp(8);
                 for (int a = 0; a < 5; a++) {
-                    int l = dp(4 + 48 * a) + dist * a;
+                    int w = (a == 2) ? playW : btnW;
                     int t = dp(9);
-                    buttons[a].layout(l, t, l + buttons[a].getMeasuredWidth(), t + buttons[a].getMeasuredHeight());
+                    buttons[a].layout(curX, t, curX + w, t + dp(48));
+                    curX += w + spacing;
                 }
             }
         };
@@ -1287,55 +1520,9 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         actionBar.menuOccupyBack = isProfilePlaylist;
         padWithItem = isMyList();
         playlist = MediaController.getInstance().getPlaylist();
-        if (isMyList()) {
-            addItem = menu.addItem(8, R.drawable.msg_add);
-        }
-        searchItem = menu.addItem(0, R.drawable.outline_header_search)
-            .setIsSearchField(true)
-            .setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
-
-            @Override
-            public void onSearchCollapse() {
-                if (searching) {
-                    searchWas = false;
-                    searching = false;
-                    setAllowNestedScroll(true);
-                    listAdapter.search(null);
-                    if (addItem != null) {
-                        addItem.setVisibility(View.VISIBLE);
-                    }
-                }
-            }
-
-            @Override
-            public void onSearchExpand() {
-                searchOpenPosition = layoutManager.findLastVisibleItemPosition();
-                View firstVisView = layoutManager.findViewByPosition(searchOpenPosition);
-                searchOpenOffset = firstVisView == null ? 0 : firstVisView.getTop();
-                searching = true;
-                setAllowNestedScroll(false);
-                listAdapter.notifyDataSetChanged();
-                if (addItem != null) {
-                    addItem.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void onTextChanged(EditText editText) {
-                if (editText.length() > 0) {
-                    listAdapter.search(editText.getText().toString());
-                } else {
-                    searchWas = false;
-                    listAdapter.search(null);
-                }
-            }
-        });
-        searchItem.setContentDescription(LocaleController.getString(R.string.Search));
-        EditTextBoldCursor editText = searchItem.getSearchField();
-        editText.setHint(LocaleController.getString(R.string.Search));
-        editText.setTextColor(getThemedColor(Theme.key_player_actionBarTitle));
-        editText.setHintTextColor(getThemedColor(Theme.key_player_time));
-        editText.setCursorColor(getThemedColor(Theme.key_player_actionBarTitle));
+        // Moved search and add buttons from top action bar to queue view for perfect header centering
+        addItem = null;
+        searchItem = null;
 
         if (isProfilePlaylist) {
             listView.setSections();
@@ -1448,12 +1635,15 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             itemTouchHelper.attachToRecyclerView(listView);
         }
 
-        containerView.addView(playerLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 179 + (!isMyList() && !noforwards ? 52 : 0), Gravity.LEFT | Gravity.BOTTOM));
+        int navBar = Math.max(AndroidUtilities.dp(16), AndroidUtilities.navigationBarHeight);
+        int totalPlayerH = dp(236) + navBar;
+        playerLayout.setPadding(0, 0, 0, navBar);
+        containerView.addView(playerLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 236 + navBar, Gravity.LEFT | Gravity.BOTTOM));
         containerView.addView(playerShadow, new FrameLayout.LayoutParams(LayoutHelper.MATCH_PARENT, AndroidUtilities.getShadowHeight(), Gravity.LEFT | Gravity.BOTTOM));
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) playerLayout.getLayoutParams();
-        layoutParams.height = dp(179 + (!isMyList() && !noforwards ? 52 : 0));
+        layoutParams.height = totalPlayerH;
         layoutParams = (FrameLayout.LayoutParams) playerShadow.getLayoutParams();
-        layoutParams.bottomMargin = dp(179 + (!isMyList() && !noforwards ? 52 : 0));
+        layoutParams.bottomMargin = totalPlayerH;
         containerView.addView(actionBarShadow, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 3));
         containerView.addView(actionBar);
 
@@ -1480,10 +1670,52 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         updateTitle(false);
         updateRepeatButton();
         updateEmptyView();
+
+        actionBar.setAlpha(1.0f);
+        if (actionBarBackground != null) {
+            actionBarBackground.setAlpha(0.0f);
+        }
+        actionBar.setBackButtonImage(R.drawable.msg_expand);
+        actionBar.centerTitle();
+        updatePlaylistHeader();
+        updateTitle(false);
+        setDisplayMode(ZENI_MODE_CARD);
     }
+
+    private void updatePlaylistHeader() {
+        if (actionBar == null) return;
+        actionBar.setTitle("\u0412\u0430\u0448 \u043f\u043b\u0435\u0439\u043b\u0438\u0441\u0442");
+        List<MessageObject> list = MediaController.getInstance().getPlaylist();
+        if (list == null || list.isEmpty()) {
+            list = playlist;
+        }
+        int total = list != null ? list.size() : 1;
+        int idx = MediaController.getInstance().getPlayingMessageObjectNum();
+        if (idx < 0) {
+            MessageObject cur = MediaController.getInstance().getPlayingMessageObject();
+            if (cur != null && list != null) {
+                for (int i = 0; i < list.size(); i++) {
+                    if (list.get(i).getId() == cur.getId()) {
+                        idx = i;
+                        break;
+                    }
+                }
+            }
+        }
+        int curNum = Math.max(1, idx + 1);
+        actionBar.setSubtitle(String.format(java.util.Locale.US, "\u0422\u0440\u0435\u043a %d \u0438\u0437 %d", curNum, total));
+    }
+
 
     @Override
     public int getContainerViewHeight() {
+        if (playerLayout == null) {
+            return 0;
+        }
+        return container != null ? container.getMeasuredHeight() : AndroidUtilities.displaySize.y;
+    }
+
+    public int getContainerViewHeightOld() {
         if (playerLayout == null) {
             return 0;
         }
@@ -1956,6 +2188,14 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
     }
 
     private void updateLayout() {
+        scrollOffsetY = 0;
+        if (actionBar != null) {
+            actionBar.setAlpha(1.0f);
+        }
+        if (actionBarShadow != null) {
+            actionBarShadow.setAlpha(0.0f);
+        }
+        containerView.invalidate();
         if (listView.getChildCount() <= 0) {
             listView.setTopGlowOffset(scrollOffsetY = listView.getPaddingTop());
             containerView.invalidate();
@@ -2083,6 +2323,10 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
 
     @Override
     public void onBackPressed() {
+        if (isSettingsSheetVisible()) {
+            hideSettingsSheet(true);
+            return;
+        }
         if (actionBar != null && actionBar.isSearchFieldVisible()) {
             actionBar.closeSearchField();
             return;
@@ -2170,6 +2414,9 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
     }
 
     private void updateProgress(MessageObject messageObject, boolean animated) {
+        if (zenigramIsLyricsMode && zenigramKaraokeView != null && messageObject != null) {
+            zenigramKaraokeView.updateTime((long) (messageObject.audioProgress * messageObject.getDuration() * 1000L));
+        }
         if (seekBarView != null) {
             int newTime;
             if (seekBarView.isDragging()) {
@@ -2291,6 +2538,7 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             checkIfMusicDownloaded(messageObject);
             updateProgress(messageObject, !sameMessageObject);
             updateCover(messageObject, !sameMessageObject);
+            updatePlaylistHeader();
 
             if (MediaController.getInstance().isMessagePaused()) {
                 playPauseDrawable.setPause(false);
@@ -2326,6 +2574,60 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         }
     }
 
+    private void extractCoverPalette(Bitmap bitmap) {
+        if (bitmap == null || bitmap.isRecycled()) return;
+        tw.nekomimi.nekogram.helpers.ZenigramMonetEngine.extractPalette(bitmap, palette -> {
+            if (palette != null) {
+                zenigramMonetPalette = palette;
+                zenigramMonetAccentColor = palette.vibrantColor != 0 ? palette.vibrantColor : (palette.lightAccentColor != 0 ? palette.lightAccentColor : 0xFF829C51);
+                if (playButton != null) {
+                    playButton.setBackground(Theme.createRoundRectDrawable(dp(24), zenigramMonetAccentColor));
+                    int iconColor = AndroidUtilities.computePerceivedBrightness(zenigramMonetAccentColor) > 0.72 ? 0xFF000000 : 0xFFFFFFFF;
+                    if (playPauseDrawable != null) {
+                        playPauseDrawable.setColorFilter(new PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_IN));
+                    }
+                }
+                if (zenigramIsLyricsMode && zenigramLyricsToggleBtn != null) {
+                    zenigramLyricsToggleBtn.setBackground(Theme.createRoundRectDrawable(dp(18), zenigramMonetAccentColor));
+                } else if (zenigramDisplayMode == ZENI_MODE_QUEUE && zenigramQueueToggleBtn != null) {
+                    zenigramQueueToggleBtn.setBackground(Theme.createRoundRectDrawable(dp(18), zenigramMonetAccentColor));
+                }
+                if (zenigramGlowView != null) {
+                    zenigramGlowView.invalidate();
+                }
+                MessageObject curMsg = MediaController.getInstance().getPlayingMessageObject();
+                if (curMsg != null) {
+                    updateFavoriteState(curMsg);
+                }
+                if (containerView != null) {
+                    containerView.invalidate();
+                }
+            }
+        });
+    }
+
+    private void updateFavoriteState(MessageObject messageObject) {
+        if (messageObject == null || messageObject.getDocument() == null) {
+            zenigramIsFavorite = false;
+        } else {
+            MessagesController.SavedMusicIds musicIds = MessagesController.getInstance(currentAccount).getSavedMusicIds();
+            zenigramIsFavorite = musicIds != null && musicIds.ids.contains(messageObject.getDocument().id);
+        }
+        int color = zenigramIsFavorite ? zenigramMonetAccentColor : 0x88FFFFFF;
+        if (zenigramHeartDrawable != null) {
+            zenigramHeartDrawable.setHeartState(zenigramIsFavorite, color);
+        }
+        if (zenigramMiniHeartDrawable != null) {
+            zenigramMiniHeartDrawable.setHeartState(zenigramIsFavorite, color);
+        }
+        if (zenigramHeartBtn != null) {
+            zenigramHeartBtn.invalidate();
+        }
+        if (zenigramMiniHeart != null) {
+            zenigramMiniHeart.invalidate();
+        }
+    }
+
     private void updateCover(MessageObject messageObject, boolean animated) {
         final BackupImageView imageView = animated ? coverContainer.getNextImageView() : coverContainer.getImageView();
         final AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
@@ -2350,6 +2652,70 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
                 imageView.setImageDrawable(null);
             }
             imageView.invalidate();
+        }
+
+        Bitmap coverBitmap = null;
+        if (audioInfo != null && audioInfo.getCover() != null) {
+            coverBitmap = audioInfo.getCover();
+        } else if (audioInfo != null && audioInfo.getSmallCover() != null) {
+            coverBitmap = audioInfo.getSmallCover();
+        }
+
+        // Zenigram Big Card Artwork Loading
+        if (zenigramBigCover != null) {
+            if (coverBitmap != null) {
+                zenigramBigCover.setImageBitmap(coverBitmap);
+                extractCoverPalette(coverBitmap);
+            } else if (messageObject != null) {
+                String art = messageObject.getArtworkUrl(false);
+                TLRPC.Document document = messageObject.getDocument();
+                TLRPC.PhotoSize thumb = document != null ? FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 360) : null;
+                ImageLocation thumbLoc = thumb != null ? ImageLocation.getForDocument(thumb, document) : null;
+                if (!TextUtils.isEmpty(art)) {
+                    zenigramBigCover.setImage(ImageLocation.getForPath(art), "320_320", thumbLoc, null, 0, messageObject);
+                } else if (thumbLoc != null) {
+                    zenigramBigCover.setImage(thumbLoc, "320_320", null, null, messageObject);
+                } else {
+                    zenigramBigCover.setImageDrawable(Theme.createRoundRectDrawable(dp(24), 0xFF2A2228));
+                }
+                AndroidUtilities.runOnUIThread(() -> {
+                    if (zenigramBigCover != null && zenigramBigCover.getImageReceiver() != null) {
+                        Bitmap b = zenigramBigCover.getImageReceiver().getBitmap();
+                        if (b != null) {
+                            extractCoverPalette(b);
+                        }
+                    }
+                }, 250);
+            }
+        }
+
+        // Zenigram Mini Cover Artwork Loading
+        if (zenigramMiniCover != null) {
+            if (coverBitmap != null) {
+                zenigramMiniCover.setImageBitmap(coverBitmap);
+            } else if (messageObject != null) {
+                String art = messageObject.getArtworkUrl(true);
+                TLRPC.Document document = messageObject.getDocument();
+                TLRPC.PhotoSize thumb = document != null ? FileLoader.getClosestPhotoSizeWithSize(document.thumbs, 120) : null;
+                ImageLocation thumbLoc = thumb != null ? ImageLocation.getForDocument(thumb, document) : null;
+                if (!TextUtils.isEmpty(art)) {
+                    zenigramMiniCover.setImage(ImageLocation.getForPath(art), "42_42", thumbLoc, null, 0, messageObject);
+                } else if (thumbLoc != null) {
+                    zenigramMiniCover.setImage(thumbLoc, "42_42", null, null, messageObject);
+                } else {
+                    zenigramMiniCover.setImageDrawable(Theme.createRoundRectDrawable(dp(8), 0xFF2A2228));
+                }
+            }
+        }
+
+        if (messageObject != null) {
+            if (zenigramMiniTitle != null) zenigramMiniTitle.setText(messageObject.getMusicTitle());
+            if (zenigramMiniAuthor != null) zenigramMiniAuthor.setText(messageObject.getMusicAuthor());
+            updateFavoriteState(messageObject);
+        }
+
+        if (zenigramIsLyricsMode && animated) {
+            loadLyricsForCurrentSong(true);
         }
     }
 
@@ -2426,18 +2792,27 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
         private boolean listViewIsVisible;
         public void setup() {
             listViewIsVisible = playlist.size() > 1;
-            if (listViewIsVisible) {
-                listView.setVisibility(View.VISIBLE);
-                listView.setTranslationY(0);
+            if (zenigramDisplayMode == ZENI_MODE_QUEUE) {
+                if (listViewIsVisible) {
+                    listView.setVisibility(View.VISIBLE);
+                    listView.setTranslationY(0);
+                } else {
+                    listView.setVisibility(View.GONE);
+                }
             } else {
                 listView.setVisibility(View.GONE);
-                listView.setTranslationY(AndroidUtilities.displaySize.y);
             }
         }
 
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
+            if (zenigramDisplayMode != ZENI_MODE_QUEUE) {
+                if (listView != null) {
+                    listView.setVisibility(View.GONE);
+                }
+                return;
+            }
             if ((playlist.size() > 1) != listViewIsVisible) {
                 listViewIsVisible = playlist.size() > 1;
                 if (listViewIsVisible) {
@@ -2915,7 +3290,11 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             o.dismiss();
             onSubItemClick(7);
         });
-        o.setTranslationY(dp(64));
+        o.addGap();
+        o.add(R.drawable.msg_settings, "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043f\u043b\u0435\u0435\u0440\u0430", () -> {
+            o.dismiss();
+            showSettingsSheet(true);
+        });
         o.show();
     }
 
@@ -3609,5 +3988,443 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
             authorTextView.setCustomPaddingRight((int) animation.getAnimatedValue());
         });
         rightPaddingAnimator.start();
+    }
+
+    private void openPlayerSettings() {
+        BaseFragment fragment = new tw.nekomimi.nekogram.settings.ZenigramPlayerSettingsActivity();
+        if (parentActivity != null && parentActivity.getActionBarLayout() != null) {
+            parentActivity.getActionBarLayout().presentFragment(fragment);
+        } else if (LaunchActivity.instance != null && LaunchActivity.instance.getActionBarLayout() != null) {
+            LaunchActivity.instance.getActionBarLayout().presentFragment(fragment);
+        }
+    }
+
+    public void setDisplayMode(int mode) {
+        zenigramDisplayMode = mode;
+        if (mode == ZENI_MODE_CARD) {
+            zenigramIsLyricsMode = false;
+            if (zenigramBigCardContainer != null) {
+                zenigramBigCardContainer.setVisibility(View.VISIBLE);
+                zenigramBigCardContainer.bringToFront();
+            }
+            if (zenigramLyricsContainer != null) zenigramLyricsContainer.setVisibility(View.GONE);
+            if (listView != null) listView.setVisibility(View.GONE);
+            if (zenigramMiniPreview != null) zenigramMiniPreview.setVisibility(View.GONE);
+            if (zenigramHeartBtn != null) zenigramHeartBtn.setVisibility(View.VISIBLE);
+            if (titleTextView != null) titleTextView.setVisibility(View.VISIBLE);
+            if (authorTextView != null) authorTextView.setVisibility(View.VISIBLE);
+            if (zenigramLyricsToggleBtn != null) {
+                zenigramLyricsToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), 0x22FFFFFF));
+                zenigramLyricsToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+            if (zenigramQueueToggleBtn != null) {
+                zenigramQueueToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), 0x22FFFFFF));
+                zenigramQueueToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+        } else if (mode == ZENI_MODE_LYRICS) {
+            zenigramIsLyricsMode = true;
+            if (zenigramBigCardContainer != null) zenigramBigCardContainer.setVisibility(View.GONE);
+            if (zenigramLyricsContainer != null) {
+                zenigramLyricsContainer.setVisibility(View.VISIBLE);
+                zenigramLyricsContainer.bringToFront();
+            }
+            if (listView != null) listView.setVisibility(View.GONE);
+            if (zenigramMiniPreview != null) {
+                zenigramMiniPreview.setVisibility(View.VISIBLE);
+                zenigramMiniPreview.bringToFront();
+            }
+            if (zenigramHeartBtn != null) zenigramHeartBtn.setVisibility(View.GONE);
+            if (titleTextView != null) titleTextView.setVisibility(View.GONE);
+            if (authorTextView != null) authorTextView.setVisibility(View.GONE);
+            if (zenigramLyricsToggleBtn != null) {
+                zenigramLyricsToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), zenigramMonetAccentColor));
+                zenigramLyricsToggleBtn.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+            if (zenigramQueueToggleBtn != null) {
+                zenigramQueueToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), 0x22FFFFFF));
+                zenigramQueueToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+            loadLyricsForCurrentSong(true);
+        } else if (mode == ZENI_MODE_QUEUE) {
+            zenigramIsLyricsMode = false;
+            if (zenigramBigCardContainer != null) zenigramBigCardContainer.setVisibility(View.GONE);
+            if (zenigramLyricsContainer != null) zenigramLyricsContainer.setVisibility(View.GONE);
+            if (zenigramQueueHeader != null) {
+                zenigramQueueHeader.setVisibility(View.VISIBLE);
+                zenigramQueueHeader.bringToFront();
+            }
+            if (listView != null) {
+                int navBar = Math.max(AndroidUtilities.dp(16), AndroidUtilities.navigationBarHeight);
+                listView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 0, 108, 0, 236 + navBar));
+                listView.setVisibility(View.VISIBLE);
+                listView.bringToFront();
+            }
+            if (zenigramMiniPreview != null) {
+                zenigramMiniPreview.setVisibility(View.VISIBLE);
+                zenigramMiniPreview.bringToFront();
+            }
+            if (playerLayout != null) {
+                playerLayout.setBackgroundColor(0xFF221D25);
+                playerLayout.bringToFront();
+            }
+            if (zenigramHeartBtn != null) zenigramHeartBtn.setVisibility(View.GONE);
+            if (titleTextView != null) titleTextView.setVisibility(View.GONE);
+            if (authorTextView != null) authorTextView.setVisibility(View.GONE);
+            if (zenigramLyricsToggleBtn != null) {
+                zenigramLyricsToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), 0x22FFFFFF));
+                zenigramLyricsToggleBtn.setColorFilter(new PorterDuffColorFilter(0xAAFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+            if (zenigramQueueToggleBtn != null) {
+                zenigramQueueToggleBtn.setBackground(Theme.createRoundRectDrawable(AndroidUtilities.dp(18), zenigramMonetAccentColor));
+                zenigramQueueToggleBtn.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
+            }
+        }
+        if (mode != ZENI_MODE_QUEUE) {
+            if (zenigramQueueHeader != null) zenigramQueueHeader.setVisibility(View.GONE);
+            if (playerLayout != null) playerLayout.setBackgroundColor(0);
+        }
+        if (playerLayout != null) {
+            playerLayout.bringToFront();
+        }
+        if (actionBar != null) {
+            actionBar.bringToFront();
+            updatePlaylistHeader();
+        }
+        if (containerView != null) {
+            containerView.invalidate();
+        }
+    }
+
+    private void toggleLyricsMode() {
+        if (zenigramDisplayMode == ZENI_MODE_LYRICS) {
+            setDisplayMode(ZENI_MODE_CARD);
+        } else {
+            setDisplayMode(ZENI_MODE_LYRICS);
+        }
+    }
+
+    private void toggleQueueMode() {
+        if (zenigramDisplayMode == ZENI_MODE_QUEUE) {
+            setDisplayMode(ZENI_MODE_CARD);
+        } else {
+            setDisplayMode(ZENI_MODE_QUEUE);
+        }
+    }
+
+    private void requestLyricsManual() {
+        org.telegram.messenger.MessageObject msg = org.telegram.messenger.MediaController.getInstance().getPlayingMessageObject();
+        if (msg == null) return;
+        zenigramRequestLyricsBtn.setText("\u041f\u043e\u0438\u0441\u043a...");
+        tw.nekomimi.nekogram.helpers.ZenigramLyricsHelper.fetchLyricsOnline(msg.getMusicAuthor(), msg.getMusicTitle(), (int) msg.getDuration(), new tw.nekomimi.nekogram.helpers.ZenigramLyricsHelper.LyricsCallback() {
+            @Override
+            public void onLyricsLoaded(tw.nekomimi.nekogram.helpers.ZenigramLyricsDatabase.LyricsEntry entry) {
+                zenigramRequestLyricsBtn.setText("\u0417\u0430\u043f\u0440\u043e\u0441\u0438\u0442\u044c \u0442\u0435\u043a\u0441\u0442");
+                if (entry != null && entry.hasLyrics()) {
+                    zenigramNoLyricsLayout.setVisibility(android.view.View.GONE);
+                    zenigramKaraokeView.setVisibility(android.view.View.VISIBLE);
+                    java.util.List<tw.nekomimi.nekogram.helpers.ZenigramLrcParser.LrcLine> lrcLines = tw.nekomimi.nekogram.helpers.ZenigramLrcParser.parse(entry.syncedLyrics, (long) (msg.getDuration() * 1000.0));
+                    zenigramKaraokeView.setLyrics(lrcLines, entry.plainLyrics);
+                } else {
+                    zenigramNoLyricsLayout.setVisibility(android.view.View.VISIBLE);
+                    zenigramKaraokeView.setVisibility(android.view.View.GONE);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                zenigramRequestLyricsBtn.setText("\u0422\u0435\u043a\u0441\u0442 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d. \u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c?");
+                zenigramNoLyricsLayout.setVisibility(android.view.View.VISIBLE);
+                zenigramKaraokeView.setVisibility(android.view.View.GONE);
+            }
+        });
+    }
+
+    private void loadLyricsForCurrentSong(boolean autoFetch) {
+        org.telegram.messenger.MessageObject msg = org.telegram.messenger.MediaController.getInstance().getPlayingMessageObject();
+        if (msg == null) return;
+        zenigramMiniTitle.setText(msg.getMusicTitle());
+        zenigramMiniAuthor.setText(msg.getMusicAuthor());
+        org.telegram.messenger.audioinfo.AudioInfo audioInfo = org.telegram.messenger.MediaController.getInstance().getAudioInfo();
+        if (audioInfo != null && audioInfo.getCover() != null) {
+            zenigramMiniCover.setImageBitmap(audioInfo.getCover());
+        } else {
+            String art = msg.getArtworkUrl(false);
+            if (!android.text.TextUtils.isEmpty(art)) {
+                zenigramMiniCover.setImage(org.telegram.messenger.ImageLocation.getForPath(art), "42_42", null, null, null, 0, 1, msg);
+            }
+        }
+
+        tw.nekomimi.nekogram.helpers.ZenigramLyricsHelper.getLyrics(msg.getMusicAuthor(), msg.getMusicTitle(), (int) msg.getDuration(), autoFetch, new tw.nekomimi.nekogram.helpers.ZenigramLyricsHelper.LyricsCallback() {
+            @Override
+            public void onLyricsLoaded(tw.nekomimi.nekogram.helpers.ZenigramLyricsDatabase.LyricsEntry entry) {
+                if (entry != null && entry.hasLyrics()) {
+                    zenigramNoLyricsLayout.setVisibility(android.view.View.GONE);
+                    zenigramKaraokeView.setVisibility(android.view.View.VISIBLE);
+                    java.util.List<tw.nekomimi.nekogram.helpers.ZenigramLrcParser.LrcLine> lrcLines = tw.nekomimi.nekogram.helpers.ZenigramLrcParser.parse(entry.syncedLyrics, (long) (msg.getDuration() * 1000.0));
+                    zenigramKaraokeView.setLyrics(lrcLines, entry.plainLyrics);
+                } else {
+                    zenigramNoLyricsLayout.setVisibility(android.view.View.VISIBLE);
+                    zenigramKaraokeView.setVisibility(android.view.View.GONE);
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                zenigramNoLyricsLayout.setVisibility(android.view.View.VISIBLE);
+                zenigramKaraokeView.setVisibility(android.view.View.GONE);
+            }
+        });
+    }
+
+    private void toggleFavoriteTrack() {
+        zenigramIsFavorite = !zenigramIsFavorite;
+        int color = zenigramIsFavorite ? zenigramMonetAccentColor : 0x88FFFFFF;
+        if (zenigramHeartDrawable != null) {
+            zenigramHeartDrawable.setHeartState(zenigramIsFavorite, color);
+        }
+        if (zenigramMiniHeartDrawable != null) {
+            zenigramMiniHeartDrawable.setHeartState(zenigramIsFavorite, color);
+        }
+        if (zenigramHeartBtn != null) {
+            zenigramHeartBtn.invalidate();
+            if (zenigramIsFavorite) {
+                zenigramHeartBtn.animate().scaleX(1.35f).scaleY(1.35f).setDuration(120).withEndAction(() -> 
+                    zenigramHeartBtn.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+                ).start();
+            }
+        }
+        if (zenigramMiniHeart != null) {
+            zenigramMiniHeart.invalidate();
+            if (zenigramIsFavorite) {
+                zenigramMiniHeart.animate().scaleX(1.35f).scaleY(1.35f).setDuration(120).withEndAction(() -> 
+                    zenigramMiniHeart.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+                ).start();
+            }
+        }
+        final MessageObject currentMsg = MediaController.getInstance().getPlayingMessageObject();
+        if (currentMsg != null && currentMsg.getId() > 0) {
+            saveToProfile(currentMsg, zenigramIsFavorite, null, false);
+        }
+    }
+
+    public boolean isSettingsSheetVisible() {
+        return isSettingsSheetVisible && zenigramSettingsContainer != null && zenigramSettingsContainer.getVisibility() == View.VISIBLE;
+    }
+
+    public void showSettingsSheet(boolean animated) {
+        if (containerView == null) return;
+        createSettingsSheet(containerView.getContext());
+        isSettingsSheetVisible = true;
+        zenigramSettingsContainer.setVisibility(View.VISIBLE);
+        zenigramSettingsContainer.bringToFront();
+        if (animated) {
+            zenigramSettingsContainer.setTranslationY(containerView.getMeasuredHeight() > 0 ? containerView.getMeasuredHeight() : AndroidUtilities.displaySize.y);
+            zenigramSettingsContainer.animate().translationY(0).setDuration(280).setInterpolator(CubicBezierInterpolator.EASE_OUT).start();
+        } else {
+            zenigramSettingsContainer.setTranslationY(0);
+        }
+    }
+
+    public void hideSettingsSheet(boolean animated) {
+        if (zenigramSettingsContainer == null || !isSettingsSheetVisible) return;
+        isSettingsSheetVisible = false;
+        if (animated) {
+            int h = zenigramSettingsContainer.getMeasuredHeight() > 0 ? zenigramSettingsContainer.getMeasuredHeight() : AndroidUtilities.displaySize.y;
+            zenigramSettingsContainer.animate().translationY(h).setDuration(220).setInterpolator(CubicBezierInterpolator.EASE_IN).withEndAction(() -> {
+                if (zenigramSettingsContainer != null) {
+                    zenigramSettingsContainer.setVisibility(View.GONE);
+                }
+            }).start();
+        } else {
+            zenigramSettingsContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void createSettingsSheet(Context context) {
+        if (zenigramSettingsContainer != null) return;
+
+        zenigramSettingsContainer = new FrameLayout(context);
+        zenigramSettingsContainer.setVisibility(View.GONE);
+        zenigramSettingsContainer.setBackground(Theme.createRoundRectDrawable(dp(24), dp(24), 0, 0, 0xFF1D1820));
+
+        FrameLayout topBar = new FrameLayout(context);
+        zenigramSettingsContainer.addView(topBar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 56, Gravity.TOP | Gravity.LEFT));
+
+        ImageView backBtn = new ImageView(context);
+        backBtn.setScaleType(ImageView.ScaleType.CENTER);
+        backBtn.setImageResource(R.drawable.msg_expand);
+        backBtn.setColorFilter(new PorterDuffColorFilter(0xFFFFFFFF, PorterDuff.Mode.SRC_IN));
+        backBtn.setBackground(Theme.createSelectorDrawable(0x22FFFFFF, 1, dp(18)));
+        topBar.addView(backBtn, LayoutHelper.createFrame(48, 48, Gravity.LEFT | Gravity.CENTER_VERTICAL, 8, 0, 0, 0));
+        backBtn.setOnClickListener(v -> hideSettingsSheet(true));
+
+        TextView titleView = new TextView(context);
+        titleView.setText("\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u043f\u043b\u0435\u0435\u0440\u0430");
+        titleView.setTextColor(0xFFFFFFFF);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 19);
+        titleView.setTypeface(AndroidUtilities.bold());
+        titleView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
+        topBar.addView(titleView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 64, 0, 0, 0));
+
+        android.widget.ScrollView scrollView = new android.widget.ScrollView(context);
+        scrollView.setVerticalScrollBarEnabled(false);
+        zenigramSettingsContainer.addView(scrollView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT, 0, 56, 0, 0));
+
+        android.widget.LinearLayout contentLayout = new android.widget.LinearLayout(context);
+        contentLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        contentLayout.setPadding(dp(16), dp(8), dp(16), dp(32));
+        scrollView.addView(contentLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
+
+        // Section 1: Внешний вид
+        addSheetHeader(contentLayout, "\u0412\u043d\u0435\u0448\u043d\u0438\u0439 \u0432\u0438\u0434");
+        android.widget.LinearLayout card1 = createSheetCard(context);
+        contentLayout.addView(card1);
+
+        addSheetSwitchRow(card1, "\u0426\u0432\u0435\u0442\u0430 \u043e\u0431\u043b\u043e\u0436\u043a\u0438 2/2", null, tw.nekomimi.nekogram.NekoConfig.playerCoverColors, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerCoverColors();
+            updateColors();
+        });
+        addSheetDivider(card1);
+        addSheetSwitchRow(card1, "\u0424\u043e\u043d \u0432 \u0442\u0430\u043a\u0442 \u043c\u0443\u0437\u044b\u043a\u0435", "\u0424\u043e\u043d \u043f\u043b\u0435\u0435\u0440\u0430 \u043f\u0443\u043b\u044c\u0441\u0438\u0440\u0443\u0435\u0442 \u0432 \u0440\u0438\u0442\u043c\u0435 \u0442\u0440\u0435\u043a\u0430.", tw.nekomimi.nekogram.NekoConfig.playerBeatBackground, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerBeatBackground();
+        });
+        addSheetDivider(card1);
+        addSheetSwitchRow(card1, "\u0427\u0430\u0441\u0442\u0438\u0446\u044b", "\u0418\u0441\u043a\u0440\u044b \u0440\u0430\u0437\u043b\u0435\u0442\u0430\u044e\u0442\u0441\u044f \u043e\u0442 \u043e\u0431\u043b\u043e\u0436\u043a\u0438 \u0432 \u0442\u0430\u043a\u0442 \u043c\u0443\u0437\u044b\u043a\u0435.", tw.nekomimi.nekogram.NekoConfig.playerParticles, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerParticles();
+        });
+        addSheetDivider(card1);
+        addSheetSwitchRow(card1, "\u0416\u0438\u0432\u044b\u0435 \u043e\u0431\u043b\u043e\u0436\u043a\u0438", "\u041e\u0431\u043b\u043e\u0436\u043a\u0438 \u0431\u0443\u0434\u0443\u0442 \u0438\u0441\u043a\u0430\u0442\u044c\u0441\u044f \u0432 Apple Music \u043f\u043e \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u044e \u0438 \u0438\u0441\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044e.", tw.nekomimi.nekogram.NekoConfig.playerLiveCovers, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerLiveCovers();
+        });
+        addSheetDivider(card1);
+        addSheetSwitchRow(card1, "Spotify Canvas", "\u0417\u0430\u0446\u0438\u043a\u043b\u0435\u043d\u043d\u044b\u0435 \u0432\u0438\u0434\u0435\u043e \u0438\u0437 Spotify \u043d\u0430 \u0444\u043e\u043d\u0435 \u043f\u043b\u0435\u0435\u0440\u0430. \u041d\u0443\u0436\u0435\u043d \u0430\u043a\u043a\u0430\u0443\u043d\u0442 Spotify.", tw.nekomimi.nekogram.NekoConfig.playerSpotifyCanvas, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerSpotifyCanvas();
+        });
+
+        // Section 2: Текст песни
+        addSheetHeader(contentLayout, "\u0422\u0435\u043a\u0441\u0442 \u043f\u0435\u0441\u043d\u0438");
+        android.widget.LinearLayout card2 = createSheetCard(context);
+        contentLayout.addView(card2);
+
+        addSheetSwitchRow(card2, "\u0422\u0435\u043a\u0441\u0442\u044b \u0438\u0437 \u0441\u0435\u0442\u0438", "\u0418\u0441\u043a\u0430\u0442\u044c \u0442\u0435\u043a\u0441\u0442 \u0432 \u0438\u043d\u0442\u0435\u0440\u043d\u0435\u0442\u0435, \u0435\u0441\u043b\u0438 \u0432 \u0442\u0440\u0435\u043a\u0435 \u0435\u0433\u043e \u043d\u0435\u0442.", tw.nekomimi.nekogram.NekoConfig.playerOnlineLyrics, (v, checked) -> {
+            tw.nekomimi.nekogram.NekoConfig.togglePlayerOnlineLyrics();
+        });
+
+        // Section 3: Прогресс строки
+        addSheetHeader(contentLayout, "\u041f\u0440\u043e\u0433\u0440\u0435\u0441\u0441 \u0441\u0442\u0440\u043e\u043a\u0438");
+        android.widget.LinearLayout card3 = createSheetCard(context);
+        contentLayout.addView(card3);
+
+        addProgressSliderRow(card3, context);
+
+        containerView.addView(zenigramSettingsContainer, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.TOP | Gravity.LEFT));
+    }
+
+    private void addSheetHeader(android.widget.LinearLayout parent, String title) {
+        TextView tv = new TextView(parent.getContext());
+        tv.setText(title);
+        tv.setTextColor(zenigramMonetAccentColor != 0 ? zenigramMonetAccentColor : 0xFFF3A5C1);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+        tv.setTypeface(AndroidUtilities.bold());
+        tv.setPadding(dp(8), dp(16), dp(8), dp(6));
+        parent.addView(tv);
+    }
+
+    private android.widget.LinearLayout createSheetCard(Context context) {
+        android.widget.LinearLayout card = new android.widget.LinearLayout(context);
+        card.setOrientation(android.widget.LinearLayout.VERTICAL);
+        card.setBackground(Theme.createRoundRectDrawable(dp(16), 0xFF28212A));
+        card.setPadding(dp(14), dp(10), dp(14), dp(10));
+        return card;
+    }
+
+    private void addSheetDivider(android.widget.LinearLayout card) {
+        View div = new View(card.getContext());
+        div.setBackgroundColor(0x18FFFFFF);
+        card.addView(div, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 1, 0, dp(6), 0, dp(6)));
+    }
+
+    private void addSheetSwitchRow(android.widget.LinearLayout card, String title, String subtitle, boolean initialChecked, org.telegram.ui.Components.Switch.OnCheckedChangeListener listener) {
+        Context context = card.getContext();
+        FrameLayout row = new FrameLayout(context);
+        row.setMinimumHeight(dp(44));
+
+        android.widget.LinearLayout textCol = new android.widget.LinearLayout(context);
+        textCol.setOrientation(android.widget.LinearLayout.VERTICAL);
+        row.addView(textCol, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.CENTER_VERTICAL, 0, 0, 52, 0));
+
+        TextView tvTitle = new TextView(context);
+        tvTitle.setText(title);
+        tvTitle.setTextColor(0xFFFFFFFF);
+        tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
+        tvTitle.setTypeface(AndroidUtilities.bold());
+        textCol.addView(tvTitle);
+
+        if (subtitle != null) {
+            TextView tvSub = new TextView(context);
+            tvSub.setText(subtitle);
+            tvSub.setTextColor(0x88FFFFFF);
+            tvSub.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            tvSub.setPadding(0, dp(2), 0, 0);
+            textCol.addView(tvSub);
+        }
+
+        final org.telegram.ui.Components.Switch sw = new org.telegram.ui.Components.Switch(context);
+        sw.setChecked(initialChecked, false);
+        sw.setColors(Theme.key_switchTrack, Theme.key_switchTrackChecked, Theme.key_windowBackgroundWhite, Theme.key_windowBackgroundWhite);
+        row.addView(sw, LayoutHelper.createFrame(38, 20, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
+
+        row.setOnClickListener(v -> {
+            boolean next = !sw.isChecked();
+            sw.setChecked(next, true);
+            if (listener != null) listener.onCheckedChanged(sw, next);
+        });
+
+        card.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 4));
+    }
+
+    private void addProgressSliderRow(android.widget.LinearLayout card, Context context) {
+        android.widget.LinearLayout row = new android.widget.LinearLayout(context);
+        row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
+
+        String[] options = new String[]{"\u041e\u0442\u043a\u043b.", "\u0421\u043b\u0435\u0432\u0430 \u043d\u0430\u043f\u0440\u0430\u0432\u043e", "\u0421\u0432\u0435\u0440\u0445\u0443 \u0432\u043d\u0438\u0437"};
+        final TextView[] buttons = new TextView[3];
+
+        for (int i = 0; i < 3; i++) {
+            final int idx = i;
+            TextView btn = new TextView(context);
+            btn.setText(options[i]);
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            btn.setGravity(Gravity.CENTER);
+            btn.setPadding(dp(8), dp(8), dp(8), dp(8));
+            buttons[i] = btn;
+
+            boolean isSel = (tw.nekomimi.nekogram.NekoConfig.playerLyricsProgress == i);
+            btn.setTextColor(isSel ? 0xFFFFFFFF : 0x88FFFFFF);
+            btn.setBackground(isSel ? Theme.createRoundRectDrawable(dp(12), zenigramMonetAccentColor != 0 ? zenigramMonetAccentColor : 0xFFF3A5C1) : Theme.createRoundRectDrawable(dp(12), 0x15FFFFFF));
+
+            btn.setOnClickListener(v -> {
+                tw.nekomimi.nekogram.NekoConfig.setPlayerLyricsProgress(idx);
+                for (int b = 0; b < 3; b++) {
+                    boolean sel = (b == idx);
+                    buttons[b].setTextColor(sel ? 0xFFFFFFFF : 0x88FFFFFF);
+                    buttons[b].setBackground(sel ? Theme.createRoundRectDrawable(dp(12), zenigramMonetAccentColor != 0 ? zenigramMonetAccentColor : 0xFFF3A5C1) : Theme.createRoundRectDrawable(dp(12), 0x15FFFFFF));
+                }
+            });
+
+            android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(0, LayoutHelper.WRAP_CONTENT, 1.0f);
+            if (i > 0) lp.leftMargin = dp(6);
+            row.addView(btn, lp);
+        }
+
+        card.addView(row, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, 4, 0, 4));
+
+        TextView desc = new TextView(context);
+        desc.setText("\u041a\u0430\u043a \u0437\u0430\u043f\u043e\u043b\u043d\u044f\u0435\u0442\u0441\u044f \u0442\u0435\u043a\u0443\u0449\u0430\u044f \u0441\u0442\u0440\u043e\u043a\u0430 \u043f\u043e \u043c\u0435\u0440\u0435 \u0438\u0441\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.");
+        desc.setTextColor(0x88FFFFFF);
+        desc.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+        desc.setPadding(0, dp(6), 0, 0);
+        card.addView(desc);
     }
 }

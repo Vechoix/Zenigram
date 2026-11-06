@@ -129,6 +129,10 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private final CapsuleBlobDrawable capsuleBlobDrawable = new CapsuleBlobDrawable();
     private ImageView playButton;
     private PlayPauseDrawable playPauseDrawable;
+    private ZenigramWavyCircularPlayButton zenigramWavyPlayButton;
+    private ImageView zenigramPrevButton;
+    private ImageView zenigramNextButton;
+    private BackupImageView zenigramCoverView;
     private AudioPlayerAlert.ClippingTextViewSwitcher titleTextView;
     private AudioPlayerAlert.ClippingTextViewSwitcher subtitleTextView;
     private AnimatorSet animatorSet;
@@ -421,6 +425,33 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 }
             }
         });
+
+        zenigramCoverView = new BackupImageView(context);
+        zenigramCoverView.setRoundRadius(dp(14));
+        zenigramCoverView.setVisibility(GONE);
+        addView(zenigramCoverView, LayoutHelper.createFrame(28, 28, Gravity.TOP | Gravity.LEFT, 10, 4, 0, 0));
+
+        zenigramPrevButton = new ImageView(context);
+        zenigramPrevButton.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramPrevButton.setImageResource(R.drawable.ic_action_previous);
+        zenigramPrevButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_inappPlayerPlayPause), PorterDuff.Mode.MULTIPLY));
+        zenigramPrevButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_inappPlayerPlayPause) & 0x19ffffff, 1, dp(10)));
+        zenigramPrevButton.setVisibility(GONE);
+        addView(zenigramPrevButton, LayoutHelper.createFrame(20, 20, Gravity.TOP | Gravity.RIGHT, 0, 8, 62, 0));
+        zenigramPrevButton.setOnClickListener(v -> MediaController.getInstance().playPreviousMessage());
+
+        zenigramWavyPlayButton = new ZenigramWavyCircularPlayButton(context);
+        zenigramWavyPlayButton.setVisibility(GONE);
+        addView(zenigramWavyPlayButton, LayoutHelper.createFrame(28, 28, Gravity.TOP | Gravity.RIGHT, 0, 4, 30, 0));
+
+        zenigramNextButton = new ImageView(context);
+        zenigramNextButton.setScaleType(ImageView.ScaleType.CENTER);
+        zenigramNextButton.setImageResource(R.drawable.ic_action_next);
+        zenigramNextButton.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_inappPlayerPlayPause), PorterDuff.Mode.MULTIPLY));
+        zenigramNextButton.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_inappPlayerPlayPause) & 0x19ffffff, 1, dp(10)));
+        zenigramNextButton.setVisibility(GONE);
+        addView(zenigramNextButton, LayoutHelper.createFrame(20, 20, Gravity.TOP | Gravity.RIGHT, 0, 8, 6, 0));
+        zenigramNextButton.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
 
         importingImageView = new RLottieImageView(context);
         importingImageView.setScaleType(ImageView.ScaleType.CENTER);
@@ -1270,15 +1301,40 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setVisibility(GONE);
             } else if (style == STYLE_AUDIO_PLAYER) {
-                playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 3, 0, 0, 0));
-                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 37, 0, (isSideMenued ? 64 : 0) + 36, 0));
+                playButton.setVisibility(GONE);
+                if (zenigramCoverView != null) zenigramCoverView.setVisibility(VISIBLE);
+                if (zenigramPrevButton != null) zenigramPrevButton.setVisibility(VISIBLE);
+                if (zenigramWavyPlayButton != null) zenigramWavyPlayButton.setVisibility(VISIBLE);
+                if (zenigramNextButton != null) zenigramNextButton.setVisibility(VISIBLE);
+                closeButton.setVisibility(GONE);
+                frameLayout.setBackground(Theme.createRoundRectDrawable(dp(18), 0xFF322A32));
+                titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 17, Gravity.LEFT | Gravity.TOP, 46, 3, 86, 0));
+                subtitleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 15, Gravity.LEFT | Gravity.TOP, 46, 20, 86, 0));
+                subtitleTextView.setVisibility(VISIBLE);
+                for (int i = 0; i < 2; i++) {
+                    TextView tv = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+                    if (tv != null) {
+                        tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                        tv.setTypeface(AndroidUtilities.bold());
+                    }
+                    TextView stv = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+                    if (stv != null) {
+                        stv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+                        stv.setTextColor(0xAAFFFFFF);
+                    }
+                }
                 createPlaybackSpeedButton();
                 if (playbackSpeedButton != null) {
-                    playbackSpeedButton.setVisibility(VISIBLE);
-                    playbackSpeedButton.setTag(1);
+                    playbackSpeedButton.setVisibility(GONE);
                 }
                 closeButton.setContentDescription(getString(R.string.AccDescrClosePlayer));
             } else {
+                if (zenigramCoverView != null) zenigramCoverView.setVisibility(GONE);
+                if (zenigramPrevButton != null) zenigramPrevButton.setVisibility(GONE);
+                if (zenigramWavyPlayButton != null) zenigramWavyPlayButton.setVisibility(GONE);
+                if (zenigramNextButton != null) zenigramNextButton.setVisibility(GONE);
+                playButton.setVisibility(VISIBLE);
+                closeButton.setVisibility(VISIBLE);
                 playButton.setLayoutParams(LayoutHelper.createFrame(36, 36, Gravity.TOP | Gravity.LEFT, 8, 0, 0, 0));
                 titleTextView.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35 + 16, 0, (isSideMenued ? 64 : 0) + 36, 0));
                 closeButton.setContentDescription(getString(R.string.AccDescrStopLiveLocation));
@@ -1599,6 +1655,12 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             avatars.invalidate();
         } else if (id == NotificationCenter.messagePlayingProgressDidChanged) {
             if (currentStyle == STYLE_AUDIO_PLAYER) {
+                if (zenigramWavyPlayButton != null) {
+                    MessageObject playingMessageObject = MediaController.getInstance().getPlayingMessageObject();
+                    if (playingMessageObject != null) {
+                        zenigramWavyPlayButton.updateState(MediaController.getInstance().isMessagePaused(), playingMessageObject.audioProgress);
+                    }
+                }
                 invalidate();
             }
         }
@@ -1959,9 +2021,36 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 playPauseDrawable.setPause(true, !create);
                 playButton.setContentDescription(getString(R.string.AccActionPause));
             }
+            boolean isPaused = MediaController.getInstance().isMessagePaused();
+            if (zenigramWavyPlayButton != null) {
+                zenigramWavyPlayButton.updateState(isPaused, messageObject.audioProgress);
+            }
+            if (zenigramNextButton != null) {
+                if (isPaused) {
+                    zenigramNextButton.setImageResource(R.drawable.ic_close_white);
+                    zenigramNextButton.setContentDescription(getString(R.string.AccDescrClosePlayer));
+                    zenigramNextButton.setOnClickListener(v -> MediaController.getInstance().cleanupPlayer(true, true));
+                } else {
+                    zenigramNextButton.setImageResource(R.drawable.ic_action_next);
+                    zenigramNextButton.setContentDescription(LocaleController.getString(R.string.Next));
+                    zenigramNextButton.setOnClickListener(v -> MediaController.getInstance().playNextMessage());
+                }
+            }
+            if (zenigramCoverView != null) {
+                org.telegram.messenger.audioinfo.AudioInfo audioInfo = MediaController.getInstance().getAudioInfo();
+                if (audioInfo != null && audioInfo.getCover() != null) {
+                    zenigramCoverView.setImageBitmap(audioInfo.getCover());
+                } else {
+                    String artworkUrl = messageObject.getArtworkUrl(false);
+                    if (!TextUtils.isEmpty(artworkUrl)) {
+                        zenigramCoverView.setImage(org.telegram.messenger.ImageLocation.getForPath(artworkUrl), "36_36", null, null, null, 0, 1, messageObject);
+                    } else {
+                        zenigramCoverView.setImageDrawable(Theme.createCircleDrawable(dp(36), getThemedColor(Theme.key_inappPlayerPlayPause)));
+                    }
+                }
+            }
             if (lastMessageObject != messageObject || prevStyle != STYLE_AUDIO_PLAYER) {
                 lastMessageObject = messageObject;
-                SpannableStringBuilder stringBuilder;
                 if (lastMessageObject.isVoice() || lastMessageObject.isRoundVideo()) {
                     isMusic = false;
                     if (playbackSpeedButton != null) {
@@ -1969,7 +2058,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                         playbackSpeedButton.setEnabled(true);
                     }
                     titleTextView.setPadding(0, 0, dp(44) + joinButtonWidth, 0);
-                    stringBuilder = new SpannableStringBuilder(String.format("%s %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
+                    SpannableStringBuilder stringBuilder = new SpannableStringBuilder(String.format("%s %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
 
                     for (int i = 0; i < 2; i++) {
                         TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
@@ -1980,34 +2069,46 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                     }
 
                     updatePlaybackButton(false);
+                    TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
+                    stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                    titleTextView.setText(stringBuilder, !create && wasVisible);
                 } else {
                     isMusic = true;
                     if (playbackSpeedButton != null) {
-                        if (messageObject.getDuration() >= 10 * 60) {
-                            playbackSpeedButton.setAlpha(1.0f);
-                            playbackSpeedButton.setEnabled(true);
-                            titleTextView.setPadding(0, 0, dp(44) + joinButtonWidth, 0);
-                            updatePlaybackButton(false);
-                        } else {
-                            playbackSpeedButton.setAlpha(0.0f);
-                            playbackSpeedButton.setEnabled(false);
-                            titleTextView.setPadding(0, 0, joinButtonWidth, 0);
-                        }
-                    } else {
-                        titleTextView.setPadding(0, 0, joinButtonWidth, 0);
+                        playbackSpeedButton.setAlpha(0.0f);
+                        playbackSpeedButton.setEnabled(false);
                     }
-                    stringBuilder = new SpannableStringBuilder(String.format("%s - %s", messageObject.getMusicAuthor(), messageObject.getMusicTitle()));
+                    titleTextView.setPadding(0, 0, 0, 0);
+                    if (subtitleTextView != null) {
+                        subtitleTextView.setPadding(0, 0, 0, 0);
+                    }
+
+                    CharSequence trackTitle = messageObject.getMusicTitle();
+                    CharSequence trackAuthor = messageObject.getMusicAuthor();
+                    if (TextUtils.isEmpty(trackTitle)) trackTitle = "Unknown Title";
+                    if (TextUtils.isEmpty(trackAuthor)) trackAuthor = "Unknown Artist";
+
+                    SpannableStringBuilder titleSb = new SpannableStringBuilder(trackTitle);
+                    titleSb.setSpan(new TypefaceSpan(AndroidUtilities.bold()), 0, titleSb.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+                    titleTextView.setText(titleSb, !create && wasVisible);
+
+                    if (subtitleTextView != null) {
+                        SpannableStringBuilder authorSb = new SpannableStringBuilder(trackAuthor);
+                        subtitleTextView.setText(authorSb, !create && wasVisible);
+                    }
                     for (int i = 0; i < 2; i++) {
-                        TextView textView = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
-                        if (textView == null) {
-                            continue;
+                        TextView tv = i == 0 ? titleTextView.getTextView() : titleTextView.getNextTextView();
+                        if (tv != null) {
+                            tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                            tv.setTypeface(AndroidUtilities.bold());
                         }
-                        textView.setEllipsize(TextUtils.TruncateAt.END);
+                        TextView stv = i == 0 ? subtitleTextView.getTextView() : subtitleTextView.getNextTextView();
+                        if (stv != null) {
+                            stv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 11);
+                            stv.setTextColor(0xAAFFFFFF);
+                        }
                     }
                 }
-                TypefaceSpan span = new TypefaceSpan(AndroidUtilities.bold(), 0, getThemedColor(Theme.key_inappPlayerPerformer));
-                stringBuilder.setSpan(span, 0, messageObject.getMusicAuthor().length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-                titleTextView.setText(stringBuilder, !create && wasVisible && isMusic);
             }
         }
     }

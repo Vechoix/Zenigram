@@ -532,16 +532,13 @@ public class SeekBarView extends FrameLayout {
             }
         }
 
-        if (transitionProgress < 1f) {
-            final float oldCircleProgress = 1f - Easings.easeInQuad.getInterpolation(Math.min(1f, transitionProgress * 3f));
-            final float newCircleProgress = Easings.easeOutQuad.getInterpolation(transitionProgress);
-            if (oldCircleProgress > 0f) {
-                canvas.drawCircle(transitionThumbX + selectorWidth / 2, y + thumbSize / 2, currentRadius * oldCircleProgress, outerPaint1);
-            }
-            canvas.drawCircle(thumbX + selectorWidth / 2, y + thumbSize / 2, currentRadius * newCircleProgress, outerPaint1);
-        } else {
-            canvas.drawCircle(thumbX + selectorWidth / 2, y + thumbSize / 2, currentRadius, outerPaint1);
-        }
+        float cx = thumbX + selectorWidth / 2f;
+        float cy = y + thumbSize / 2f;
+        float pillHalfW = AndroidUtilities.dp(2f);
+        float pillHalfH = AndroidUtilities.dp(8f);
+        float pillR = AndroidUtilities.dp(2f);
+        AndroidUtilities.rectTmp.set(cx - pillHalfW, cy - pillHalfH, cx + pillHalfW, cy + pillHalfH);
+        canvas.drawRoundRect(AndroidUtilities.rectTmp, pillR, pillR, outerPaint1);
 
         drawTimestampLabel(canvas);
 
@@ -699,9 +696,9 @@ public class SeekBarView extends FrameLayout {
         float endX = rect.right;
         seekBarWavePath.moveTo(startX, centerY);
 
-        float waveLength = AndroidUtilities.dp(44f);
-        float waveAmplitude = AndroidUtilities.dp(2.4f);
-        float step = AndroidUtilities.dp(1.2f);
+        float waveLength = AndroidUtilities.dp(40f);
+        float waveAmplitude = AndroidUtilities.dp(2.6f);
+        float step = AndroidUtilities.dp(1.0f);
 
         for (float x = startX; x <= endX; x += step) {
             float phase = (x - startX) / waveLength * (float) (Math.PI * 2);

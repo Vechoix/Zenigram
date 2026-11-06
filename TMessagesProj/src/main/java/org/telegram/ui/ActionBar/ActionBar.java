@@ -472,7 +472,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
             return;
         }
         subtitleTextView = new SimpleTextView(getContext());
-        subtitleTextView.setGravity(Gravity.LEFT);
+        subtitleTextView.setGravity(isCenterTitle ? Gravity.CENTER : Gravity.LEFT);
         subtitleTextView.setVisibility(GONE);
         subtitleTextView.setTextColor(getThemedColor(Theme.key_actionBarDefaultSubtitle));
         addView(subtitleTextView, 0, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
@@ -553,6 +553,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                     titleTextView[a].setGravity(Gravity.CENTER);
                 }
             }
+        }
+        if (subtitleTextView != null) {
+            subtitleTextView.setGravity(Gravity.CENTER);
         }
     }
 
@@ -1544,7 +1547,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                         textTop = (getCurrentActionBarHeight() - titleTextView[i].getTextHeight()) / 2;
                     }
                 }
-                titleTextView[i].layout(textLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), textLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
+                int curLeft = isCenterTitle ? (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2 : textLeft;
+                titleTextView[i].layout(curLeft, additionalTop + textTop - titleTextView[i].getPaddingTop(), curLeft + titleTextView[i].getMeasuredWidth(), additionalTop + textTop + titleTextView[i].getTextHeight() - titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom());
             }
         }
         if (additionalSubTitleOverlayContainer != null) {
@@ -1553,7 +1557,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
         }
         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
-            subtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
+            int curSubLeft = isCenterTitle ? (getMeasuredWidth() - subtitleTextView.getMeasuredWidth()) / 2 : textLeft;
+            subtitleTextView.layout(curSubLeft, additionalTop + textTop, curSubLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
         }
 
         if (additionalSubtitleTextView != null && additionalSubtitleTextView.getVisibility() != GONE) {
